@@ -9,14 +9,14 @@ import re
 class RegistrationForm(UserCreationForm):
     phone = forms.CharField(
         max_length=20,
-        required=True,
+        required=False,  # Сделали необязательным
         label='Номер телефона',
         widget=forms.TextInput(attrs={
-            'placeholder': '+7 (999) 123-45-67',
+            'placeholder': '+7 (999) 123-45-67 (необязательно)',
             'class': 'form-input',
             'id': 'regPhone'
         }),
-        help_text='Введите российский номер телефона'
+        help_text='Российский номер телефона (необязательно)'
     )
 
     class Meta:
@@ -30,15 +30,23 @@ class RegistrationForm(UserCreationForm):
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
 
+        # Если поле пустое - возвращаем пустую строку
+        if not phone or phone.strip() == '':
+            return ''
+
         # Удаляем все нецифровые символы
         phone_digits = re.sub(r'\D', '', phone)
 
+        # Если после очистки ничего не осталось - возвращаем пустую строку
+        if not phone_digits:
+            return ''
+
         # Проверяем базовую длину (российский номер: 11 цифр, включая код страны)
         if len(phone_digits) < 10:
-            raise ValidationError('Номер слишком короткий. Введите 10-11 цифр.')
+            raise ValidationError('Номер слишком короткий. Введите 10-11 цифр или оставьте поле пустым.')
 
         if len(phone_digits) > 11:
-            raise ValidationError('Номер слишком длинный. Введите 10-11 цифр.')
+            raise ValidationError('Номер слишком длинный. Введите 10-11 цифр или оставьте поле пустым.')
 
         # Преобразуем к стандартному формату +7XXXXXXXXXX
         if phone_digits.startswith('8'):
@@ -56,19 +64,14 @@ class RegistrationForm(UserCreationForm):
         if len(phone_digits) != 11:
             raise ValidationError(f'После форматирования получилось {len(phone_digits)} цифр. Нужно 11 цифр.')
 
-        # Форматируем в красивый вид для хранения
-        formatted_phone = f'+7 ({phone_digits[1:4]}) {phone_digits[4:7]}-{phone_digits[7:9]}-{phone_digits[9:]}'
+        formatted_phone = '+' + phone_digits
 
-        # Проверка уникальности
-        if UserProfile.objects.filter(phone=formatted_phone).exists():
-            raise ValidationError('Этот номер телефона уже зарегистрирован')
+        # Проверка уникальности только если номер не пустой
+        if formatted_phone and formatted_phone != '+7' and formatted_phone != '+':
+            if UserProfile.objects.filter(phone=formatted_phone).exists():
+                raise ValidationError('Этот номер телефона уже зарегистрирован')
 
-        # Также проверяем в формате без форматирования
-        simple_phone = '+' + phone_digits
-        if UserProfile.objects.filter(phone=simple_phone).exists():
-            raise ValidationError('Этот номер телефона уже зарегистрирован')
-
-        return simple_phone  # Возвращаем в формате +79199103034
+        return formatted_phone
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
@@ -88,17 +91,22 @@ class RegistrationForm(UserCreationForm):
 
         if commit:
             user.save()
-            # Создаем профиль с телефоном
+            # Получаем или создаем профиль
             profile, created = UserProfile.objects.get_or_create(user=user)
-            profile.phone = self.cleaned_data['phone']
-            profile.generate_verification_code()
-            profile.save()
+
+            # Устанавливаем телефон только если он есть
+            phone = self.cleaned_data.get('phone')
+            if phone:
+                profile.phone = phone
+                profile.generate_verification_code()
+                profile.save()
 
             # Логируем код для отладки (в проде нужно отправлять SMS)
             print(f"=== ДЕБАГ ИНФОРМАЦИЯ ===")
             print(f"Пользователь: {user.username}")
-            print(f"Телефон: {profile.phone}")
-            print(f"Код подтверждения: {profile.verification_code}")
+            print(f"Телефон: {profile.phone if profile.phone else 'не указан'}")
+            if profile.phone:
+                print(f"Код подтверждения: {profile.verification_code}")
             print(f"=======================")
 
         return user
@@ -139,11 +147,11 @@ class LoginForm(forms.Form):
 class ProfileUpdateForm(forms.ModelForm):
     phone = forms.CharField(
         max_length=20,
-        required=True,
+        required=False,  # Сделали необязательным
         label='Номер телефона',
         widget=forms.TextInput(attrs={
             'class': 'form-input',
-            'placeholder': '+7 (999) 123-45-67'
+            'placeholder': '+7 (999) 123-45-67 (необязательно)'
         })
     )
 
@@ -159,12 +167,20 @@ class ProfileUpdateForm(forms.ModelForm):
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
 
+        # Если поле пустое
+        if not phone or phone.strip() == '':
+            return ''
+
         # Удаляем все нецифровые символы
         phone_digits = re.sub(r'\D', '', phone)
 
+        # Если после очистки ничего нет
+        if not phone_digits:
+            return ''
+
         # Проверяем базовую длину
         if len(phone_digits) < 10 or len(phone_digits) > 11:
-            raise ValidationError('Введите 10-11 цифр номера телефона')
+            raise ValidationError('Введите 10-11 цифр номера телефона или оставьте поле пустым')
 
         # Преобразуем к стандартному формату +7XXXXXXXXXX
         if phone_digits.startswith('8'):
@@ -180,8 +196,9 @@ class ProfileUpdateForm(forms.ModelForm):
 
         formatted_phone = '+' + phone_digits
 
-        # Проверка уникальности (исключая текущего пользователя)
-        if (self.instance and
+        # Проверка уникальности (исключая текущего пользователя, и только если номер не пустой)
+        if (formatted_phone and formatted_phone != '+7' and
+                self.instance and
                 hasattr(self.instance, 'profile') and
                 UserProfile.objects.filter(phone=formatted_phone)
                         .exclude(user=self.instance)

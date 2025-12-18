@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import RegexValidator
-import hashlib
 import secrets
 
 
@@ -19,7 +18,8 @@ class UserProfile(models.Model):
     phone = models.CharField(
         validators=[phone_regex],
         max_length=17,
-        unique=True,
+        blank=True,  # Разрешаем пустое поле
+        null=True,   # Разрешаем NULL
         verbose_name='Номер телефона'
     )
 
@@ -34,7 +34,7 @@ class UserProfile(models.Model):
     preferences = models.JSONField(default=dict, blank=True, verbose_name='Предпочтения')
 
     def __str__(self):
-        return f"{self.user.username} - {self.phone}"
+        return f"{self.user.username} - {self.phone or 'без телефона'}"
 
     def generate_verification_code(self):
         """Генерация кода подтверждения телефона"""
@@ -55,14 +55,26 @@ class UserProfile(models.Model):
         return False
 
 
-# Сигналы для автоматического создания профиля
+# ИСПРАВЛЕННЫЕ сигналы для автоматического создания профиля
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
+    """Создать профиль при создании пользователя ИЛИ если его нет"""
     if created:
-        UserProfile.objects.create(user=instance)
+        # Создаем профиль при создании пользователя
+        UserProfile.objects.get_or_create(user=instance)
+    else:
+        # Если пользователь уже существует, но профиля нет - создаем
+        try:
+            instance.profile
+        except UserProfile.DoesNotExist:
+            UserProfile.objects.create(user=instance)
 
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    if hasattr(instance, 'profile'):
+    """Сохранить профиль при сохранении пользователя"""
+    try:
         instance.profile.save()
+    except UserProfile.DoesNotExist:
+        # Если профиля нет - создаем его
+        UserProfile.objects.create(user=instance)
