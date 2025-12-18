@@ -456,7 +456,6 @@ footer {
     }
 }
 
-
 /* Модальные окна */
 .modal {
     display: none;
@@ -677,215 +676,480 @@ footer {
     }
 }
 
-/* Стили для страницы бронирования */
-.booking-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
-    margin-top: 30px;
+/* ========== СТИЛИ ДЛЯ СТРАНИЦЫ БРОНИРОВАНИЯ ========== */
+
+/* Заголовок страницы */
+.page-header {
+    text-align: center;
+    margin: 30px 0 25px 0;
+    padding: 0 20px;
 }
 
-.booking-filters {
+.page-header h1 {
+    color: var(--secondary-color);
+    margin-bottom: 12px;
+    font-size: 2.8rem;
+    font-weight: 700;
+}
+
+.page-header p {
+    color: var(--gray-color);
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    font-weight: 400;
+}
+
+/* Календарь - ГЛАВНЫЙ КОНТЕЙНЕР */
+.calendar-container {
+    background: white;
+    border-radius: 15px;
+    padding: 25px 30px;
+    margin: 20px auto 40px auto;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    width: 95%;
+    max-width: 1200px;
+    border: 2px solid #f0f0f0;
+}
+
+/* КОНТЕЙНЕР КНОПОК И ДНЕЙ - ВЫРАВНИВАЕМ ПО ЦЕНТРУ */
+.week-controls {
+    display: flex;
+    align-items: center; /* ВАЖНО: выравниваем по центру вертикали */
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    height: 90px; /* Фиксированная высота для всех элементов */
+}
+
+/* КНОПКИ НАВИГАЦИИ - ВЫРАВНИВАЕМ С ДНЯМИ */
+.week-arrow {
+    width: 70px;
+    height: 90px;
+    border-radius: 12px;
+    border: 2px solid #eee;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: var(--secondary-color);
+    font-size: 1.8rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.week-arrow:hover {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    border-color: var(--primary-color);
+    color: white;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(158, 240, 26, 0.35);
+}
+
+/* КОНТЕЙНЕР ДЛЯ ДНЕЙ НЕДЕЛИ */
+.week-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex: 1;
+    max-width: 1000px;
+    padding: 0 10px;
+    align-items: center; /* ВАЖНО: выравниваем дни по центру */
+    height: 90px; /* Такая же высота как у кнопок */
+}
+
+/* КАЖДЫЙ ДЕНЬ НЕДЕЛИ - КЛИКАБЕЛЬНЫЙ */
+.week-day {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 15px 8px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s;
+    background: #fafafa;
+    border: 2px solid transparent;
+    min-width: 70px;
+    max-width: 70px;
+    height: 90px; /* Такая же высота как у кнопок */
+    user-select: none;
+}
+
+.week-day:hover {
+    background: rgba(158, 240, 26, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-light);
+}
+
+.week-day .weekday {
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+}
+
+.week-day .daynum {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 800;
+    color: #333;
+    background: white;
+    border: 3px solid transparent;
+    transition: all 0.3s;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Текущий день */
+.week-day.today {
+    background: rgba(158, 240, 26, 0.1);
+}
+
+.week-day.today .daynum {
+    border-color: var(--primary-color);
+    color: var(--primary-dark);
+}
+
+.week-day.today .weekday {
+    color: var(--primary-dark);
+    font-weight: 800;
+}
+
+/* Выбранный день */
+.week-day.selected {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 25px rgba(158, 240, 26, 0.35);
+}
+
+.week-day.selected .daynum {
+    background: white;
+    color: var(--primary-dark);
+    border-color: white;
+    transform: scale(1.15);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.week-day.selected .weekday {
+    color: white;
+    font-weight: 800;
+}
+
+/* Основной контент */
+.booking-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.booking-sections {
+    display: flex;
+    gap: 30px;
+    margin-top: 10px;
+}
+
+.section-left, .section-right {
     flex: 1;
     min-width: 300px;
 }
 
-.booking-slots {
-    flex: 2;
-    min-width: 400px;
+.section-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    border: 2px solid #f5f5f5;
+    height: 100%;
 }
 
-.filter-section {
-    background: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.filter-section h3 {
+.section-card h3 {
     margin-top: 0;
-    margin-bottom: 15px;
-    color: #333;
-    font-size: 1.2rem;
-}
-
-.date-picker {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.courts-list {
+    margin-bottom: 25px;
+    color: var(--secondary-color);
+    font-size: 1.6rem;
+    border-bottom: 3px solid var(--primary-light);
+    padding-bottom: 15px;
+    font-weight: 700;
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-card h3 i {
+    color: var(--primary-color);
+    font-size: 1.4rem;
+}
+
+/* Корты */
+.courts-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
 }
 
 .court-item {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 15px;
+    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+    border: 2px solid #eee;
+    border-radius: 12px;
+    padding: 22px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s;
 }
 
 .court-item:hover {
-    border-color: #3498db;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-light);
 }
 
 .court-item.active {
-    border-color: #3498db;
-    background-color: #ebf7ff;
-    box-shadow: 0 3px 8px rgba(52, 152, 219, 0.2);
+    border-color: var(--primary-color);
+    box-shadow: 0 15px 35px rgba(158, 240, 26, 0.3);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(158, 240, 26, 0.08) 100%);
 }
 
 .court-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 15px;
 }
 
 .court-info h4 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.4rem;
+    color: var(--dark-color);
+    font-weight: 700;
 }
 
 .court-price {
-    font-weight: bold;
-    color: #e74c3c;
+    font-weight: 800;
+    color: var(--secondary-color);
+    font-size: 1.3rem;
+    background: rgba(56, 176, 0, 0.15);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 2px solid rgba(56, 176, 0, 0.2);
 }
 
 .court-description p {
-    margin: 10px 0 0;
-    font-size: 0.9rem;
+    margin: 18px 0 0;
+    font-size: 1rem;
     color: #666;
+    line-height: 1.6;
 }
 
-.time-slots-container {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+/* Сообщение "нет кортов" */
+.no-courts {
+    text-align: center;
+    padding: 50px 30px;
+    color: #777;
+    background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+    border-radius: 12px;
+    border: 3px dashed #ddd;
+    margin: 20px 0;
+    grid-column: 1 / -1;
 }
 
-.time-slots-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 20px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eee;
-    font-weight: bold;
+.no-courts i {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+    color: var(--primary-light);
+    opacity: 0.7;
 }
 
+.no-courts p {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+/* Временные слоты */
 .time-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
     max-height: 500px;
     overflow-y: auto;
-    padding: 10px 0;
+    padding-right: 15px;
+}
+
+.time-slots::-webkit-scrollbar {
+    width: 10px;
+}
+
+.time-slots::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 5px;
+}
+
+.time-slots::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 5px;
 }
 
 .time-slot {
     display: flex;
     justify-content: space-between;
-    padding: 12px 20px;
-    border-bottom: 1px solid #f0f0f0;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.time-slot:last-child {
-    border-bottom: none;
+    align-items: center;
+    padding: 18px 22px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%);
+    transition: all 0.3s;
+    border: 2px solid transparent;
 }
 
 .time-slot.available {
-    background-color: #f8fff8;
+    background: linear-gradient(135deg, #f8fff8 0%, #f0fff0 100%);
+    cursor: pointer;
+    border-color: #e0ffe0;
 }
 
 .time-slot.available:hover {
-    background-color: #e6ffe6;
+    background: linear-gradient(135deg, #e0ffe0 0%, #d0ffd0 100%);
+    transform: translateX(10px);
+    border-color: var(--primary-color);
+    box-shadow: 0 10px 25px rgba(158, 240, 26, 0.35);
 }
 
 .time-slot.unavailable {
-    background-color: #fff8f8;
+    background: linear-gradient(135deg, #fff8f8 0%, #fff0f0 100%);
+    opacity: 0.85;
     cursor: not-allowed;
-    opacity: 0.7;
+    border-color: #ffe0e0;
 }
 
 .slot-time {
-    font-weight: 500;
+    font-weight: 700;
+    color: #333;
+    font-size: 1.2rem;
 }
 
 .slot-status {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    min-width: 100px;
+    text-align: center;
 }
 
 .time-slot.available .slot-status {
-    color: #27ae60;
+    color: var(--success-color);
+    background-color: rgba(40, 167, 69, 0.2);
+    border: 2px solid rgba(40, 167, 69, 0.3);
 }
 
 .time-slot.unavailable .slot-status {
-    color: #e74c3c;
+    color: var(--danger-color);
+    background-color: rgba(220, 53, 69, 0.2);
+    border: 2px solid rgba(220, 53, 69, 0.3);
 }
 
+/* Сообщение "выберите корт" */
 .select-court-date {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 60px 30px;
     color: #777;
     text-align: center;
+    background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+    border-radius: 12px;
+    border: 4px dashed #ddd;
+    margin: 10px 0;
 }
 
 .select-court-date i {
-    font-size: 2rem;
-    margin-bottom: 15px;
-    color: #aaa;
+    font-size: 4rem;
+    margin-bottom: 25px;
+    color: var(--primary-color);
+    opacity: 0.6;
 }
 
+.select-court-date p {
+    margin: 0;
+    font-size: 1.3rem;
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+/* Загрузка */
 .loading {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px 20px;
+    padding: 50px 30px;
     color: #666;
+    background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+    border-radius: 12px;
+    font-size: 1.2rem;
 }
 
 .loading i {
-    margin-right: 10px;
-    font-size: 1.2rem;
+    margin-right: 15px;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .error-message {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px 20px;
-    color: #e74c3c;
+    padding: 50px 30px;
+    color: var(--danger-color);
     text-align: center;
+    background: linear-gradient(135deg, #fff8f8 0%, #fff0f0 100%);
+    border-radius: 12px;
+    border: 2px solid #ffe0e0;
+    font-size: 1.1rem;
+    font-weight: 500;
 }
 
 .error-message i {
-    margin-right: 10px;
-    font-size: 1.2rem;
+    margin-right: 15px;
+    font-size: 1.5rem;
 }
 
-/* Стили для модального окна подтверждения бронирования */
+/* Модальное окно бронирования */
+#bookingConfirmModal .modal-content {
+    max-width: 500px;
+}
+
 .booking-details {
-    background: #f8f9fa;
-    border-radius: 6px;
-    padding: 20px;
-    margin: 20px 0;
+    background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%);
+    border-radius: 10px;
+    padding: 25px;
+    margin: 20px 0 30px;
+    border: 2px solid #eee;
 }
 
 .booking-detail-item {
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
+    padding: 12px 0;
+    border-bottom: 1px solid #e8e8e8;
+    font-size: 1.1rem;
 }
 
 .booking-detail-item:last-child {
@@ -893,47 +1157,207 @@ footer {
 }
 
 .detail-label {
-    font-weight: bold;
+    font-weight: 600;
     color: #555;
+    min-width: 120px;
 }
 
 .detail-value {
     color: #333;
+    font-weight: 700;
+    text-align: right;
+    flex: 1;
 }
 
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-/* Стили для модального окна требования авторизации */
-.login-required {
-    text-align: center;
-    padding: 20px 0;
-}
-
-.login-required i {
-    font-size: 3rem;
-    color: #3498db;
-    margin-bottom: 15px;
-}
-
-.auth-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
+    gap: 20px;
+    margin-top: 30px;
 }
 
 /* Адаптивность */
-@media (max-width: 768px) {
-    .booking-container {
-        flex-direction: column;
+@media (max-width: 1200px) {
+    .booking-sections {
+        gap: 25px;
     }
 
-    .booking-filters, .booking-slots {
+    .calendar-container {
+        padding: 20px 25px;
+        width: 97%;
+    }
+}
+
+@media (max-width: 992px) {
+    .booking-sections {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .section-left, .section-right {
+        width: 100%;
+    }
+
+    .courts-list {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .week-nav {
+        gap: 8px;
+        padding: 0 8px;
+    }
+
+    .week-day {
+        padding: 12px 6px;
+        min-width: 60px;
+        max-width: 60px;
+        height: 80px;
+    }
+
+    .week-day .daynum {
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+    }
+
+    .week-day .weekday {
+        font-size: 13px;
+    }
+
+    .week-arrow {
+        width: 60px;
+        height: 80px;
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 2.2rem;
+    }
+
+    .page-header p {
+        font-size: 1.1rem;
+    }
+
+    .calendar-container {
+        padding: 18px 20px;
+        margin: 0 auto 30px auto;
+        width: 100%;
+        border-radius: 12px;
+    }
+
+    .week-controls {
+        gap: 10px;
+    }
+
+    .week-arrow {
+        width: 50px;
+        height: 70px;
+        font-size: 1.4rem;
+    }
+
+    .week-nav {
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding-bottom: 15px;
+        gap: 10px;
+    }
+
+    .week-day {
+        min-width: 50px;
+        max-width: 50px;
+        height: 70px;
+        flex-shrink: 0;
+        padding: 10px 4px;
+    }
+
+    .week-day .daynum {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .week-day .weekday {
+        font-size: 12px;
+    }
+
+    .section-card {
+        padding: 25px;
+    }
+
+    .section-card h3 {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-header {
+        margin: 20px 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .page-header p {
+        font-size: 1rem;
+    }
+
+    .calendar-container {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .week-controls {
+        gap: 8px;
+    }
+
+    .week-arrow {
+        width: 40px;
+        height: 60px;
+        font-size: 1.2rem;
+    }
+
+    .week-day {
+        min-width: 40px;
+        max-width: 40px;
+        height: 60px;
+        padding: 8px 2px;
+    }
+
+    .week-day .daynum {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .week-day .weekday {
+        font-size: 10px;
+    }
+
+    .section-card {
+        padding: 20px;
+    }
+
+    .courts-list {
+        grid-template-columns: 1fr;
+    }
+
+    .court-info h4 {
+        font-size: 1.2rem;
+    }
+
+    .court-price {
+        font-size: 1.1rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-actions button {
         width: 100%;
     }
 }
