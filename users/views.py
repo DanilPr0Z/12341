@@ -8,6 +8,7 @@ import json
 from django.core.exceptions import ValidationError
 
 from .forms import RegistrationForm, LoginForm
+from .models import UserProfile
 from booking.models import Booking
 
 
@@ -49,6 +50,8 @@ def ajax_register(request):
     except Exception as e:
         # Логируем ошибку для отладки
         print(f"Ошибка при регистрации: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'message': f'Ошибка сервера: {str(e)}'
@@ -58,13 +61,18 @@ def ajax_register(request):
 @require_POST
 @csrf_exempt
 def ajax_login(request):
-    """AJAX вход"""
+    """AJAX вход по username или телефону"""
     try:
         form = LoginForm(request.POST)
 
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            identifier_data = form.cleaned_data.get('identifier')
             password = form.cleaned_data.get('password')
+
+            # Определяем username для аутентификации
+            username = identifier_data['username']
+
+            # Пытаемся аутентифицировать пользователя
             user = authenticate(username=username, password=password)
 
             if user is not None:
@@ -74,14 +82,33 @@ def ajax_login(request):
                     'message': 'Вход выполнен успешно!',
                     'username': user.username
                 })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Неверный пароль'
+                })
+
+        # Возвращаем ошибки формы
+        errors = {}
+        for field, error_list in form.errors.items():
+            errors[field] = [str(error) for error in error_list]
+
+        first_error = ''
+        if errors:
+            first_field = list(errors.keys())[0]
+            if errors[first_field]:
+                first_error = errors[first_field][0]
 
         return JsonResponse({
             'success': False,
-            'message': 'Неверное имя пользователя или пароль'
+            'errors': errors,
+            'message': first_error or 'Пожалуйста, исправьте ошибки в форме'
         })
 
     except Exception as e:
         print(f"Ошибка при входе: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'message': f'Ошибка сервера: {str(e)}'
@@ -93,8 +120,12 @@ def user_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            identifier_data = form.cleaned_data.get('identifier')
             password = form.cleaned_data.get('password')
+
+            # Определяем username для аутентификации
+            username = identifier_data['username']
+
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
@@ -127,9 +158,6 @@ def profile(request):
 def user_logout(request):
     logout(request)
     return redirect('home')
-
-
-from django.views.decorators.http import require_POST
 
 
 @require_POST

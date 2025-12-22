@@ -8,13 +8,16 @@
             {% csrf_token %}
 
             <div class="form-group">
-                <label for="loginUsername">Имя пользователя</label>
-                <input type="text" id="loginUsername" name="username" required>
+                <label for="loginIdentifier">Имя пользователя или телефон</label>
+                <input type="text" id="loginIdentifier" name="identifier" required
+                       placeholder="Введите имя пользователя или номер телефона">
+                <small class="help-text">Можно ввести имя пользователя или номер телефона (+7...)</small>
             </div>
 
             <div class="form-group">
                 <label for="loginPassword">Пароль</label>
-                <input type="password" id="loginPassword" name="password" required>
+                <input type="password" id="loginPassword" name="password" required
+                       placeholder="Введите пароль">
             </div>
 
             <button type="submit" class="btn-primary">Войти</button>
@@ -37,25 +40,29 @@
 
             <div class="form-group">
                 <label for="regUsername">Имя пользователя *</label>
-                <input type="text" id="regUsername" name="username" required minlength="3" maxlength="30">
-                <small>От 3 до 30 символов</small>
+                <input type="text" id="regUsername" name="username" required minlength="3" maxlength="30"
+                       placeholder="Придумайте имя пользователя">
+                <small>От 3 до 30 символов. Только буквы, цифры и @/./+/-/_</small>
             </div>
 
             <div class="form-group">
                 <label for="regPhone">Номер телефона *</label>
-                <input type="tel" id="regPhone" name="phone" required pattern="[\+]\d{1,3}\d{10}" placeholder="+71234567890">
-                <small>Формат: +71234567890</small>
+                <input type="tel" id="regPhone" name="phone" required
+                       placeholder="+7 (999) 123-45-67">
+                <small>Введите российский номер телефона (11 цифр, начинается с +7)</small>
             </div>
 
             <div class="form-group">
                 <label for="regPassword1">Пароль *</label>
-                <input type="password" id="regPassword1" name="password1" required minlength="8">
+                <input type="password" id="regPassword1" name="password1" required minlength="8"
+                       placeholder="Придумайте пароль">
                 <small>Минимум 8 символов</small>
             </div>
 
             <div class="form-group">
                 <label for="regPassword2">Подтверждение пароля *</label>
-                <input type="password" id="regPassword2" name="password2" required>
+                <input type="password" id="regPassword2" name="password2" required
+                       placeholder="Повторите пароль">
             </div>
 
             <button type="submit" class="btn-primary">Зарегистрироваться</button>
@@ -78,7 +85,6 @@
 
             <div class="logout-buttons">
                 <button type="button" class="btn-secondary" id="cancelLogout">Отмена</button>
-                <!-- Изменили: убрали форму, сделали кнопку -->
                 <button type="button" class="btn-danger" id="confirmLogout">Да, выйти</button>
             </div>
         </div>

@@ -3,7 +3,67 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import RegexValidator
-import secrets
+from django.core.exceptions import ValidationError
+from django.db import transaction, IntegrityError
+import re
+
+
+class UserProfileManager(models.Manager):
+    def normalize_phone(self, phone):
+        """Нормализует номер телефона для сравнения"""
+        if not phone:
+            return None
+
+        # Убираем все нецифровые символы
+        digits = re.sub(r'\D', '', str(phone))
+
+        if not digits:
+            return None
+
+        # Нормализуем российский номер
+        if len(digits) == 10 and digits.startswith('9'):
+            digits = '7' + digits
+        elif len(digits) == 11 and digits.startswith('8'):
+            digits = '7' + digits[1:]
+        elif len(digits) == 10:
+            digits = '7' + digits
+
+        # Должно быть 11 цифр для российского номера
+        if len(digits) != 11:
+            return None
+
+        return '+' + digits
+
+    def get_user_by_phone(self, phone):
+        """Найти пользователя по номеру телефона"""
+        # Нормализуем номер
+        normalized_phone = self.normalize_phone(phone)
+        if not normalized_phone:
+            return None
+
+        # Ищем профиль с таким номером
+        try:
+            profile = UserProfile.objects.get(phone=normalized_phone)
+            return profile.user
+        except UserProfile.DoesNotExist:
+            # Пробуем другие форматы
+            phone_digits = normalized_phone[1:]  # Убираем +
+
+            # Формат без + в начале
+            try:
+                profile = UserProfile.objects.get(phone=phone_digits)
+                return profile.user
+            except UserProfile.DoesNotExist:
+                pass
+
+            # Формат с 8 в начале
+            try:
+                profile = UserProfile.objects.get(phone='8' + phone_digits[1:])
+                return profile.user
+            except UserProfile.DoesNotExist:
+                pass
+
+        return None
 
 
 class UserProfile(models.Model):
@@ -18,8 +78,7 @@ class UserProfile(models.Model):
     phone = models.CharField(
         validators=[phone_regex],
         max_length=17,
-        blank=True,  # Разрешаем пустое поле
-        null=True,   # Разрешаем NULL
+        unique=True,  # УНИКАЛЬНЫЙ
         verbose_name='Номер телефона'
     )
 
@@ -33,15 +92,76 @@ class UserProfile(models.Model):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name='Аватар')
     preferences = models.JSONField(default=dict, blank=True, verbose_name='Предпочтения')
 
+    objects = UserProfileManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['phone']),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['phone'],
+                name='unique_userprofile_phone'
+            )
+        ]
+
     def __str__(self):
-        return f"{self.user.username} - {self.phone or 'без телефона'}"
+        return f"{self.user.username} - {self.phone}"
+
+    def clean(self):
+        """Проверка перед сохранением - строгая проверка уникальности"""
+        super().clean()
+
+        if not self.phone:
+            raise ValidationError({'phone': 'Номер телефона обязателен'})
+
+        # Нормализуем телефон для проверки
+        normalized = self.__class__.objects.normalize_phone(self.phone)
+        if not normalized:
+            raise ValidationError({'phone': 'Неверный формат номера телефона'})
+
+        # Проверяем уникальность
+        qs = UserProfile.objects.filter(phone=normalized)
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
+
+        if qs.exists():
+            existing_users = [p.user.username for p in qs]
+            raise ValidationError({
+                'phone': f'Номер телефона {normalized} уже используется пользователями: {", ".join(existing_users)}'
+            })
+
+        # Устанавливаем нормализованный номер
+        self.phone = normalized
+
+    def save(self, *args, **kwargs):
+        """Сохраняем с атомарной проверкой уникальности"""
+        # Всегда вызываем clean для валидации
+        self.full_clean()
+
+        # Сохраняем с блокировкой транзакции
+        try:
+            with transaction.atomic():
+                super().save(*args, **kwargs)
+        except IntegrityError as e:
+            # Ловим ошибку уникальности из базы данных
+            if 'unique' in str(e).lower() or 'phone' in str(e).lower():
+                # Пытаемся найти, кто уже использует этот телефон
+                try:
+                    existing = UserProfile.objects.get(phone=self.phone)
+                    raise ValidationError({
+                        'phone': f'Номер телефона {self.phone} уже используется пользователем {existing.user.username}'
+                    })
+                except UserProfile.DoesNotExist:
+                    raise ValidationError({
+                        'phone': f'Номер телефона {self.phone} уже зарегистрирован'
+                    })
+            raise
 
     def generate_verification_code(self):
         """Генерация кода подтверждения телефона"""
-        self.verification_code = secrets.choice('1234567890') + \
-                                 secrets.choice('1234567890') + \
-                                 secrets.choice('1234567890') + \
-                                 secrets.choice('1234567890')
+        import random
+        self.verification_code = f"{random.randint(1000, 9999)}"
         self.save()
         return self.verification_code
 
@@ -55,26 +175,32 @@ class UserProfile(models.Model):
         return False
 
 
-# ИСПРАВЛЕННЫЕ сигналы для автоматического создания профиля
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Создать профиль при создании пользователя ИЛИ если его нет"""
-    if created:
-        # Создаем профиль при создании пользователя
-        UserProfile.objects.get_or_create(user=instance)
-    else:
-        # Если пользователь уже существует, но профиля нет - создаем
+    """Создать профиль при создании пользователя"""
+    # Пропускаем создание профиля, если он уже создается через форму регистрации
+    if created and not getattr(instance, '_creating_profile_via_form', False):
         try:
-            instance.profile
-        except UserProfile.DoesNotExist:
-            UserProfile.objects.create(user=instance)
+            with transaction.atomic():
+                import time
+                # Генерируем уникальный временный телефон
+                timestamp = int(time.time() * 1000) % 1000000
+                base_phone = f'+7980{timestamp:06d}'
 
+                # Убеждаемся в уникальности
+                phone = base_phone
+                counter = 1
+                while UserProfile.objects.filter(phone=phone).exists() and counter < 100:
+                    phone = f'+7980{(timestamp + counter) % 1000000:06d}'
+                    counter += 1
 
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """Сохранить профиль при сохранении пользователя"""
-    try:
-        instance.profile.save()
-    except UserProfile.DoesNotExist:
-        # Если профиля нет - создаем его
-        UserProfile.objects.create(user=instance)
+                if counter >= 100:
+                    # Если не удалось найти уникальный, генерируем случайный
+                    import random
+                    phone = f'+7980{random.randint(1000000, 9999999)}'
+
+                UserProfile.objects.create(user=instance, phone=phone)
+        except Exception as e:
+            # Если ошибка, логируем но не падаем
+            import sys
+            print(f"Ошибка создания профиля для {instance.username}: {e}", file=sys.stderr)

@@ -10,13 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelLogoutBtn = document.getElementById('cancelLogout');
     const confirmLogoutBtn = document.getElementById('confirmLogout');
 
-    // URLs (должны быть определены в шаблоне или хардкодим)
-    const URLS = {
-        logout: '/users/logout/',
-        ajax_login: '/users/ajax/login/',
-        ajax_register: '/users/ajax/register/'
-    };
-
     // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 
     function getCookie(name) {
@@ -157,7 +150,14 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Вход...';
 
-            fetch(URLS.ajax_login, {
+            // Очищаем старые ошибки
+            document.querySelectorAll('.error-message').forEach(error => error.remove());
+            document.querySelectorAll('.form-input').forEach(input => {
+                input.style.borderColor = '';
+                input.style.boxShadow = '';
+            });
+
+            fetch('/users/ajax/login/', {
                 method: 'POST',
                 body: new FormData(loginForm),
                 headers: {
@@ -166,16 +166,70 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
+                console.log('Ответ сервера при входе:', data);
+
                 if (data.success) {
                     showMessage('success', data.message);
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    showMessage('error', data.message);
+                    // Отображаем ошибки полей
+                    if (data.errors) {
+                        for (const field in data.errors) {
+                            const input = document.querySelector(`[name="${field}"]`);
+                            if (input) {
+                                const fieldErrors = data.errors[field];
+                                if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+                                    const errorText = fieldErrors[0];
+
+                                    const errorDiv = document.createElement('div');
+                                    errorDiv.className = 'error-message';
+                                    errorDiv.style.cssText = `
+                                        color: #dc3545;
+                                        font-size: 14px;
+                                        margin-top: 5px;
+                                        padding: 5px 10px;
+                                        background-color: #f8d7da;
+                                        border-radius: 4px;
+                                        border-left: 3px solid #dc3545;
+                                    `;
+                                    errorDiv.textContent = errorText;
+
+                                    // Добавляем после поля
+                                    const parent = input.parentNode;
+                                    if (parent.querySelector('.error-message')) {
+                                        parent.querySelector('.error-message').remove();
+                                    }
+                                    parent.appendChild(errorDiv);
+
+                                    // Добавляем красную рамку полю с ошибкой
+                                    input.style.borderColor = '#dc3545';
+                                    input.style.boxShadow = '0 0 0 0.2rem rgba(220,53,69,.25)';
+
+                                    // Убираем красную рамку при исправлении
+                                    const cleanup = function() {
+                                        this.style.borderColor = '';
+                                        this.style.boxShadow = '';
+                                        const errorMsg = this.parentNode.querySelector('.error-message');
+                                        if (errorMsg) errorMsg.remove();
+                                        this.removeEventListener('input', cleanup);
+                                    };
+                                    input.addEventListener('input', cleanup);
+                                }
+                            }
+                        }
+                    }
+
+                    // Показываем общее сообщение об ошибке
+                    if (data.message) {
+                        showMessage('error', data.message);
+                    }
+
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
                 }
             })
             .catch(error => {
+                console.error('Error:', error);
                 showMessage('error', 'Ошибка при входе');
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
@@ -184,94 +238,114 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==================== AJAX РЕГИСТРАЦИЯ ====================
-// ==================== AJAX РЕГИСТРАЦИЯ (ИСПРАВЛЕННАЯ) ====================
-const registerForm = document.getElementById('registerForm');
-if (registerForm) {
-    registerForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-        const formData = new FormData(registerForm);
-        const submitBtn = registerForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
+            const formData = new FormData(registerForm);
+            const submitBtn = registerForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
 
-        // Показываем индикатор загрузки
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Регистрация...';
+            // Показываем индикатор загрузки
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Регистрация...';
 
-        fetch('/users/ajax/register/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Ответ сервера:', data); // Для отладки
+            // Очищаем старые ошибки
+            document.querySelectorAll('.error-message').forEach(error => error.remove());
+            document.querySelectorAll('.form-input').forEach(input => {
+                input.style.borderColor = '';
+                input.style.boxShadow = '';
+            });
 
-            if (data.success) {
-                showMessage('success', data.message);
-                closeAllModals();
+            fetch('/users/ajax/register/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Ответ сервера:', data);
 
-                // Обновляем страницу через 1.5 секунды
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                // Очищаем старые ошибки
-                document.querySelectorAll('.error-message').forEach(error => error.remove());
+                if (data.success) {
+                    showMessage('success', data.message);
+                    closeAllModals();
 
-                // ИСПРАВЛЕНО: правильное отображение ошибок
-                if (data.errors) {
-                    for (const field in data.errors) {
-                        const input = document.querySelector(`[name="${field}"]`);
-                        if (input) {
-                            // Получаем массив ошибок для этого поля
-                            const fieldErrors = data.errors[field];
+                    // Обновляем страницу через 1.5 секунды
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    // Отображаем ошибки полей
+                    if (data.errors) {
+                        for (const field in data.errors) {
+                            const input = document.querySelector(`[name="${field}"]`);
+                            if (input) {
+                                const fieldErrors = data.errors[field];
+                                if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+                                    const errorText = fieldErrors[0];
 
-                            // Берем первую ошибку (обычно там только одна)
-                            if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
-                                const errorText = fieldErrors[0];
+                                    const errorDiv = document.createElement('div');
+                                    errorDiv.className = 'error-message';
+                                    errorDiv.style.cssText = `
+                                        color: #dc3545;
+                                        font-size: 14px;
+                                        margin-top: 5px;
+                                        padding: 5px 10px;
+                                        background-color: #f8d7da;
+                                        border-radius: 4px;
+                                        border-left: 3px solid #dc3545;
+                                    `;
+                                    errorDiv.textContent = errorText;
 
-                                const errorDiv = document.createElement('div');
-                                errorDiv.className = 'error-message';
-                                errorDiv.textContent = errorText;
-                                input.parentNode.appendChild(errorDiv);
+                                    // Добавляем после поля
+                                    const parent = input.parentNode;
+                                    if (parent.querySelector('.error-message')) {
+                                        parent.querySelector('.error-message').remove();
+                                    }
+                                    parent.appendChild(errorDiv);
 
-                                // Добавляем красную рамку полю с ошибкой
-                                input.style.borderColor = '#dc3545';
-                                input.style.boxShadow = '0 0 0 0.2rem rgba(220,53,69,.25)';
+                                    // Добавляем красную рамку полю с ошибкой
+                                    input.style.borderColor = '#dc3545';
+                                    input.style.boxShadow = '0 0 0 0.2rem rgba(220,53,69,.25)';
 
-                                // Убираем красную рамку при исправлении
-                                input.addEventListener('input', function() {
-                                    this.style.borderColor = '';
-                                    this.style.boxShadow = '';
-                                    const errorMsg = this.parentNode.querySelector('.error-message');
-                                    if (errorMsg) errorMsg.remove();
-                                }, { once: true });
+                                    // Убираем красную рамку при исправлении
+                                    const cleanup = function() {
+                                        this.style.borderColor = '';
+                                        this.style.boxShadow = '';
+                                        const errorMsg = this.parentNode.querySelector('.error-message');
+                                        if (errorMsg) errorMsg.remove();
+                                        this.removeEventListener('input', cleanup);
+                                    };
+                                    input.addEventListener('input', cleanup);
+                                }
                             }
                         }
                     }
+
+                    // Показываем общее сообщение об ошибке
+                    if (data.message) {
+                        showMessage('error', data.message);
+                    }
+
+                    // Восстанавливаем кнопку
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
                 }
-
-                // Показываем общее сообщение об ошибке
-                showMessage('error', data.message || 'Пожалуйста, исправьте ошибки');
-
-                // Восстанавливаем кнопку
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('error', 'Произошла ошибка при регистрации');
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showMessage('error', 'Произошла ошибка при регистрации');
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
+            });
         });
-    });
-}
-    // ==================== ВЫХОД ИЗ АККАУНТА (ФИКСИРОВАННЫЙ) ====================
+    }
+
+    // ==================== ВЫХОД ИЗ АККАУНТА ====================
     if (confirmLogoutBtn) {
         confirmLogoutBtn.addEventListener('click', function() {
             const originalText = confirmLogoutBtn.textContent;
@@ -281,7 +355,7 @@ if (registerForm) {
             // Создаем форму для POST запроса
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = URLS.logout;  // Используем хардкодный URL
+            form.action = '/users/logout/';
             form.style.display = 'none';
 
             // CSRF токен
@@ -292,10 +366,9 @@ if (registerForm) {
             form.appendChild(csrfInput);
 
             document.body.appendChild(form);
-            form.submit();  // Отправляем форму
+            form.submit();
         });
     }
-
 
     // ==================== ВЫПАДАЮЩЕЕ МЕНЮ ====================
     const userDropdowns = document.querySelectorAll('.user-dropdown');
