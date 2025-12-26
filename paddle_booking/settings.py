@@ -141,3 +141,5 @@ LOG_DIR = os.path.join(BASE_DIR, 'logs')
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
     print(f"✅ Создана папка для логов: {LOG_DIR}")
+
+CORS_ALLOW_ALL_ORIGINS = True
