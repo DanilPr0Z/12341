@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             closeAllModals();
             if (loginModal) loginModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
         });
     }
 
@@ -93,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             closeAllModals();
             if (registerModal) registerModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
         });
     }
 
@@ -101,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             closeAllModals();
             if (logoutModal) logoutModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
         });
     }
 
@@ -115,16 +118,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    if (cancelLogoutBtn) {
-        cancelLogoutBtn.addEventListener('click', closeAllModals);
-    }
-
     // Переключение между формами
     document.querySelectorAll('.switch-to-register').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             closeAllModals();
-            if (registerModal) registerModal.style.display = 'block';
+            if (registerModal) {
+                registerModal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
         });
     });
 
@@ -132,7 +134,10 @@ document.addEventListener('DOMContentLoaded', function() {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             closeAllModals();
-            if (loginModal) loginModal.style.display = 'block';
+            if (loginModal) {
+                loginModal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
         });
     });
 
@@ -346,27 +351,50 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==================== ВЫХОД ИЗ АККАУНТА ====================
+    if (cancelLogoutBtn) {
+        cancelLogoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            closeAllModals();
+        });
+    }
+
     if (confirmLogoutBtn) {
-        confirmLogoutBtn.addEventListener('click', function() {
+        confirmLogoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
             const originalText = confirmLogoutBtn.textContent;
             confirmLogoutBtn.disabled = true;
             confirmLogoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Выход...';
 
-            // Создаем форму для POST запроса
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/users/logout/';
-            form.style.display = 'none';
-
-            // CSRF токен
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrfmiddlewaretoken';
-            csrfInput.value = getCookie('csrftoken');
-            form.appendChild(csrfInput);
-
-            document.body.appendChild(form);
-            form.submit();
+            // Используем AJAX запрос для выхода
+            fetch('/users/ajax/logout/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('success', data.message);
+                    // Закрываем модальное окно только после успешного выхода
+                    if (logoutModal) logoutModal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                    // Обновляем страницу через 1.5 секунды
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showMessage('error', data.message || 'Ошибка при выходе');
+                    confirmLogoutBtn.disabled = false;
+                    confirmLogoutBtn.textContent = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('error', 'Ошибка сети при выходе');
+                confirmLogoutBtn.disabled = false;
+                confirmLogoutBtn.textContent = originalText;
+            });
         });
     }
 
