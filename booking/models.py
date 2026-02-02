@@ -151,16 +151,17 @@ class Booking(models.Model):
         participants.extend(list(self.partners.all()))
         return participants
 
-    def can_join(self, user, skip_rating_check=False):
+    def can_join(self, user, skip_rating_check=False, skip_partner_search_check=False):
         """Проверка, может ли пользователь присоединиться к бронированию
 
         Args:
             user: Пользователь, который хочет присоединиться
             skip_rating_check: Пропустить проверку рейтинга (для приглашенных)
+            skip_partner_search_check: Пропустить проверку looking_for_partner (для приглашенных)
         """
         # Нельзя присоединиться если:
-        # 1. Бронирование не ищет партнёров
-        if not self.looking_for_partner:
+        # 1. Бронирование не ищет партнёров (пропускается для приглашений)
+        if not skip_partner_search_check and not self.looking_for_partner:
             return False, "Бронирование не ищет партнёров"
 
         # 2. Бронирование уже заполнено
@@ -507,8 +508,8 @@ class BookingInvitation(models.Model):
         if not self.invitee:
             return False, "Пользователь не найден"
 
-        # Проверяем, можно ли присоединиться (пропускаем проверку рейтинга для приглашенных)
-        can_join, message = self.booking.can_join(self.invitee, skip_rating_check=True)
+        # Проверяем, можно ли присоединиться (пропускаем проверку рейтинга и поиска партнёров для приглашенных)
+        can_join, message = self.booking.can_join(self.invitee, skip_rating_check=True, skip_partner_search_check=True)
         if not can_join:
             return False, message
 

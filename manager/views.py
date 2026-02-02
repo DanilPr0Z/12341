@@ -4,7 +4,7 @@ Manager App Views
 """
 
 from django.shortcuts import render, get_object_or_404
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -16,21 +16,31 @@ from booking.models import Booking, Court
 from booking.analytics import get_financial_stats, get_occupancy_stats, get_clients_stats
 
 
-@staff_member_required
+# Custom decorator to replace staff_member_required
+def staff_required(view_func):
+    """Decorator that checks if user is staff, redirects to login if not"""
+    decorated_view = user_passes_test(
+        lambda u: u.is_active and u.is_staff,
+        login_url='/users/login/'
+    )(view_func)
+    return decorated_view
+
+
+@staff_required
 def dashboard(request):
     """Главная страница менеджера с метриками"""
     context = {'current_page': 'dashboard'}
     return render(request, 'manager/dashboard.html', context)
 
 
-@staff_member_required
+@staff_required
 def bookings_list(request):
     """Список бронирований с фильтрами и поиском"""
     context = {'current_page': 'bookings'}
     return render(request, 'manager/bookings.html', context)
 
 
-@staff_member_required
+@staff_required
 def schedule(request):
     """Расписание кортов и тренеров"""
     courts = Court.objects.filter(is_available=True).order_by('name')
@@ -38,28 +48,28 @@ def schedule(request):
     return render(request, 'manager/schedule.html', context)
 
 
-@staff_member_required
+@staff_required
 def analytics(request):
     """Детальная аналитика"""
     context = {'current_page': 'analytics'}
     return render(request, 'manager/analytics.html', context)
 
 
-@staff_member_required
+@staff_required
 def users_list(request):
     """Управление пользователями"""
     context = {'current_page': 'users'}
     return render(request, 'manager/users.html', context)
 
 
-@staff_member_required
+@staff_required
 def courts_list(request):
     """Управление кортами"""
     context = {'current_page': 'courts'}
     return render(request, 'manager/courts.html', context)
 
 
-@staff_member_required
+@staff_required
 def api_metrics(request):
     """API: Получить основные метрики для dashboard"""
     try:
@@ -109,7 +119,7 @@ def api_metrics(request):
 # API ENDPOINTS FOR BOOKINGS
 # =============================================================================
 
-@staff_member_required
+@staff_required
 def api_bookings_list(request):
     """API: Список всех бронирований"""
     try:
@@ -153,7 +163,7 @@ def api_bookings_list(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 def api_booking_detail(request, booking_id):
     """API: Детали конкретного бронирования"""
     try:
@@ -183,7 +193,7 @@ def api_booking_detail(request, booking_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_booking_confirm(request, booking_id):
     """API: Подтвердить бронирование"""
@@ -204,7 +214,7 @@ def api_booking_confirm(request, booking_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_booking_cancel(request, booking_id):
     """API: Отменить бронирование"""
@@ -225,7 +235,7 @@ def api_booking_cancel(request, booking_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 def api_courts_list(request):
     """API: Список всех кортов"""
     try:
@@ -257,7 +267,7 @@ def api_courts_list(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 def api_court_detail(request, court_id):
     """API: Детали конкретного корта"""
     try:
@@ -286,7 +296,7 @@ def api_court_detail(request, court_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_court_create(request):
     """API: Создать новый корт"""
@@ -337,7 +347,7 @@ def api_court_create(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_court_update(request, court_id):
     """API: Обновить корт"""
@@ -382,7 +392,7 @@ def api_court_update(request, court_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_court_delete(request, court_id):
     """API: Удалить корт"""
@@ -413,7 +423,7 @@ def api_court_delete(request, court_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 def api_bookings_export(request):
     """API: Экспорт бронирований в CSV"""
     try:
@@ -452,7 +462,7 @@ def api_bookings_export(request):
 # API ENDPOINTS FOR ANALYTICS
 # =============================================================================
 
-@staff_member_required
+@staff_required
 def api_analytics(request):
     """API: Полная аналитика"""
     try:
@@ -474,7 +484,7 @@ def api_analytics(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 def api_analytics_export(request):
     """API: Экспорт аналитики в CSV"""
     try:
@@ -517,7 +527,7 @@ def api_analytics_export(request):
 # API ENDPOINTS FOR USERS
 # =============================================================================
 
-@staff_member_required
+@staff_required
 def api_users_list(request):
     """API: Список всех пользователей"""
     try:
@@ -594,7 +604,7 @@ def api_users_list(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 def api_user_detail(request, user_id):
     """API: Детали конкретного пользователя"""
     try:
@@ -615,9 +625,13 @@ def api_user_detail(request, user_id):
 
         rating_level = None
         rating_progress = 0
+        numeric_rating = None
+        coach_comment = ''
         if hasattr(user, 'rating'):
             rating_level = user.rating.level
             rating_progress = user.rating.get_progress_percentage()
+            numeric_rating = float(user.rating.numeric_rating)
+            coach_comment = user.rating.coach_comment or ''
 
         user_data = {
             'id': user.id,
@@ -627,6 +641,8 @@ def api_user_detail(request, user_id):
             'email_verified': email_verified,
             'rating_level': rating_level,
             'rating_progress': rating_progress,
+            'numeric_rating': numeric_rating,
+            'coach_comment': coach_comment,
             'full_name': user.get_full_name(),
             'first_name': user.first_name,
             'last_name': user.last_name,
@@ -647,7 +663,7 @@ def api_user_detail(request, user_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 def api_users_export(request):
     """API: Экспорт пользователей в CSV"""
     try:
@@ -685,7 +701,7 @@ def api_users_export(request):
         return HttpResponse(f'Ошибка: {str(e)}', status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_user_create(request):
     """API: Создать нового пользователя"""
@@ -701,7 +717,8 @@ def api_user_create(request):
         password = data.get('password', '').strip()
         phone_number = data.get('phone_number', '').strip()
         email_verified = data.get('email_verified', False)
-        rating_level = data.get('rating_level')
+        numeric_rating = data.get('numeric_rating')
+        coach_comment = data.get('coach_comment', '')
         first_name = data.get('first_name', '').strip()
         last_name = data.get('last_name', '').strip()
         is_staff = data.get('is_staff', False)
@@ -757,18 +774,12 @@ def api_user_create(request):
                 email_verified=email_verified
             )
 
-        # Обновление рейтинга если указан уровень (рейтинг создается автоматически через сигнал)
-        if rating_level:
-            # Находим соответствующий numeric_rating для уровня
-            level_to_rating = {
-                'D': 1.25, 'D+': 2.00, 'C-': 2.80, 'C': 3.30, 'C+': 3.80,
-                'B-': 4.30, 'B': 4.80, 'B+': 5.30, 'A': 6.00, 'PRO': 6.80
-            }
-            numeric_rating = level_to_rating.get(rating_level, 1.00)
-
+        # Обновление рейтинга если указан (рейтинг создается автоматически через сигнал)
+        if numeric_rating:
             # Рейтинг уже создан сигналом, просто обновляем его
             rating = PlayerRating.objects.get(user=user)
             rating.numeric_rating = numeric_rating
+            rating.coach_comment = coach_comment
             rating.updated_by = request.user
             rating.save()
 
@@ -786,7 +797,7 @@ def api_user_create(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_user_update(request, user_id):
     """API: Обновить пользователя"""
@@ -844,32 +855,29 @@ def api_user_update(request, user_id):
                 )
 
         # Обновление рейтинга
-        if 'rating_level' in data:
-            rating_level = data['rating_level']
-            if rating_level:
-                # Находим соответствующий numeric_rating для уровня
-                level_to_rating = {
-                    'D': 1.25, 'D+': 2.00, 'C-': 2.80, 'C': 3.30, 'C+': 3.80,
-                    'B-': 4.30, 'B': 4.80, 'B+': 5.30, 'A': 6.00, 'PRO': 6.80
-                }
-                numeric_rating = level_to_rating.get(rating_level, 1.00)
+        if 'numeric_rating' in data:
+            numeric_rating = data['numeric_rating']
+            coach_comment = data.get('coach_comment', '')
 
+            if numeric_rating:
                 if hasattr(user, 'rating'):
                     old_rating = user.rating.numeric_rating
                     user.rating.numeric_rating = numeric_rating
+                    user.rating.coach_comment = coach_comment
                     user.rating.updated_by = request.user
                     user.rating.save()
                     # Добавляем в историю
                     user.rating.add_to_history(
-                        old_rating=old_rating,
-                        new_rating=numeric_rating,
+                        old_rating=float(old_rating),
+                        new_rating=float(numeric_rating),
                         updated_by=request.user,
-                        comment='Обновлено через админ-панель'
+                        comment=coach_comment or 'Обновлено через админ-панель'
                     )
                 else:
                     PlayerRating.objects.create(
                         user=user,
                         numeric_rating=numeric_rating,
+                        coach_comment=coach_comment,
                         updated_by=request.user
                     )
 
@@ -892,7 +900,7 @@ def api_user_update(request, user_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_user_delete(request, user_id):
     """API: Удалить пользователя"""
@@ -924,7 +932,7 @@ def api_user_delete(request, user_id):
 # API ENDPOINTS FOR SCHEDULE
 # =============================================================================
 
-@staff_member_required
+@staff_required
 def api_schedule(request):
     """API: Расписание на конкретную дату"""
     try:
@@ -969,7 +977,7 @@ def api_schedule(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 def api_schedule_events(request):
     """API: События для FullCalendar (неделя)"""
     try:
@@ -979,6 +987,7 @@ def api_schedule_events(request):
         start_str = request.GET.get('start')
         end_str = request.GET.get('end')
         court_id = request.GET.get('court_id')
+        trainer_id = request.GET.get('trainer_id')
 
         # Проверка обязательных параметров
         if not start_str or not end_str:
@@ -1019,6 +1028,10 @@ def api_schedule_events(request):
         if court_id:
             bookings = bookings.filter(court_id=court_id)
 
+        # Дополнительный фильтр по тренеру
+        if trainer_id:
+            bookings = bookings.filter(coach_id=trainer_id)
+
         # Формируем события для FullCalendar
         events = []
         for booking in bookings:
@@ -1050,7 +1063,7 @@ def api_schedule_events(request):
         }, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_booking_update_time(request, booking_id):
     """API: Обновить время бронирования (drag-and-drop)"""
@@ -1105,7 +1118,7 @@ def api_booking_update_time(request, booking_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_booking_create(request):
     """API: Создать новое бронирование"""
@@ -1213,7 +1226,7 @@ def api_booking_create(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_booking_update(request, booking_id):
     """API: Обновить бронирование"""
@@ -1301,7 +1314,7 @@ def api_booking_update(request, booking_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def api_booking_delete(request, booking_id):
     """API: Удалить бронирование"""
@@ -1315,5 +1328,552 @@ def api_booking_delete(request, booking_id):
             'success': True,
             'message': f'Бронирование {booking_info} успешно удалено'
         })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+# ============================================================================
+# TRAINERS API
+# ============================================================================
+
+@staff_required
+def api_trainers_list(request):
+    """API: Список всех тренеров"""
+    try:
+        from django.contrib.auth.models import User
+        from users.models import CoachProfile
+
+        # Получаем всех тренеров
+        trainers = CoachProfile.objects.select_related('user').all().order_by('-created_at')
+
+        # Формируем данные
+        trainers_data = []
+        for coach in trainers:
+            user = coach.user
+            
+            # Подсчитываем учеников
+            students_count = user.players.filter(is_active=True).count()
+            
+            # Подсчитываем тренировки
+            from users.models import TrainingSession
+            sessions = TrainingSession.objects.filter(coach=user)
+            sessions_count = sessions.count()
+            
+            # Подсчитываем часы (если есть завершенные сессии)
+            total_hours = 0
+            for session in sessions.filter(status='completed'):
+                start_dt = datetime.combine(session.date, session.start_time)
+                end_dt = datetime.combine(session.date, session.end_time)
+                duration = (end_dt - start_dt).total_seconds() / 3600
+                total_hours += duration
+
+            trainers_data.append({
+                'id': coach.id,
+                'user_id': user.id,
+                'user_username': user.username,
+                'user_email': user.email,
+                'user_first_name': user.first_name,
+                'user_last_name': user.last_name,
+                'user_full_name': user.get_full_name(),
+                'user_phone': user.profile.phone if hasattr(user, 'profile') else None,
+                'qualifications': coach.qualifications,
+                'specialization': coach.specialization,
+                'experience_years': coach.experience_years,
+                'hourly_rate': float(coach.hourly_rate),
+                'is_active': coach.is_active,
+                'bio': coach.bio,
+                'coach_rating': float(coach.coach_rating),
+                'students_count': students_count,
+                'sessions_count': sessions_count,
+                'total_hours': round(total_hours, 1),
+            })
+
+        # Статистика
+        stats = {
+            'total_trainers': trainers.count(),
+            'active_trainers': trainers.filter(is_active=True).count(),
+            'total_students': sum(t['students_count'] for t in trainers_data),
+            'total_hours': round(sum(t['total_hours'] for t in trainers_data), 1),
+        }
+
+        return JsonResponse({
+            'success': True,
+            'trainers': trainers_data,
+            'stats': stats
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+def api_trainer_detail(request, trainer_id):
+    """API: Детали конкретного тренера"""
+    try:
+        from users.models import CoachProfile, TrainingSession
+        
+        coach = get_object_or_404(CoachProfile.objects.select_related('user'), id=trainer_id)
+        user = coach.user
+        
+        # Подсчитываем учеников
+        students_count = user.players.filter(is_active=True).count()
+        
+        # Подсчитываем тренировки
+        sessions = TrainingSession.objects.filter(coach=user)
+        sessions_count = sessions.count()
+        
+        # Подсчитываем часы
+        total_hours = 0
+        for session in sessions.filter(status='completed'):
+            start_dt = datetime.combine(session.date, session.start_time)
+            end_dt = datetime.combine(session.date, session.end_time)
+            duration = (end_dt - start_dt).total_seconds() / 3600
+            total_hours += duration
+
+        trainer_data = {
+            'id': coach.id,
+            'user_id': user.id,
+            'user_username': user.username,
+            'user_email': user.email,
+            'user_first_name': user.first_name,
+            'user_last_name': user.last_name,
+            'user_full_name': user.get_full_name(),
+            'user_phone': user.profile.phone if hasattr(user, 'profile') else None,
+            'qualifications': coach.qualifications,
+            'specialization': coach.specialization,
+            'experience_years': coach.experience_years,
+            'hourly_rate': float(coach.hourly_rate),
+            'is_active': coach.is_active,
+            'bio': coach.bio,
+            'coach_rating': float(coach.coach_rating),
+            'students_count': students_count,
+            'sessions_count': sessions_count,
+            'total_hours': round(total_hours, 1),
+        }
+
+        return JsonResponse({
+            'success': True,
+            'trainer': trainer_data
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+@require_POST
+def api_trainer_create(request):
+    """API: Создать нового тренера"""
+    try:
+        import json
+        from django.contrib.auth.models import User
+        from users.models import CoachProfile, UserProfile
+
+        data = json.loads(request.body)
+
+        # Проверяем, выбран ли существующий пользователь или создаем нового
+        user_id = data.get('user_id')
+        
+        if user_id:
+            # Используем существующего пользователя
+            user = get_object_or_404(User, id=user_id)
+            
+            # Проверяем, не является ли уже тренером
+            if hasattr(user, 'coach_profile'):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Этот пользователь уже является тренером'
+                }, status=400)
+            
+            # Делаем пользователя staff
+            user.is_staff = True
+            user.save()
+        else:
+            # Создаем нового пользователя
+            first_name = data.get('first_name', '').strip()
+            last_name = data.get('last_name', '').strip()
+            email = data.get('email', '').strip()
+            phone = data.get('phone', '').strip()
+
+            if not first_name or not last_name or not email or not phone:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Заполните все обязательные поля для нового пользователя'
+                }, status=400)
+
+            # Генерируем username из имени и фамилии
+            username = f"{first_name.lower()}.{last_name.lower()}"
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{first_name.lower()}.{last_name.lower()}{counter}"
+                counter += 1
+
+            # Проверка на существование email
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Пользователь с таким email уже существует'
+                }, status=400)
+
+            # Создаем пользователя
+            import random
+            import string
+            temp_password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+            
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=temp_password,
+                first_name=first_name,
+                last_name=last_name,
+                is_staff=True,
+                is_active=True
+            )
+
+            # Создаем/обновляем профиль
+            if hasattr(user, 'profile'):
+                user.profile.phone = phone
+                user.profile.save()
+            else:
+                UserProfile.objects.create(user=user, phone=phone)
+
+        # Создаем профиль тренера
+        coach = CoachProfile.objects.create(
+            user=user,
+            qualifications=data.get('qualifications', ''),
+            specialization=data.get('specialization', ''),
+            experience_years=data.get('experience_years', 0),
+            hourly_rate=data.get('hourly_rate', 0),
+            is_active=data.get('is_active', True),
+            bio=data.get('bio', ''),
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Тренер успешно создан',
+            'trainer': {
+                'id': coach.id,
+                'user_full_name': user.get_full_name(),
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+@require_POST
+def api_trainer_update(request, trainer_id):
+    """API: Обновить тренера"""
+    try:
+        import json
+        from users.models import CoachProfile
+
+        coach = get_object_or_404(CoachProfile, id=trainer_id)
+        data = json.loads(request.body)
+
+        # Обновляем поля пользователя
+        user = coach.user
+        if 'first_name' in data:
+            user.first_name = data['first_name'].strip()
+        if 'last_name' in data:
+            user.last_name = data['last_name'].strip()
+        if 'email' in data:
+            email = data['email'].strip()
+            if email != user.email and User.objects.filter(email=email).exists():
+                return JsonResponse({'success': False, 'error': 'Email уже используется'}, status=400)
+            user.email = email
+        
+        user.save()
+
+        # Обновляем телефон в профиле
+        if 'phone' in data and hasattr(user, 'profile'):
+            user.profile.phone = data['phone'].strip()
+            user.profile.save()
+
+        # Обновляем поля тренера
+        if 'qualifications' in data:
+            coach.qualifications = data['qualifications']
+        if 'specialization' in data:
+            coach.specialization = data['specialization']
+        if 'experience_years' in data:
+            coach.experience_years = data['experience_years']
+        if 'hourly_rate' in data:
+            coach.hourly_rate = data['hourly_rate']
+        if 'is_active' in data:
+            coach.is_active = data['is_active']
+        if 'bio' in data:
+            coach.bio = data['bio']
+
+        coach.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Тренер успешно обновлен'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+@require_POST
+def api_trainer_delete(request, trainer_id):
+    """API: Удалить тренера"""
+    try:
+        from users.models import CoachProfile
+
+        coach = get_object_or_404(CoachProfile, id=trainer_id)
+        trainer_name = coach.user.get_full_name() or coach.user.username
+        
+        # Удаляем только профиль тренера, не пользователя
+        coach.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Тренер {trainer_name} успешно удален'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+def api_trainer_schedule(request, trainer_id):
+    """API: Расписание тренера"""
+    try:
+        from users.models import CoachProfile
+        from datetime import datetime as dt
+        
+        coach = get_object_or_404(CoachProfile, id=trainer_id)
+        user = coach.user
+
+        start_str = request.GET.get('start')
+        end_str = request.GET.get('end')
+
+        if not start_str or not end_str:
+            return JsonResponse({
+                'success': False,
+                'error': 'Требуются параметры start и end'
+            }, status=400)
+
+        # Парсим даты
+        start = dt.fromisoformat(start_str.replace('Z', '+00:00'))
+        end = dt.fromisoformat(end_str.replace('Z', '+00:00'))
+
+        # Получаем бронирования тренера
+        bookings = Booking.objects.filter(
+            coach=user,
+            date__gte=start.date(),
+            date__lte=end.date()
+        ).select_related('court', 'user')
+
+        # Формируем события
+        events = []
+        for booking in bookings:
+            booking_start = dt.combine(booking.date, booking.start_time)
+            booking_end = dt.combine(booking.date, booking.end_time)
+
+            events.append({
+                'id': booking.id,
+                'start': booking_start.isoformat(),
+                'end': booking_end.isoformat(),
+                'user_name': booking.user.get_full_name() or booking.user.username,
+                'court_name': booking.court.name,
+                'status': booking.status,
+            })
+
+        return JsonResponse({
+            'success': True,
+            'events': events
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+def trainers_list(request):
+    """Список тренеров"""
+    context = {'current_page': 'trainers'}
+    return render(request, 'manager/trainers.html', context)
+
+
+# ============================================================================
+# PAYMENTS API
+# ============================================================================
+
+@staff_required
+def payments_list(request):
+    """Список платежей"""
+    context = {'current_page': 'payments'}
+    return render(request, 'manager/payments.html', context)
+
+
+@staff_required
+def api_payments_list(request):
+    """API: Список всех платежей"""
+    try:
+        from booking.models import Payment
+        from django.contrib.auth.models import User
+
+        payments = Payment.objects.select_related('booking', 'user').all().order_by('-created_at')
+
+        # Формируем данные
+        payments_data = []
+        for payment in payments:
+            payments_data.append({
+                'id': payment.id,
+                'booking_id': payment.booking.id,
+                'user_id': payment.user.id,
+                'user_name': payment.user.get_full_name() or payment.user.username,
+                'user_email': payment.user.email,
+                'amount': float(payment.amount),
+                'status': payment.status,
+                'payment_method': payment.payment_method,
+                'transaction_id': payment.transaction_id,
+                'created_at': payment.created_at.isoformat(),
+                'paid_at': payment.paid_at.isoformat() if payment.paid_at else None,
+            })
+
+        # Статистика
+        from django.db.models import Sum
+        stats = {
+            'total_revenue': float(payments.filter(status='completed').aggregate(Sum('amount'))['amount__sum'] or 0),
+            'paid_payments': payments.filter(status='completed').count(),
+            'pending_payments': payments.filter(status='pending').count(),
+            'failed_payments': payments.filter(status='failed').count(),
+        }
+
+        return JsonResponse({
+            'success': True,
+            'payments': payments_data,
+            'stats': stats
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+def api_payment_detail(request, payment_id):
+    """API: Детали конкретного платежа"""
+    try:
+        from booking.models import Payment
+
+        payment = get_object_or_404(Payment.objects.select_related('booking', 'user'), id=payment_id)
+
+        payment_data = {
+            'id': payment.id,
+            'booking_id': payment.booking.id,
+            'user_id': payment.user.id,
+            'user_name': payment.user.get_full_name() or payment.user.username,
+            'user_email': payment.user.email,
+            'amount': float(payment.amount),
+            'status': payment.status,
+            'payment_method': payment.payment_method,
+            'transaction_id': payment.transaction_id,
+            'created_at': payment.created_at.isoformat(),
+            'paid_at': payment.paid_at.isoformat() if payment.paid_at else None,
+        }
+
+        return JsonResponse({
+            'success': True,
+            'payment': payment_data
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+@require_POST
+def api_payment_mark_paid(request, payment_id):
+    """API: Отметить платеж как оплаченный"""
+    try:
+        from booking.models import Payment
+
+        payment = get_object_or_404(Payment, id=payment_id)
+
+        if payment.status == 'completed':
+            return JsonResponse({'success': False, 'error': 'Платеж уже оплачен'}, status=400)
+
+        payment.status = 'completed'
+        payment.paid_at = timezone.now()
+        payment.save()
+
+        # Подтверждаем бронирование
+        if payment.booking.status == 'pending':
+            payment.booking.status = 'confirmed'
+            payment.booking.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Платеж отмечен как оплаченный'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+@require_POST
+def api_payment_refund(request, payment_id):
+    """API: Возврат платежа"""
+    try:
+        from booking.models import Payment
+
+        payment = get_object_or_404(Payment, id=payment_id)
+
+        if payment.status != 'completed':
+            return JsonResponse({'success': False, 'error': 'Можно вернуть только оплаченные платежи'}, status=400)
+
+        payment.status = 'refunded'
+        payment.save()
+
+        # Отменяем бронирование
+        payment.booking.status = 'cancelled'
+        payment.booking.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Возврат выполнен'
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+def api_payments_export(request):
+    """API: Экспорт платежей в CSV"""
+    try:
+        from booking.models import Payment
+
+        # Получаем фильтры
+        date_from = request.GET.get('date_from')
+        date_to = request.GET.get('date_to')
+        status = request.GET.get('status')
+
+        payments = Payment.objects.select_related('booking', 'user').all().order_by('-created_at')
+
+        if date_from:
+            payments = payments.filter(created_at__date__gte=date_from)
+        if date_to:
+            payments = payments.filter(created_at__date__lte=date_to)
+        if status:
+            payments = payments.filter(status=status)
+
+        # Создаем CSV
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="payments.csv"'
+        response.write('\ufeff')  # BOM для Excel
+
+        writer = csv.writer(response)
+        writer.writerow(['ID', 'Дата', 'Пользователь', 'Email', 'Бронирование', 'Сумма', 'Метод', 'Статус', 'Дата оплаты'])
+
+        for payment in payments:
+            writer.writerow([
+                payment.id,
+                payment.created_at.strftime('%Y-%m-%d %H:%M'),
+                payment.user.get_full_name() or payment.user.username,
+                payment.user.email,
+                f'#{payment.booking.id}',
+                float(payment.amount),
+                payment.payment_method or '-',
+                payment.status,
+                payment.paid_at.strftime('%Y-%m-%d %H:%M') if payment.paid_at else '-',
+            ])
+
+        return response
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)

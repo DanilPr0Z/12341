@@ -1,0 +1,391 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Платежи{% endblock %}
+{% block page_title %}Управление платежами{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="stats-grid" style="margin-bottom: 24px;">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-ruble-sign"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="totalRevenue">0 ₽</div>
+            <div class="stat-label">Общий доход</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="paidPayments">0</div>
+            <div class="stat-label">Оплачено</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-pink">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="pendingPayments">0</div>
+            <div class="stat-label">Ожидает оплаты</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-orange">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="failedPayments">0</div>
+            <div class="stat-label">Ошибка оплаты</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+    <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Поиск по пользователю или ID..." onkeyup="filterPayments()">
+    </div>
+
+    <div class="filter-group">
+        <select id="statusFilter" class="filter-select" onchange="filterPayments()">
+            <option value="">Все статусы</option>
+            <option value="pending">Ожидает оплаты</option>
+            <option value="completed">Оплачено</option>
+            <option value="failed">Ошибка оплаты</option>
+            <option value="refunded">Возврат</option>
+        </select>
+
+        <input type="date" id="dateFromFilter" class="filter-input" onchange="filterPayments()">
+        <input type="date" id="dateToFilter" class="filter-input" onchange="filterPayments()">
+    </div>
+
+    <button class="btn btn-secondary" onclick="exportPayments()">
+        <i class="fas fa-download"></i> Экспорт
+    </button>
+</div>
+
+<!-- Payments Table -->
+<div class="table-container">
+    <div id="paymentsContainer">
+        <!-- Will be populated by JS -->
+    </div>
+</div>
+
+<!-- Payment Detail Modal -->
+<div id="paymentModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Детали платежа</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- Will be populated by JS -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allPayments = [];
+let filteredPayments = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadPayments();
+
+    // Set default date filters (last 30 days)
+    const today = new Date();
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+    document.getElementById('dateToFilter').valueAsDate = today;
+    document.getElementById('dateFromFilter').valueAsDate = monthAgo;
+});
+
+function loadPayments() {
+    fetch('/admin/api/payments/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                allPayments = data.payments;
+                filteredPayments = allPayments;
+                updateStats(data.stats);
+                displayPayments();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading payments:', error);
+            document.getElementById('paymentsContainer').innerHTML =
+                '<div class="error-message">Ошибка загрузки данных</div>';
+        });
+}
+
+function updateStats(stats) {
+    document.getElementById('totalRevenue').textContent = formatNumber(stats.total_revenue) + ' ₽';
+    document.getElementById('paidPayments').textContent = stats.paid_payments;
+    document.getElementById('pendingPayments').textContent = stats.pending_payments;
+    document.getElementById('failedPayments').textContent = stats.failed_payments;
+}
+
+function displayPayments() {
+    const container = document.getElementById('paymentsContainer');
+
+    if (filteredPayments.length === 0) {
+        container.innerHTML = '<div class="empty-state">Платежи не найдены</div>';
+        return;
+    }
+
+    let html = '<div class="table-responsive"><table class="data-table">';
+    html += '<thead><tr>';
+    html += '<th>ID</th>';
+    html += '<th>Дата</th>';
+    html += '<th>Пользователь</th>';
+    html += '<th>Бронирование</th>';
+    html += '<th>Сумма</th>';
+    html += '<th>Метод</th>';
+    html += '<th>Статус</th>';
+    html += '<th>Действия</th>';
+    html += '</tr></thead><tbody>';
+
+    filteredPayments.forEach(payment => {
+        const statusBadges = {
+            'pending': '<span class="badge badge-warning">Ожидает</span>',
+            'completed': '<span class="badge badge-success">Оплачено</span>',
+            'failed': '<span class="badge badge-danger">Ошибка</span>',
+            'refunded': '<span class="badge badge-secondary">Возврат</span>'
+        };
+
+        html += `<tr>
+            <td>#${payment.id}</td>
+            <td>${formatDate(payment.created_at)}</td>
+            <td>${payment.user_name}</td>
+            <td>#${payment.booking_id}</td>
+            <td><strong>${formatNumber(payment.amount)} ₽</strong></td>
+            <td>${payment.payment_method || '-'}</td>
+            <td>${statusBadges[payment.status] || payment.status}</td>
+            <td>
+                <button class="btn-icon" onclick="viewPayment(${payment.id})" title="Просмотр">
+                    <i class="fas fa-eye"></i>
+                </button>
+                ${payment.status === 'pending' ? `
+                    <button class="btn-icon" onclick="markAsPaid(${payment.id})" title="Отметить оплаченным">
+                        <i class="fas fa-check"></i>
+                    </button>
+                ` : ''}
+                ${payment.status === 'completed' ? `
+                    <button class="btn-icon" onclick="refundPayment(${payment.id})" title="Возврат">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                ` : ''}
+            </td>
+        </tr>`;
+    });
+
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+function filterPayments() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const dateFrom = document.getElementById('dateFromFilter').value;
+    const dateTo = document.getElementById('dateToFilter').value;
+
+    filteredPayments = allPayments.filter(payment => {
+        const matchesSearch = payment.user_name.toLowerCase().includes(searchTerm) ||
+                            payment.id.toString().includes(searchTerm) ||
+                            payment.booking_id.toString().includes(searchTerm);
+
+        const matchesStatus = statusFilter === '' || payment.status === statusFilter;
+
+        let matchesDate = true;
+        if (dateFrom) {
+            matchesDate = matchesDate && new Date(payment.created_at) >= new Date(dateFrom);
+        }
+        if (dateTo) {
+            const endDate = new Date(dateTo);
+            endDate.setHours(23, 59, 59);
+            matchesDate = matchesDate && new Date(payment.created_at) <= endDate;
+        }
+
+        return matchesSearch && matchesStatus && matchesDate;
+    });
+
+    displayPayments();
+}
+
+function viewPayment(id) {
+    fetch(`/admin/api/payments/${id}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showPaymentModal(data.payment);
+            }
+        });
+}
+
+function showPaymentModal(payment) {
+    const modal = document.getElementById('paymentModal');
+    const body = document.getElementById('modalBody');
+
+    const statusBadges = {
+        'pending': '<span class="badge badge-warning">Ожидает оплаты</span>',
+        'completed': '<span class="badge badge-success">Оплачено</span>',
+        'failed': '<span class="badge badge-danger">Ошибка оплаты</span>',
+        'refunded': '<span class="badge badge-secondary">Возврат</span>'
+    };
+
+    body.innerHTML = `
+        <div class="payment-profile">
+            <div class="detail-row">
+                <span class="detail-label">ID платежа:</span>
+                <span class="detail-value">#${payment.id}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Дата создания:</span>
+                <span class="detail-value">${formatDateTime(payment.created_at)}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Пользователь:</span>
+                <span class="detail-value">${payment.user_name} (${payment.user_email})</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Бронирование:</span>
+                <span class="detail-value">#${payment.booking_id}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Сумма:</span>
+                <span class="detail-value"><strong>${formatNumber(payment.amount)} ₽</strong></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Метод оплаты:</span>
+                <span class="detail-value">${payment.payment_method || 'Не указан'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Статус:</span>
+                <span class="detail-value">${statusBadges[payment.status]}</span>
+            </div>
+            ${payment.transaction_id ? `
+            <div class="detail-row">
+                <span class="detail-label">ID транзакции:</span>
+                <span class="detail-value">${payment.transaction_id}</span>
+            </div>
+            ` : ''}
+            ${payment.paid_at ? `
+            <div class="detail-row">
+                <span class="detail-label">Дата оплаты:</span>
+                <span class="detail-value">${formatDateTime(payment.paid_at)}</span>
+            </div>
+            ` : ''}
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+}
+
+function markAsPaid(paymentId) {
+    if (!confirm('Отметить платеж как оплаченный?')) {
+        return;
+    }
+
+    fetch(`/admin/api/payments/${paymentId}/mark-paid/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadPayments();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка');
+    });
+}
+
+function refundPayment(paymentId) {
+    if (!confirm('Выполнить возврат средств?')) {
+        return;
+    }
+
+    fetch(`/admin/api/payments/${paymentId}/refund/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            loadPayments();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка');
+    });
+}
+
+function exportPayments() {
+    const dateFrom = document.getElementById('dateFromFilter').value;
+    const dateTo = document.getElementById('dateToFilter').value;
+    const status = document.getElementById('statusFilter').value;
+
+    let url = '/admin/api/payments/export/?';
+    if (dateFrom) url += `date_from=${dateFrom}&`;
+    if (dateTo) url += `date_to=${dateTo}&`;
+    if (status) url += `status=${status}`;
+
+    window.location.href = url;
+}
+
+function closeModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+}
+
+function formatNumber(num) {
+    return new Intl.NumberFormat('ru-RU').format(num);
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('ru-RU');
+}
+
+function formatDateTime(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

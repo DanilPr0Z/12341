@@ -19,6 +19,9 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Sidebar Overlay (for mobile) -->
+    <div class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
+
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -29,39 +32,54 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="{% url 'manager:dashboard' %}" class="nav-item {% if current_page == 'dashboard' %}active{% endif %}">
+            <a href="{% url 'manager:dashboard' %}" class="nav-item {% if current_page == 'dashboard' %}active{% endif %}" title="Dashboard">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
 
-            <a href="{% url 'manager:schedule' %}" class="nav-item {% if current_page == 'schedule' %}active{% endif %}">
+            <a href="{% url 'manager:schedule' %}" class="nav-item {% if current_page == 'schedule' %}active{% endif %}" title="Расписание">
                 <i class="fas fa-calendar"></i>
                 <span>Расписание</span>
             </a>
 
-            <a href="{% url 'manager:bookings' %}" class="nav-item {% if current_page == 'bookings' %}active{% endif %}">
+            <a href="{% url 'manager:bookings' %}" class="nav-item {% if current_page == 'bookings' %}active{% endif %}" title="Бронирования">
                 <i class="fas fa-clipboard-list"></i>
                 <span>Бронирования</span>
             </a>
 
-            <a href="{% url 'manager:analytics' %}" class="nav-item {% if current_page == 'analytics' %}active{% endif %}">
+            <a href="{% url 'manager:analytics' %}" class="nav-item {% if current_page == 'analytics' %}active{% endif %}" title="Аналитика">
                 <i class="fas fa-chart-line"></i>
                 <span>Аналитика</span>
             </a>
 
-            <a href="{% url 'manager:users' %}" class="nav-item {% if current_page == 'users' %}active{% endif %}">
+            <a href="{% url 'manager:users' %}" class="nav-item {% if current_page == 'users' %}active{% endif %}" title="Пользователи">
                 <i class="fas fa-users"></i>
                 <span>Пользователи</span>
             </a>
 
-            <a href="{% url 'manager:courts' %}" class="nav-item {% if current_page == 'courts' %}active{% endif %}">
+            <a href="{% url 'manager:courts' %}" class="nav-item {% if current_page == 'courts' %}active{% endif %}" title="Корты">
                 <i class="fas fa-table-tennis"></i>
                 <span>Корты</span>
             </a>
 
+            <a href="{% url 'manager:trainers' %}" class="nav-item {% if current_page == 'trainers' %}active{% endif %}" title="Тренеры">
+                <i class="fas fa-user-tie"></i>
+                <span>Тренеры</span>
+            </a>
+
+            <a href="{% url 'manager:payments' %}" class="nav-item {% if current_page == 'payments' %}active{% endif %}" title="Платежи">
+                <i class="fas fa-credit-card"></i>
+                <span>Платежи</span>
+            </a>
+
+            <a href="{% url 'tournament:tournaments_list' %}" class="nav-item {% if current_page == 'tournaments' %}active{% endif %}" title="Турниры">
+                <i class="fas fa-trophy"></i>
+                <span>Турниры</span>
+            </a>
+
             <div class="nav-divider"></div>
 
-            <a href="/" class="nav-item">
+            <a href="/" class="nav-item" title="На сайт">
                 <i class="fas fa-arrow-left"></i>
                 <span>На сайт</span>
             </a>
@@ -84,6 +102,9 @@
     <main class="main-content">
         <header class="page-header">
             <div class="header-content">
+                <button class="sidebar-toggle" onclick="toggleSidebar()" title="Свернуть/развернуть меню">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
                 <div class="header-actions">
                     {% block header_actions %}{% endblock %}
@@ -97,6 +118,67 @@
     </main>
 
     <!-- Scripts -->
+    <script>
+        // Check if mobile
+        function isMobile() {
+            return window.innerWidth <= 1024;
+        }
+
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            if (isMobile()) {
+                toggleMobileSidebar();
+            } else {
+                const sidebar = document.querySelector('.sidebar');
+                const mainContent = document.querySelector('.main-content');
+
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('sidebar-collapsed');
+
+                // Save state to localStorage
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+
+                // Trigger resize event after transition for calendar and charts
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                }, 350);
+            }
+        }
+
+        // Mobile sidebar toggle
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+            document.body.classList.toggle('sidebar-mobile-open');
+        }
+
+        // Restore sidebar state on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!isMobile()) {
+                const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (isCollapsed) {
+                    document.querySelector('.sidebar').classList.add('collapsed');
+                    document.querySelector('.main-content').classList.add('sidebar-collapsed');
+                }
+            }
+        });
+
+        // Handle resize
+        window.addEventListener('resize', function() {
+            if (!isMobile()) {
+                // Close mobile sidebar if open
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.querySelector('.sidebar-overlay');
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('active');
+                document.body.classList.remove('sidebar-mobile-open');
+            }
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

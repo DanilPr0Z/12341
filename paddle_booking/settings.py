@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'booking',
     'users',
     'manager',  # Современная кастомная админ-панель
+    'tournament',  # Система турниров
 ]
 
 MIDDLEWARE = [
@@ -61,7 +62,7 @@ WSGI_APPLICATION = 'paddle_booking.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db.db',
     }
 }
 

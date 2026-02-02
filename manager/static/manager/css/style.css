@@ -18,6 +18,7 @@
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
     --radius: 12px;
     --sidebar-width: 260px;
+    --sidebar-collapsed-width: 70px;
 }
 
 /* ========== RESET ========== */
@@ -49,6 +50,7 @@ body {
     height: 100vh;
     z-index: 100;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease;
 }
 
 .sidebar-header {
@@ -153,12 +155,72 @@ body {
     color: rgba(255, 255, 255, 0.6);
 }
 
+/* ========== SIDEBAR COLLAPSED STATE ========== */
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+.sidebar.collapsed .logo span,
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .user-details {
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+    overflow: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.sidebar.collapsed .logo {
+    justify-content: center;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 12px;
+}
+
+.sidebar.collapsed .user-info {
+    justify-content: center;
+}
+
+.sidebar.collapsed .nav-item i {
+    margin: 0;
+}
+
+/* Tooltip для collapsed sidebar */
+.sidebar.collapsed .nav-item {
+    position: relative;
+}
+
+.sidebar.collapsed .nav-item:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 12px;
+    background: var(--secondary);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    pointer-events: none;
+}
+
 /* ========== MAIN CONTENT ========== */
 .main-content {
     flex: 1;
     margin-left: var(--sidebar-width);
     display: flex;
     flex-direction: column;
+    transition: margin-left 0.3s ease;
+}
+
+.main-content.sidebar-collapsed {
+    margin-left: var(--sidebar-collapsed-width);
 }
 
 .page-header {
@@ -174,12 +236,33 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-toggle:hover {
+    background: var(--bg);
+    color: var(--secondary);
 }
 
 .page-title {
     font-size: 28px;
     font-weight: 700;
     color: var(--secondary);
+    flex: 1;
 }
 
 .header-actions {
@@ -865,5 +948,760 @@ body {
 
     .header-actions {
         flex-wrap: wrap;
+    }
+}
+
+/* ========== TRAINERS PAGE ========== */
+.trainers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+.trainer-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.trainer-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.trainer-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.trainer-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 28px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.trainer-info {
+    flex: 1;
+}
+
+.trainer-info h3 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.trainer-specialization {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+.trainer-header .badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.trainer-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 12px;
+    padding: 16px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+}
+
+.trainer-stat {
+    text-align: center;
+}
+
+.trainer-stat i {
+    display: block;
+    font-size: 16px;
+    color: #667eea;
+    margin-bottom: 4px;
+}
+
+.trainer-stat span {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.trainer-stat small {
+    font-size: 11px;
+    color: var(--text-light);
+}
+
+.trainer-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.trainer-profile,
+.payment-profile {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 24px;
+}
+
+.profile-avatar-large {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 40px;
+    font-weight: 600;
+}
+
+.profile-section {
+    margin-bottom: 32px;
+}
+
+.profile-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text);
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 16px;
+    background: var(--bg);
+    border-radius: 8px;
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 4px;
+}
+
+.stat-title {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.profile-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 2px solid var(--border);
+}
+
+.form-divider {
+    text-align: center;
+    margin: 20px 0;
+    color: var(--text-light);
+    font-size: 14px;
+    position: relative;
+}
+
+.form-divider::before,
+.form-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: var(--border);
+}
+
+.form-divider::before {
+    left: 0;
+}
+
+.form-divider::after {
+    right: 0;
+}
+
+/* ========== PAYMENTS PAGE ========== */
+.table-container {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.payment-detail {
+    background: var(--bg);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+/* ========== BUTTON VARIATIONS ========== */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.btn-outline {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.btn-outline:hover {
+    background: var(--bg);
+    border-color: #d1d5db;
+}
+
+/* ========== MODAL SIZES ========== */
+.modal-large {
+    max-width: 900px;
+}
+
+.modal-wide {
+    max-width: 1200px;
+}
+
+/* ========== STAT ICON VARIATIONS ========== */
+.stat-icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-icon-pink {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-icon-blue {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-icon-green {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-icon-orange {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+/* ========== CALENDAR ========== */
+#trainerCalendar {
+    padding: 20px;
+}
+
+/* ========== RESPONSIVE & ADAPTIVE STYLES ========== */
+
+/* Ensure tables are scrollable on smaller screens */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+}
+
+.data-table {
+    min-width: 800px;
+    width: 100%;
+}
+
+/* Metrics grid - adapt to smaller screens */
+.metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+@media (max-width: 768px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Stats grid responsive */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Trainers grid - adapt to sidebar state */
+.trainers-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+@media (max-width: 1200px) {
+    .trainers-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .trainers-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Stats row responsive */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+/* Header actions - wrap on small screens */
+.header-actions {
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-wrap: wrap;
+    }
+
+    .page-title {
+        font-size: 22px;
+    }
+}
+
+/* Content wrapper padding */
+@media (max-width: 768px) {
+    .content-wrapper {
+        padding: 20px 16px;
+    }
+
+    .page-header {
+        padding: 16px 20px;
+    }
+}
+
+/* Form rows - stack on small screens */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+@media (max-width: 600px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Modal responsive */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-width: none;
+    }
+
+    .modal-large,
+    .modal-wide {
+        max-width: none;
+        width: 95%;
+    }
+}
+
+/* Filters bar - wrap on smaller screens */
+.filters-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .filters-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box,
+    .filter-group {
+        width: 100%;
+    }
+}
+
+/* Court selector - wrap buttons */
+.court-selector {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Booking controls responsive */
+.booking-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Card grid */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Analytics charts - ensure proper sizing */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px;
+    }
+}
+
+/* Ensure FullCalendar is responsive */
+.fc {
+    max-width: 100%;
+}
+
+.fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .fc .fc-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .fc .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 8px;
+    }
+}
+
+/* Profile header responsive */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+@media (max-width: 600px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* Trainer stats responsive */
+.trainer-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 12px;
+}
+
+/* Detail row - stack on very small screens */
+@media (max-width: 500px) {
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
+
+/* ========== MOBILE SIDEBAR ========== */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Sidebar mobile behavior */
+@media (max-width: 1024px) {
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: 101;
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .main-content.sidebar-collapsed {
+        margin-left: 0;
+    }
+
+    /* Prevent body scroll when mobile sidebar is open */
+    body.sidebar-mobile-open {
+        overflow: hidden;
+    }
+}
+
+/* Prevent horizontal scroll */
+body {
+    overflow-x: hidden;
+}
+
+.content-wrapper {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Table overflow handling */
+.table-container {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Fix long text overflow */
+.data-table td {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.data-table td:hover {
+    overflow: visible;
+    white-space: normal;
+    position: relative;
+    z-index: 10;
+}
+
+/* ========== ADDITIONAL FIXES ========== */
+
+/* Ensure buttons don't shrink too much */
+.btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Fix search input width */
+.search-box {
+    min-width: 200px;
+    max-width: 400px;
+    flex: 1;
+}
+
+.search-box input {
+    width: 100%;
+}
+
+/* Filter group responsive */
+.filter-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Ensure modals don't overflow */
+.modal-body {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+/* Card responsive */
+.card {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.card-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Loading spinner centered */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* Error message */
+.error-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #dc2626;
+    background: #fee;
+    border-radius: var(--radius);
+    margin: 20px 0;
+}
+
+/* Prevent layout shift during transitions */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, select, textarea {
+    transition: all 0.2s ease;
+}
+
+/* Focus styles for accessibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 768px) {
+    .btn {
+        min-height: 44px;
+        padding: 12px 20px;
+    }
+
+    .nav-item {
+        min-height: 44px;
+        padding: 12px 16px;
+    }
+
+    .btn-icon {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 12px;
+    }
+}
+
+/* Fix for very small screens */
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 20px;
+    }
+
+    .content-wrapper {
+        padding: 16px 12px;
+    }
+
+    .metric-value {
+        font-size: 24px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Print styles */
+@media print {
+    .sidebar,
+    .sidebar-toggle,
+    .header-actions,
+    .btn,
+    button {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .page-header {
+        position: static;
     }
 }

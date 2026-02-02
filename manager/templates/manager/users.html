@@ -118,20 +118,20 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="ratingLevel">Уровень игры</label>
-                    <select id="ratingLevel" class="form-control">
-                        <option value="">Не указан</option>
-                        <option value="D">D - Новичок</option>
-                        <option value="D+">D+ - Начинающий</option>
-                        <option value="C-">C- - Начинающий/Слабый средний</option>
-                        <option value="C">C - Средний</option>
-                        <option value="C+">C+ - Средний/Крепкий любитель</option>
-                        <option value="B-">B- - Крепкий любитель</option>
-                        <option value="B">B - Продвинутый</option>
-                        <option value="B+">B+ - Топ-любитель</option>
-                        <option value="A">A - Кандидат/Мастер спорта</option>
-                        <option value="PRO">PRO - Профессионал</option>
-                    </select>
+                    <label for="numericRating">Рейтинг (числовой)</label>
+                    <input type="number" id="numericRating" class="form-control" step="0.01" min="1.00" max="7.00" placeholder="1.00 - 7.00">
+                    <small class="form-text">Буквенный уровень вычислится автоматически</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="coachComment">Комментарий тренера</label>
+                    <textarea id="coachComment" class="form-control" rows="3" placeholder="Комментарий о навыках игрока"></textarea>
+                </div>
+
+                <div class="form-group" id="currentLevelDisplay" style="display: none;">
+                    <div style="padding: 12px; background: var(--bg); border-radius: 8px; border-left: 4px solid #667eea;">
+                        <strong>Текущий уровень:</strong> <span id="currentLevelText">-</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -183,7 +183,34 @@ let filteredUsers = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     loadUsers();
+
+    // Автоматический расчет уровня при изменении numeric_rating
+    document.getElementById('numericRating').addEventListener('input', function(e) {
+        const rating = parseFloat(e.target.value);
+        if (!rating || rating < 1.00 || rating > 7.00) {
+            document.getElementById('currentLevelDisplay').style.display = 'none';
+            return;
+        }
+
+        const level = calculateLevel(rating);
+        document.getElementById('currentLevelText').textContent = level;
+        document.getElementById('currentLevelDisplay').style.display = 'block';
+    });
 });
+
+function calculateLevel(rating) {
+    if (rating >= 1.00 && rating <= 1.50) return 'D';
+    if (rating >= 1.60 && rating <= 2.50) return 'D+';
+    if (rating >= 2.60 && rating <= 3.00) return 'C-';
+    if (rating >= 3.10 && rating <= 3.50) return 'C';
+    if (rating >= 3.60 && rating <= 4.00) return 'C+';
+    if (rating >= 4.10 && rating <= 4.50) return 'B-';
+    if (rating >= 4.60 && rating <= 5.00) return 'B';
+    if (rating >= 5.10 && rating <= 5.50) return 'B+';
+    if (rating >= 5.60 && rating <= 6.50) return 'A';
+    if (rating >= 6.60 && rating <= 7.00) return 'PRO';
+    return 'Неизвестно';
+}
 
 function loadUsers() {
     fetch('/admin/api/users/')
@@ -394,6 +421,7 @@ function showAddUserModal() {
     document.getElementById('password').required = true;
     document.getElementById('passwordRequired').style.display = 'inline';
     document.getElementById('isActive').checked = true;
+    document.getElementById('currentLevelDisplay').style.display = 'none';
     document.getElementById('userFormModal').style.display = 'flex';
 }
 
@@ -416,11 +444,20 @@ function showEditUserModal(userId) {
                 document.getElementById('emailVerified').checked = user.email_verified || false;
                 document.getElementById('firstName').value = user.first_name || '';
                 document.getElementById('lastName').value = user.last_name || '';
-                document.getElementById('ratingLevel').value = user.rating_level || '';
+                document.getElementById('numericRating').value = user.numeric_rating || '';
+                document.getElementById('coachComment').value = user.coach_comment || '';
                 document.getElementById('isStaff').checked = user.is_staff;
                 document.getElementById('isActive').checked = user.is_active;
                 document.getElementById('isSuperuser').checked = user.is_superuser || false;
                 document.getElementById('password').value = '';
+
+                // Показываем текущий уровень если есть рейтинг
+                if (user.rating_level) {
+                    document.getElementById('currentLevelDisplay').style.display = 'block';
+                    document.getElementById('currentLevelText').textContent = user.rating_level;
+                } else {
+                    document.getElementById('currentLevelDisplay').style.display = 'none';
+                }
 
                 document.getElementById('userFormModal').style.display = 'flex';
             }
@@ -452,7 +489,8 @@ function submitUserForm(event) {
         is_staff: document.getElementById('isStaff').checked,
         is_active: document.getElementById('isActive').checked,
         is_superuser: document.getElementById('isSuperuser').checked,
-        rating_level: document.getElementById('ratingLevel').value || null,
+        numeric_rating: document.getElementById('numericRating').value ? parseFloat(document.getElementById('numericRating').value) : null,
+        coach_comment: document.getElementById('coachComment').value,
     };
 
     const password = document.getElementById('password').value;

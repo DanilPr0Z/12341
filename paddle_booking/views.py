@@ -17,11 +17,6 @@ def booking_page(request):
     courts = Court.objects.filter(is_available=True).order_by('name')
     today_date = timezone.now().date()
 
-    # Отладка (можно убрать после проверки)
-    print(f"DEBUG: Передано {courts.count()} кортов в шаблон")
-    for court in courts:
-        print(f"  - {court.name}: {court.price_per_hour} руб/час, доступен: {court.is_available}")
-
     return render(request, 'booking.html', {
         'courts': courts,
         'today_date': today_date

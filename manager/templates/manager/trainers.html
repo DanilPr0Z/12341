@@ -12,9 +12,9 @@
 
 {% block content %}
 <!-- Stats Cards -->
-<div class="stats-grid">
+<div class="stats-grid" style="margin-bottom: 24px;">
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="stat-icon">
             <i class="fas fa-user-tie"></i>
         </div>
         <div class="stat-content">
@@ -24,7 +24,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        <div class="stat-icon stat-icon-pink">
             <i class="fas fa-user-check"></i>
         </div>
         <div class="stat-content">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+        <div class="stat-icon stat-icon-blue">
             <i class="fas fa-users"></i>
         </div>
         <div class="stat-content">
@@ -44,7 +44,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+        <div class="stat-icon stat-icon-green">
             <i class="fas fa-clock"></i>
         </div>
         <div class="stat-content">
@@ -55,7 +55,7 @@
 </div>
 
 <!-- Filters -->
-<div class="filters-bar" style="margin-top: 24px;">
+<div class="filters-bar">
     <div class="search-box">
         <i class="fas fa-search"></i>
         <input type="text" id="searchInput" placeholder="Поиск тренера..." onkeyup="filterTrainers()">
@@ -71,7 +71,7 @@
 </div>
 
 <!-- Trainers Grid -->
-<div id="trainersContainer" class="trainers-grid" style="margin-top: 24px;">
+<div id="trainersContainer" class="trainers-grid">
     <!-- Will be populated by JS -->
 </div>
 
@@ -170,7 +170,7 @@
 
 <!-- Trainer Detail Modal -->
 <div id="trainerModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 900px;">
+    <div class="modal-content modal-large">
         <div class="modal-header">
             <h3>Профиль тренера</h3>
             <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -183,7 +183,7 @@
 
 <!-- Trainer Schedule Modal -->
 <div id="scheduleModal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 1200px;">
+    <div class="modal-content modal-wide">
         <div class="modal-header">
             <h3 id="scheduleModalTitle">Расписание тренера</h3>
             <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
@@ -649,226 +649,4 @@ function getCookie(name) {
     return cookieValue;
 }
 </script>
-
-<style>
-.trainers-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 24px;
-}
-
-.trainer-card {
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-}
-
-.trainer-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-}
-
-.trainer-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 20px;
-    position: relative;
-}
-
-.trainer-avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 28px;
-    font-weight: 600;
-    flex-shrink: 0;
-}
-
-.trainer-info {
-    flex: 1;
-}
-
-.trainer-info h3 {
-    margin: 0 0 4px 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.trainer-specialization {
-    margin: 0;
-    font-size: 14px;
-    color: #666;
-}
-
-.trainer-header .badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-}
-
-.trainer-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    padding: 16px 0;
-    border-top: 1px solid #e5e7eb;
-    border-bottom: 1px solid #e5e7eb;
-    margin-bottom: 16px;
-}
-
-.trainer-stat {
-    text-align: center;
-}
-
-.trainer-stat i {
-    display: block;
-    font-size: 16px;
-    color: #667eea;
-    margin-bottom: 4px;
-}
-
-.trainer-stat span {
-    display: block;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 2px;
-}
-
-.trainer-stat small {
-    font-size: 11px;
-    color: #666;
-}
-
-.trainer-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 13px;
-}
-
-.btn-outline {
-    background: white;
-    border: 1px solid #e5e7eb;
-    color: var(--text);
-}
-
-.btn-outline:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
-}
-
-.trainer-profile {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.profile-header {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    padding-bottom: 24px;
-    border-bottom: 2px solid #e5e7eb;
-    margin-bottom: 24px;
-}
-
-.profile-avatar-large {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 40px;
-    font-weight: 600;
-}
-
-.profile-section {
-    margin-bottom: 32px;
-}
-
-.profile-section h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: var(--text);
-}
-
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-}
-
-.stat-item {
-    text-align: center;
-    padding: 16px;
-    background: #f9fafb;
-    border-radius: 8px;
-}
-
-.stat-number {
-    font-size: 28px;
-    font-weight: 700;
-    color: #667eea;
-    margin-bottom: 4px;
-}
-
-.stat-title {
-    font-size: 13px;
-    color: #666;
-}
-
-.profile-actions {
-    display: flex;
-    gap: 12px;
-    padding-top: 24px;
-    border-top: 2px solid #e5e7eb;
-}
-
-.form-divider {
-    text-align: center;
-    margin: 20px 0;
-    color: #999;
-    font-size: 14px;
-    position: relative;
-}
-
-.form-divider::before,
-.form-divider::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 40%;
-    height: 1px;
-    background: #e5e7eb;
-}
-
-.form-divider::before {
-    left: 0;
-}
-
-.form-divider::after {
-    right: 0;
-}
-
-#trainerCalendar {
-    padding: 20px;
-}
-</style>
 {% endblock %}

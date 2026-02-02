@@ -15,6 +15,8 @@ urlpatterns = [
     path('analytics/', views.analytics, name='analytics'),
     path('users/', views.users_list, name='users'),
     path('courts/', views.courts_list, name='courts'),
+    path('trainers/', views.trainers_list, name='trainers'),
+    path('payments/', views.payments_list, name='payments'),
 
     # API - Dashboard
     path('api/metrics/', views.api_metrics, name='api_metrics'),
@@ -52,4 +54,19 @@ urlpatterns = [
     path('api/schedule/', views.api_schedule, name='api_schedule'),
     path('api/schedule/events/', views.api_schedule_events, name='api_schedule_events'),
     path('api/bookings/<int:booking_id>/update-time/', views.api_booking_update_time, name='api_booking_update_time'),
+
+    # API - Trainers
+    path('api/trainers/', views.api_trainers_list, name='api_trainers_list'),
+    path('api/trainers/create/', views.api_trainer_create, name='api_trainer_create'),
+    path('api/trainers/<int:trainer_id>/', views.api_trainer_detail, name='api_trainer_detail'),
+    path('api/trainers/<int:trainer_id>/update/', views.api_trainer_update, name='api_trainer_update'),
+    path('api/trainers/<int:trainer_id>/delete/', views.api_trainer_delete, name='api_trainer_delete'),
+    path('api/trainers/<int:trainer_id>/schedule/', views.api_trainer_schedule, name='api_trainer_schedule'),
+
+    # API - Payments
+    path('api/payments/', views.api_payments_list, name='api_payments_list'),
+    path('api/payments/<int:payment_id>/', views.api_payment_detail, name='api_payment_detail'),
+    path('api/payments/<int:payment_id>/mark-paid/', views.api_payment_mark_paid, name='api_payment_mark_paid'),
+    path('api/payments/<int:payment_id>/refund/', views.api_payment_refund, name='api_payment_refund'),
+    path('api/payments/export/', views.api_payments_export, name='api_payments_export'),
 ]

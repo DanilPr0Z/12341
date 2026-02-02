@@ -1,0 +1,500 @@
+{% extends 'manager/base.html' %}
+{% load static %}
+
+{% block title %}Турниры{% endblock %}
+
+{% block content %}
+<div class="page-header-section">
+    <h1><i class="fas fa-trophy"></i> Турниры</h1>
+    <button class="btn btn-primary" onclick="showCreateTournamentModal()">
+        <i class="fas fa-plus"></i> Создать турнир
+    </button>
+</div>
+
+<!-- Статистика -->
+<div class="stats-grid" id="tournamentStats" style="display: none;">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="totalTournaments">0</div>
+            <div class="stat-label">Всего турниров</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="activeTournaments">0</div>
+            <div class="stat-label">Активные</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="upcomingTournaments">0</div>
+            <div class="stat-label">Предстоящие</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value" id="completedTournaments">0</div>
+            <div class="stat-label">Завершенные</div>
+        </div>
+    </div>
+</div>
+
+<!-- Список турниров -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h2>Все турниры</h2>
+    </div>
+    <div class="card-body">
+        <div id="tournamentsLoading" style="text-align: center; padding: 3rem;">
+            <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary);"></i>
+            <p style="margin-top: 1rem; color: var(--text-secondary);">Загрузка турниров...</p>
+        </div>
+
+        <div id="tournamentsContainer" style="display: none;">
+            <div id="tournamentsList"></div>
+        </div>
+
+        <div id="tournamentsEmpty" style="display: none; text-align: center; padding: 3rem;">
+            <i class="fas fa-trophy" style="font-size: 4rem; color: var(--border); margin-bottom: 1rem;"></i>
+            <h3 style="color: var(--text-secondary); margin-bottom: 0.5rem;">Турниров пока нет</h3>
+            <p style="color: var(--text-secondary);">Создайте первый турнир</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Создание турнира -->
+<div id="createTournamentModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2>Создать турнир</h2>
+            <button class="modal-close" onclick="closeModal('createTournamentModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="createTournamentForm">
+                <div class="form-group">
+                    <label>Название</label>
+                    <input type="text" name="name" required class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>Описание</label>
+                    <textarea name="description" rows="3" class="form-control"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Дата начала</label>
+                        <input type="date" name="start_date" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Дата окончания</label>
+                        <input type="date" name="end_date" required class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Дедлайн регистрации</label>
+                    <input type="datetime-local" name="registration_deadline" required class="form-control">
+                </div>
+
+                <!-- НОВОЕ: Формат паддл-турнира -->
+                <div class="form-group">
+                    <label>🎾 Формат турнира</label>
+                    <select name="format" id="tournamentFormat" class="form-control" onchange="updateFormatDescription()">
+                        <optgroup label="Индивидуальный зачет (партнеры меняются)">
+                            <option value="americano" selected>Americano - Все играют со всеми</option>
+                            <option value="mexicano">Mexicano - Пары по рейтингу</option>
+                            <option value="mixed_americano">Mixed Americano - Мужчина + женщина</option>
+                        </optgroup>
+                        <optgroup label="Командный (постоянные пары)">
+                            <option value="team_americano">Team Americano - Постоянные пары, все со всеми</option>
+                            <option value="team_mexicano">Team Mexicano - Постоянные пары, по рейтингу</option>
+                            <option value="doubles_elimination">Doubles Elimination - Playoff (пары)</option>
+                            <option value="doubles_round_robin">Doubles Round Robin - Круговая (пары)</option>
+                        </optgroup>
+                    </select>
+                    <small class="form-text" id="formatDescription" style="color: var(--text-secondary); margin-top: 8px; display: block;">
+                        Каждый играет с каждым и против каждого. Партнеры меняются каждый раунд. Победитель определяется по сумме очков.
+                    </small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Макс. участников</label>
+                        <input type="number" name="max_participants" id="maxParticipants" min="4" max="128" required class="form-control" value="8">
+                        <small class="form-text" style="color: var(--text-secondary);">Лучше кратно 4 для Americano/Mexicano</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Очков за матч</label>
+                        <select name="points_per_match" class="form-control">
+                            <option value="16">16 очков (~7 мин)</option>
+                            <option value="20">20 очков (~9 мин)</option>
+                            <option value="24" selected>24 очка (~10 мин)</option>
+                            <option value="32">32 очка (~14 мин)</option>
+                        </select>
+                        <small class="form-text" style="color: var(--text-secondary);">Для Americano/Mexicano</small>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Взнос за участие (₽)</label>
+                        <input type="number" name="entry_fee" min="0" step="0.01" class="form-control" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Призовой фонд (₽)</label>
+                        <input type="number" name="prize_pool" min="0" step="0.01" class="form-control" value="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Статус</label>
+                    <select name="status" class="form-control">
+                        <option value="draft">Черновик</option>
+                        <option value="registration_open">Регистрация открыта</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('createTournamentModal')">Отмена</button>
+            <button class="btn btn-primary" onclick="createTournament()">Создать</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.tournament-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.tournament-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.tournament-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.tournament-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.tournament-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-draft { background: #f3f4f6; color: #6b7280; }
+.badge-registration_open { background: #dbeafe; color: #1e40af; }
+.badge-registration_closed { background: #fef3c7; color: #92400e; }
+.badge-in_progress { background: #dcfce7; color: #166534; }
+.badge-completed { background: #f3f4f6; color: #6b7280; }
+.badge-cancelled { background: #fee2e2; color: #991b1b; }
+
+.tournament-meta {
+    display: flex;
+    gap: 1.5rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.tournament-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-sm i {
+    margin-right: 0.25rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+</style>
+
+<script>
+let tournaments = [];
+
+// Загрузка турниров
+async function loadTournaments() {
+    try {
+        const response = await fetch('/manager/tournaments/api/list/');
+        const data = await response.json();
+
+        if (data.success) {
+            tournaments = data.tournaments;
+            displayTournaments(tournaments);
+            updateStats(data.stats);
+        }
+    } catch (error) {
+        console.error('Error loading tournaments:', error);
+        showNotification('Ошибка загрузки турниров', 'error');
+    }
+}
+
+// Отображение турниров
+function displayTournaments(tournaments) {
+    const container = document.getElementById('tournamentsList');
+    const loading = document.getElementById('tournamentsLoading');
+    const empty = document.getElementById('tournamentsEmpty');
+    const tournamentsContainer = document.getElementById('tournamentsContainer');
+
+    loading.style.display = 'none';
+
+    if (tournaments.length === 0) {
+        empty.style.display = 'block';
+        tournamentsContainer.style.display = 'none';
+        return;
+    }
+
+    empty.style.display = 'none';
+    tournamentsContainer.style.display = 'block';
+
+    container.innerHTML = tournaments.map(tournament => `
+        <div class="tournament-card" onclick="viewTournament(${tournament.id})">
+            <div class="tournament-header">
+                <div>
+                    <div class="tournament-title">${tournament.name}</div>
+                    <span class="tournament-badge badge-${tournament.status}">${tournament.status_display}</span>
+                </div>
+            </div>
+
+            <div class="tournament-meta">
+                <span><i class="fas fa-calendar"></i> ${new Date(tournament.start_date).toLocaleDateString('ru')}</span>
+                <span><i class="fas fa-users"></i> ${tournament.participants_count}/${tournament.max_participants} ${tournament.format && (tournament.format.includes('team') || tournament.format.includes('doubles')) ? 'пар' : 'игроков'}</span>
+                <span><i class="fas fa-trophy"></i> ${tournament.prize_pool}₽</span>
+                <span title="${tournament.format_display}">
+                    ${tournament.format === 'americano' ? '🔄' : ''}
+                    ${tournament.format === 'mexicano' ? '📊' : ''}
+                    ${tournament.format === 'mixed_americano' ? '👫' : ''}
+                    ${tournament.format === 'team_americano' ? '🤝' : ''}
+                    ${tournament.format === 'team_mexicano' ? '🤝📊' : ''}
+                    ${tournament.format === 'doubles_elimination' ? '🏆' : ''}
+                    ${tournament.format === 'doubles_round_robin' ? '🔁' : ''}
+                    ${tournament.format_display}
+                </span>
+                ${tournament.points_per_match ? `<span><i class="fas fa-bullseye"></i> До ${tournament.points_per_match} очков</span>` : ''}
+            </div>
+
+            <div class="tournament-actions" onclick="event.stopPropagation();">
+                <button class="btn-sm btn-primary" onclick="viewTournament(${tournament.id})">
+                    <i class="fas fa-eye"></i> Просмотр
+                </button>
+                ${tournament.status === 'registration_open' || tournament.status === 'registration_closed' ? `
+                    <button class="btn-sm" style="background: var(--success); color: white;" onclick="generateBracket(${tournament.id})">
+                        <i class="fas fa-sitemap"></i> Сгенерировать сетку
+                    </button>
+                ` : ''}
+                <button class="btn-sm btn-danger" onclick="deleteTournament(${tournament.id}, '${tournament.name}')">
+                    <i class="fas fa-trash"></i> Удалить
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Обновление статистики
+function updateStats(stats) {
+    document.getElementById('totalTournaments').textContent = stats.total_tournaments;
+    document.getElementById('activeTournaments').textContent = stats.active_tournaments;
+    document.getElementById('upcomingTournaments').textContent = stats.upcoming_tournaments;
+    document.getElementById('completedTournaments').textContent = stats.completed_tournaments;
+    document.getElementById('tournamentStats').style.display = 'grid';
+}
+
+// НОВОЕ: Описания форматов
+const formatDescriptions = {
+    'americano': '🔄 Каждый играет с каждым и против каждого. Партнеры меняются каждый раунд автоматически. Победитель определяется по сумме очков. Идеально для социальных турниров!',
+    'mexicano': '📊 Как Americano, но пары формируются по текущему рейтингу. После каждого раунда топ-2 играют вместе против 3-4, делая матчи более сбалансированными.',
+    'mixed_americano': '👫 Как Americano, но обязательно мужчина + женщина в каждой паре. Отлично подходит для смешанных турниров.',
+    'team_americano': '🤝 Постоянные пары играют со всеми остальными парами. Очки суммируются для пары.',
+    'team_mexicano': '🤝📊 Постоянные пары, но формирование матчей по рейтингу пар.',
+    'doubles_elimination': '🏆 Олимпийская система с постоянными парами. Пары выбывают после одного поражения. Классический playoff формат.',
+    'doubles_round_robin': '🔁 Круговая система с постоянными парами. Каждая пара играет с каждой один раз.'
+};
+
+// НОВОЕ: Обновление описания формата
+function updateFormatDescription() {
+    const format = document.getElementById('tournamentFormat').value;
+    const description = formatDescriptions[format] || '';
+    document.getElementById('formatDescription').textContent = description;
+
+    // Обновляем подсказку для максимального количества участников
+    const isTeam = format.includes('team') || format.includes('doubles');
+    const maxParticipantsInput = document.getElementById('maxParticipants');
+
+    if (isTeam) {
+        maxParticipantsInput.previousElementSibling.nextElementSibling.textContent = 'Количество пар';
+        maxParticipantsInput.min = 2;
+    } else {
+        maxParticipantsInput.previousElementSibling.nextElementSibling.textContent = 'Лучше кратно 4 для Americano/Mexicano';
+        maxParticipantsInput.min = 4;
+    }
+}
+
+// Модальное окно создания турнира
+function showCreateTournamentModal() {
+    document.getElementById('createTournamentModal').style.display = 'flex';
+    document.getElementById('createTournamentForm').reset();
+    updateFormatDescription(); // Обновляем описание при открытии
+}
+
+// Создание турнира
+async function createTournament() {
+    const form = document.getElementById('createTournamentForm');
+    const formData = new FormData(form);
+
+    const data = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        start_date: formData.get('start_date'),
+        end_date: formData.get('end_date'),
+        registration_deadline: formData.get('registration_deadline') + ':00',
+        max_participants: parseInt(formData.get('max_participants')),
+        entry_fee: parseFloat(formData.get('entry_fee')),
+        prize_pool: parseFloat(formData.get('prize_pool')),
+        format: formData.get('format'),
+        points_per_match: parseInt(formData.get('points_per_match')), // НОВОЕ
+        status: formData.get('status')
+    };
+
+    try {
+        const response = await fetch('/manager/tournaments/api/create/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification('Турнир создан успешно!', 'success');
+            closeModal('createTournamentModal');
+            loadTournaments();
+        } else {
+            showNotification('Ошибка: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Ошибка создания турнира', 'error');
+    }
+}
+
+// Генерация сетки
+async function generateBracket(tournamentId) {
+    if (!confirm('Сгенерировать турнирную сетку? После этого изменить участников будет нельзя.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/manager/tournaments/api/${tournamentId}/generate-bracket/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification(result.message, 'success');
+            loadTournaments();
+        } else {
+            showNotification('Ошибка: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Ошибка генерации сетки', 'error');
+    }
+}
+
+// Удаление турнира
+async function deleteTournament(tournamentId, name) {
+    if (!confirm(`Удалить турнир "${name}"?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/manager/tournaments/api/${tournamentId}/delete/`, {
+            method: 'POST'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification(result.message, 'success');
+            loadTournaments();
+        } else {
+            showNotification('Ошибка: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Ошибка удаления турнира', 'error');
+    }
+}
+
+// Просмотр турнира
+function viewTournament(tournamentId) {
+    window.location.href = `/manager/tournaments/${tournamentId}/`;
+}
+
+// Закрытие модального окна
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Уведомления
+function showNotification(message, type = 'info') {
+    alert(message); // Временно, можно заменить на красивые toast notifications
+}
+
+// Загрузка при открытии страницы
+document.addEventListener('DOMContentLoaded', function() {
+    loadTournaments();
+});
+</script>
+{% endblock %}

@@ -121,21 +121,34 @@
 {% endblock %}
 
 {% block content %}
-<!-- Court Filter -->
+<!-- Filters -->
 <div class="card" style="margin-bottom: 16px;">
     <div class="card-header">
-        <h3 class="card-title">Выберите корт</h3>
+        <h3 class="card-title">Фильтры</h3>
     </div>
     <div style="padding: 20px;">
-        <div class="court-selector" id="courtSelector">
-            <button class="court-btn active" data-court-id="" onclick="selectCourt('')">
-                Все корты
-            </button>
-            {% for court in courts %}
-            <button class="court-btn" data-court-id="{{ court.id }}" onclick="selectCourt('{{ court.id }}')">
-                {{ court.name }}
-            </button>
-            {% endfor %}
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Корт</label>
+            <div class="court-selector" id="courtSelector">
+                <button class="court-btn active" data-court-id="" onclick="selectCourt('')">
+                    Все корты
+                </button>
+                {% for court in courts %}
+                <button class="court-btn" data-court-id="{{ court.id }}" onclick="selectCourt('{{ court.id }}')">
+                    {{ court.name }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Тренер</label>
+            <div class="court-selector" id="trainerSelector">
+                <button class="court-btn active" data-trainer-id="" onclick="selectTrainer('')">
+                    Все тренеры
+                </button>
+                <!-- Будет заполнено через JS -->
+            </div>
         </div>
     </div>
 </div>
@@ -310,14 +323,17 @@
 <script>
 let calendar;
 let currentCourtId = '';
+let currentTrainerId = '';
 let allUsers = [];
 let allCoaches = [];
 let allCourts = [];
+let allTrainers = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     // Загружаем данные для форм
     loadUsersForForm();
     loadCourtsForForm();
+    loadTrainers();
 
     // Устанавливаем минимальную дату на сегодня
     const today = new Date().toISOString().split('T')[0];
@@ -349,6 +365,10 @@ document.addEventListener('DOMContentLoaded', function() {
         slotMaxTime: '22:00:00',
         slotDuration: '01:00:00',
         height: 'auto',
+        contentHeight: 'auto',
+        aspectRatio: 1.8,
+        handleWindowResize: true,
+        windowResizeDelay: 100,
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
@@ -433,6 +453,10 @@ function loadEvents(start, end, successCallback, failureCallback) {
         url += `&court_id=${currentCourtId}`;
     }
 
+    if (currentTrainerId) {
+        url += `&trainer_id=${currentTrainerId}`;
+    }
+
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -464,7 +488,7 @@ function selectCourt(courtId) {
     currentCourtId = courtId;
 
     // Update button states
-    document.querySelectorAll('.court-btn').forEach(btn => {
+    document.querySelectorAll('#courtSelector .court-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.courtId === courtId) {
             btn.classList.add('active');
@@ -473,6 +497,54 @@ function selectCourt(courtId) {
 
     // Reload events
     calendar.refetchEvents();
+}
+
+function selectTrainer(trainerId) {
+    currentTrainerId = trainerId;
+
+    // Update button states
+    document.querySelectorAll('#trainerSelector .court-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.trainerId === trainerId) {
+            btn.classList.add('active');
+        }
+    });
+
+    // Reload events
+    calendar.refetchEvents();
+}
+
+function loadTrainers() {
+    fetch('/admin/api/trainers/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                allTrainers = data.trainers;
+                populateTrainerSelector();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading trainers:', error);
+        });
+}
+
+function populateTrainerSelector() {
+    const container = document.getElementById('trainerSelector');
+
+    // Очищаем контейнер (оставляем кнопку "Все тренеры")
+    const allBtn = container.querySelector('[data-trainer-id=""]');
+    container.innerHTML = '';
+    container.appendChild(allBtn);
+
+    // Добавляем кнопки для каждого тренера
+    allTrainers.forEach(trainer => {
+        const btn = document.createElement('button');
+        btn.className = 'court-btn';
+        btn.dataset.trainerId = trainer.user_id;
+        btn.textContent = trainer.user_full_name || trainer.user_username;
+        btn.onclick = () => selectTrainer(trainer.user_id);
+        container.appendChild(btn);
+    });
 }
 
 function showBookingDetails(bookingId) {
@@ -1130,6 +1202,7 @@ window.onclick = function(event) {
 /* Calendar improvements */
 #calendar {
     position: relative;
+    overflow: hidden;
 }
 
 .fc-timegrid-slot {
@@ -1138,6 +1211,42 @@ window.onclick = function(event) {
 
 .fc-timegrid-event {
     border-radius: 4px !important;
+}
+
+/* Fix для предотвращения лишних столбцов */
+.fc .fc-scrollgrid {
+    width: 100% !important;
+    border-collapse: collapse;
+}
+
+.fc .fc-scrollgrid-section table {
+    width: 100% !important;
+}
+
+.fc-view-harness {
+    overflow: hidden !important;
+}
+
+.fc-timegrid-body {
+    width: 100% !important;
+}
+
+/* Обеспечиваем равномерное распределение колонок */
+.fc-col-header-cell {
+    width: auto !important;
+}
+
+.fc-timegrid-col {
+    width: auto !important;
+}
+
+/* Убираем возможные проблемы с шириной */
+.fc-timegrid-cols {
+    width: 100% !important;
+}
+
+.fc-datagrid-body {
+    width: 100% !important;
 }
 
 /* Expandable section */
