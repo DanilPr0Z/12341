@@ -264,7 +264,7 @@ let tournaments = [];
 // Загрузка турниров
 async function loadTournaments() {
     try {
-        const response = await fetch('/manager/tournaments/api/list/');
+        const response = await fetch('/tournaments/api/list/');
         const data = await response.json();
 
         if (data.success) {
@@ -405,7 +405,7 @@ async function createTournament() {
     };
 
     try {
-        const response = await fetch('/manager/tournaments/api/create/', {
+        const response = await fetch('/tournaments/api/create/', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
@@ -433,7 +433,7 @@ async function generateBracket(tournamentId) {
     }
 
     try {
-        const response = await fetch(`/manager/tournaments/api/${tournamentId}/generate-bracket/`, {
+        const response = await fetch(`/tournaments/api/${tournamentId}/generate-bracket/`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'}
         });
@@ -459,7 +459,7 @@ async function deleteTournament(tournamentId, name) {
     }
 
     try {
-        const response = await fetch(`/manager/tournaments/api/${tournamentId}/delete/`, {
+        const response = await fetch(`/tournaments/api/${tournamentId}/delete/`, {
             method: 'POST'
         });
 
@@ -479,7 +479,7 @@ async function deleteTournament(tournamentId, name) {
 
 // Просмотр турнира
 function viewTournament(tournamentId) {
-    window.location.href = `/manager/tournaments/${tournamentId}/`;
+    window.location.href = `/tournaments/${tournamentId}/`;
 }
 
 // Закрытие модального окна

@@ -1,223 +1,144 @@
 {% extends 'manager/base.html' %}
 {% load static %}
 
-{% block title %}{{ tournament.name }} - Турнир{% endblock %}
+{% block title %}{{ tournament.name }} - Турниры{% endblock %}
 
 {% block content %}
 <div class="page-header-section">
     <div>
-        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-            <a href="{% url 'tournament:tournaments_list' %}" style="color: var(--text-secondary);">
-                <i class="fas fa-arrow-left"></i> Назад
-            </a>
-            <h1 style="margin: 0;"><i class="fas fa-trophy"></i> Турнир</h1>
-        </div>
-        <p style="color: var(--text-secondary); margin: 0;">Детальная информация и управление</p>
+        <h1><i class="fas fa-trophy"></i> {{ tournament.name }}</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;">{{ tournament.format_display }}</p>
     </div>
-    <div style="display: flex; gap: 0.5rem;">
-        <button class="btn btn-secondary" onclick="editTournament()">
-            <i class="fas fa-edit"></i> Редактировать
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <span class="tournament-badge badge-{{ tournament.status }}">{{ tournament.get_status_display }}</span>
+        {% if tournament.status in 'draft,registration_open,registration_closed' %}
+        <button class="btn btn-success" onclick="generateBracket()">
+            <i class="fas fa-sitemap"></i> Сгенерировать сетку
         </button>
-        <button class="btn btn-danger" onclick="deleteTournament()">
-            <i class="fas fa-trash"></i> Удалить
+        {% endif %}
+        {% if tournament.format in 'mexicano,team_mexicano' and tournament.status == 'in_progress' %}
+        <button class="btn btn-primary" onclick="generateNextRound()">
+            <i class="fas fa-plus"></i> Следующий раунд
         </button>
+        {% endif %}
     </div>
 </div>
 
-<!-- Основная информация -->
-<div class="card">
-    <div class="card-header">
-        <h2 id="tournamentName">Загрузка...</h2>
-    </div>
-    <div class="card-body" id="tournamentInfo">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-            <div class="info-item">
-                <i class="fas fa-calendar" style="color: var(--primary);"></i>
-                <div>
-                    <div class="info-label">Даты проведения</div>
-                    <div class="info-value" id="tournamentDates">-</div>
-                </div>
-            </div>
-            <div class="info-item">
-                <i class="fas fa-clock" style="color: var(--warning);"></i>
-                <div>
-                    <div class="info-label">Регистрация до</div>
-                    <div class="info-value" id="registrationDeadline">-</div>
-                </div>
-            </div>
-            <div class="info-item">
-                <i class="fas fa-users" style="color: var(--success);"></i>
-                <div>
-                    <div class="info-label">Участники</div>
-                    <div class="info-value" id="participantsCount">-</div>
-                </div>
-            </div>
-            <div class="info-item">
-                <i class="fas fa-trophy" style="color: var(--primary);"></i>
-                <div>
-                    <div class="info-label">Призовой фонд</div>
-                    <div class="info-value" id="prizePool">-</div>
-                </div>
-            </div>
-            <div class="info-item">
-                <i class="fas fa-network-wired" style="color: var(--info);"></i>
-                <div>
-                    <div class="info-label">Формат</div>
-                    <div class="info-value" id="tournamentFormat">-</div>
-                </div>
-            </div>
-            <div class="info-item">
-                <i class="fas fa-info-circle" style="color: var(--text-secondary);"></i>
-                <div>
-                    <div class="info-label">Статус</div>
-                    <div class="info-value" id="tournamentStatus">-</div>
-                </div>
-            </div>
-        </div>
-        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-            <div class="info-label">Описание</div>
-            <div id="tournamentDescription" style="color: var(--text-secondary); line-height: 1.6;">-</div>
-        </div>
-    </div>
-</div>
-
-<!-- Табы -->
-<div class="tabs" style="margin-top: 2rem;">
-    <button class="tab-btn active" onclick="switchTab('participants')">
-        <i class="fas fa-users"></i> Участники
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('info')">
+        <i class="fas fa-info-circle"></i> Информация
     </button>
-    <button class="tab-btn" id="teamsTabBtn" onclick="switchTab('teams')" style="display: none;">
-        <i class="fas fa-users-cog"></i> Команды
-    </button>
-    <button class="tab-btn" id="leaderboardTabBtn" onclick="switchTab('leaderboard')" style="display: none;">
-        <i class="fas fa-trophy"></i> Таблица лидеров
-    </button>
-    <button class="tab-btn" onclick="switchTab('bracket')">
-        <i class="fas fa-sitemap"></i> Сетка
+    <button class="tab-btn" onclick="switchTab('participants')">
+        <i class="fas fa-users"></i> Участники (<span id="participantsCount">0</span>)
     </button>
     <button class="tab-btn" onclick="switchTab('matches')">
-        <i class="fas fa-th-list"></i> Матчи
+        <i class="fas fa-table-tennis"></i> Матчи
     </button>
+    {% if tournament.format in 'americano,mexicano,mixed_americano' %}
+    <button class="tab-btn" onclick="switchTab('leaderboard')">
+        <i class="fas fa-medal"></i> Таблица лидеров
+    </button>
+    {% endif %}
 </div>
 
-<!-- Таб: Участники -->
-<div id="participantsTab" class="tab-content active">
+<!-- Tab: Информация -->
+<div id="tab-info" class="tab-content active">
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+        <div class="stat-card">
+            <div class="stat-label">Дата начала</div>
+            <div class="stat-value" style="font-size: 1.25rem;">{{ tournament.start_date|date:"d.m.Y" }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">{{ tournament.is_team_tournament|yesno:"Пары,Участники" }}</div>
+            <div class="stat-value" style="font-size: 1.25rem;">
+                <span id="infoParticipantsCount">0</span>/{{ tournament.max_participants }}
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Взнос</div>
+            <div class="stat-value" style="font-size: 1.25rem;">{{ tournament.entry_fee }}₽</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Призовой фонд</div>
+            <div class="stat-value" style="font-size: 1.25rem;">{{ tournament.prize_pool }}₽</div>
+        </div>
+        {% if tournament.points_per_match %}
+        <div class="stat-card">
+            <div class="stat-label">Очков за матч</div>
+            <div class="stat-value" style="font-size: 1.25rem;">{{ tournament.points_per_match }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if tournament.description %}
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header"><h3>Описание</h3></div>
+        <div class="card-body">
+            <p style="white-space: pre-line;">{{ tournament.description }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Tab: Участники -->
+<div id="tab-participants" class="tab-content">
     <div class="card">
         <div class="card-header">
-            <h2 id="participantsTitle">Участники турнира</h2>
-            <button class="btn btn-primary" onclick="showAddParticipantModal()">
-                <i class="fas fa-user-plus"></i> Добавить участника
+            <h2>Участники</h2>
+            <button class="btn btn-primary btn-sm" onclick="showAddParticipantModal()">
+                <i class="fas fa-plus"></i> Добавить
             </button>
         </div>
         <div class="card-body">
-            <div id="participantsLoading" style="text-align: center; padding: 2rem;">
-                <i class="fas fa-spinner fa-spin fa-2x"></i>
-            </div>
-            <div id="participantsList" style="display: none;"></div>
-            <div id="participantsEmpty" style="display: none; text-align: center; padding: 2rem; color: var(--text-secondary);">
-                Участников пока нет
-            </div>
-        </div>
-    </div>
-
-    <div class="card" style="margin-top: 1rem;">
-        <div class="card-header">
-            <h3>Действия</h3>
-        </div>
-        <div class="card-body">
-            <button class="btn btn-primary" onclick="autoSeedParticipants()" id="autoSeedBtn">
-                <i class="fas fa-sort-numeric-down"></i> Автоматический посев по рейтингу
-            </button>
-            <button class="btn btn-success" onclick="generateBracket()" id="generateBracketBtn" style="margin-left: 0.5rem;">
-                <i class="fas fa-sitemap"></i> Сгенерировать сетку
-            </button>
+            <div id="participantsList"></div>
         </div>
     </div>
 </div>
 
-<!-- Таб: Команды (для командных турниров) -->
-<div id="teamsTab" class="tab-content" style="display: none;">
-    <div class="card">
-        <div class="card-header">
-            <h2>Команды турнира</h2>
-            <button class="btn btn-primary" onclick="showCreateTeamModal()">
-                <i class="fas fa-plus"></i> Создать команду
-            </button>
-        </div>
-        <div class="card-body">
-            <div id="teamsLoading" style="text-align: center; padding: 2rem;">
-                <i class="fas fa-spinner fa-spin fa-2x"></i>
-            </div>
-            <div id="teamsList" style="display: none;"></div>
-            <div id="teamsEmpty" style="display: none; text-align: center; padding: 2rem; color: var(--text-secondary);">
-                Команды не созданы
-            </div>
-        </div>
-    </div>
+<!-- Tab: Матчи -->
+<div id="tab-matches" class="tab-content">
+    <div id="matchesByRound"></div>
 </div>
 
-<!-- Таб: Таблица лидеров (для Americano/Mexicano) -->
-<div id="leaderboardTab" class="tab-content" style="display: none;">
+<!-- Tab: Таблица лидеров (только для Americano/Mexicano) -->
+{% if tournament.format in 'americano,mexicano,mixed_americano' %}
+<div id="tab-leaderboard" class="tab-content">
     <div class="card">
         <div class="card-header">
-            <h2>Таблица лидеров</h2>
-            <button class="btn btn-secondary" onclick="refreshLeaderboard()">
+            <h2><i class="fas fa-medal"></i> Таблица лидеров</h2>
+            <button class="btn btn-primary btn-sm" onclick="loadLeaderboard()">
                 <i class="fas fa-sync"></i> Обновить
             </button>
         </div>
         <div class="card-body">
-            <div id="leaderboardLoading" style="text-align: center; padding: 2rem;">
-                <i class="fas fa-spinner fa-spin fa-2x"></i>
-            </div>
-            <div id="leaderboardTable" style="display: none; overflow-x: auto;"></div>
-            <div id="leaderboardEmpty" style="display: none; text-align: center; padding: 2rem; color: var(--text-secondary);">
-                Матчи еще не сыграны
-            </div>
+            <table class="data-table" id="leaderboardTable">
+                <thead>
+                    <tr>
+                        <th>Место</th>
+                        <th>Игрок</th>
+                        <th>Очки</th>
+                        <th>Матчи</th>
+                        <th>Победы</th>
+                        <th>Поражения</th>
+                        <th>Win Rate</th>
+                        <th>Среднее/матч</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-spinner fa-spin"></i> Загрузка...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+{% endif %}
 
-<!-- Таб: Сетка -->
-<div id="bracketTab" class="tab-content" style="display: none;">
-    <div class="card">
-        <div class="card-header">
-            <h2>Турнирная сетка</h2>
-            <button class="btn btn-secondary" onclick="exportBracket()">
-                <i class="fas fa-download"></i> Экспорт
-            </button>
-        </div>
-        <div class="card-body">
-            <div id="bracketLoading" style="text-align: center; padding: 3rem;">
-                <i class="fas fa-spinner fa-spin fa-2x"></i>
-            </div>
-            <div id="bracketContainer" style="display: none; overflow-x: auto;"></div>
-            <div id="bracketEmpty" style="display: none; text-align: center; padding: 3rem; color: var(--text-secondary);">
-                <i class="fas fa-sitemap" style="font-size: 4rem; opacity: 0.3; margin-bottom: 1rem;"></i>
-                <p>Сетка не сгенерирована. Добавьте участников и нажмите "Сгенерировать сетку".</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Таб: Матчи -->
-<div id="matchesTab" class="tab-content" style="display: none;">
-    <div class="card">
-        <div class="card-header">
-            <h2>Матчи турнира</h2>
-        </div>
-        <div class="card-body">
-            <div id="matchesLoading" style="text-align: center; padding: 2rem;">
-                <i class="fas fa-spinner fa-spin fa-2x"></i>
-            </div>
-            <div id="matchesList" style="display: none;"></div>
-            <div id="matchesEmpty" style="display: none; text-align: center; padding: 2rem; color: var(--text-secondary);">
-                Матчи не созданы
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Добавить участника -->
+<!-- Modal: Добавление участника -->
 <div id="addParticipantModal" class="modal">
     <div class="modal-content" style="max-width: 500px;">
         <div class="modal-header">
@@ -227,108 +148,74 @@
         <div class="modal-body">
             <div class="form-group">
                 <label>Поиск пользователя</label>
-                <input type="text" id="userSearch" class="form-control" placeholder="Начните вводить имя или email..." oninput="searchUsers(this.value)">
+                <input type="text" id="userSearch" class="form-control" placeholder="Начните вводить имя..." oninput="searchUsers()">
+                <div id="searchResults" style="margin-top: 0.5rem;"></div>
             </div>
-            <div id="userSearchResults" style="max-height: 300px; overflow-y: auto; margin-top: 1rem;"></div>
+            <input type="hidden" id="selectedUserId">
+            <div id="selectedUserDisplay" style="display: none; margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                <strong>Выбран:</strong> <span id="selectedUserName"></span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('addParticipantModal')">Отмена</button>
+            <button class="btn btn-primary" onclick="addParticipant()">Добавить</button>
         </div>
     </div>
 </div>
 
-<!-- Modal: Установить победителя -->
-<div id="setWinnerModal" class="modal">
+<!-- Modal: Установка счета -->
+<div id="setScoreModal" class="modal">
     <div class="modal-content" style="max-width: 500px;">
         <div class="modal-header">
-            <h2>Установить победителя</h2>
-            <button class="modal-close" onclick="closeModal('setWinnerModal')">&times;</button>
+            <h2>Установить счет</h2>
+            <button class="modal-close" onclick="closeModal('setScoreModal')">&times;</button>
         </div>
         <div class="modal-body">
-            <div id="matchInfo" style="margin-bottom: 1.5rem;"></div>
-            <div class="form-group">
-                <label>Победитель</label>
-                <div id="winnerSelection"></div>
-            </div>
-            <div class="form-group">
-                <label>Счет (опционально)</label>
-                <input type="text" id="matchScore" class="form-control" placeholder="6-4, 7-5">
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('setWinnerModal')">Отмена</button>
-            <button class="btn btn-primary" onclick="confirmWinner()">Подтвердить</button>
-        </div>
-    </div>
-</div>
+            <input type="hidden" id="scoreMatchId">
+            <div id="scoreTeamsDisplay" style="margin-bottom: 1.5rem;"></div>
 
-<!-- Modal: Расписание матча -->
-<div id="scheduleMatchModal" class="modal">
-    <div class="modal-content" style="max-width: 500px;">
-        <div class="modal-header">
-            <h2>Назначить расписание</h2>
-            <button class="modal-close" onclick="closeModal('scheduleMatchModal')">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label>Дата</label>
-                <input type="date" id="matchDate" class="form-control">
+            <div class="form-row" style="gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Счет пары 1</label>
+                    <input type="number" id="scoreTeam1" min="0" max="99" class="form-control" style="font-size: 1.5rem; text-align: center;">
+                </div>
+                <div style="display: flex; align-items: center; font-size: 2rem; color: var(--text-secondary);">-</div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Счет пары 2</label>
+                    <input type="number" id="scoreTeam2" min="0" max="99" class="form-control" style="font-size: 1.5rem; text-align: center;">
+                </div>
             </div>
+
             <div class="form-group">
-                <label>Время</label>
-                <input type="time" id="matchTime" class="form-control">
-            </div>
-            <div class="form-group">
-                <label>Корт</label>
-                <select id="matchCourt" class="form-control">
-                    <option value="">Не назначен</option>
-                </select>
+                <label>Детальный счет (необязательно)</label>
+                <input type="text" id="detailedScore" class="form-control" placeholder="Например: 6-4, 6-3">
+                <small class="form-text" style="color: var(--text-secondary);">Формат: сет1, сет2, ...</small>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeModal('scheduleMatchModal')">Отмена</button>
-            <button class="btn btn-primary" onclick="confirmSchedule()">Сохранить</button>
+            <button class="btn btn-secondary" onclick="closeModal('setScoreModal')">Отмена</button>
+            <button class="btn btn-success" onclick="submitScore()">Сохранить счет</button>
         </div>
     </div>
 </div>
 
 <style>
-.info-item {
-    display: flex;
-    gap: 1rem;
-    align-items: start;
-}
-
-.info-item i {
-    font-size: 1.5rem;
-    margin-top: 0.25rem;
-}
-
-.info-label {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.25rem;
-}
-
-.info-value {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
 .tabs {
     display: flex;
     gap: 0.5rem;
+    margin-bottom: 2rem;
     border-bottom: 2px solid var(--border);
 }
 
 .tab-btn {
-    padding: 1rem 1.5rem;
-    background: none;
+    padding: 0.75rem 1.5rem;
     border: none;
+    background: none;
     color: var(--text-secondary);
     cursor: pointer;
+    transition: all 0.2s;
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
-    transition: all 0.2s;
-    font-size: 1rem;
 }
 
 .tab-btn:hover {
@@ -338,389 +225,382 @@
 .tab-btn.active {
     color: var(--primary);
     border-bottom-color: var(--primary);
+    font-weight: 500;
 }
 
 .tab-content {
-    padding-top: 1.5rem;
+    display: none;
 }
+
+.tab-content.active {
+    display: block;
+}
+
+.tournament-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.badge-draft { background: #f3f4f6; color: #6b7280; }
+.badge-registration_open { background: #dbeafe; color: #1e40af; }
+.badge-registration_closed { background: #fef3c7; color: #92400e; }
+.badge-in_progress { background: #dcfce7; color: #166534; }
+.badge-completed { background: #e0e7ff; color: #3730a3; }
+.badge-cancelled { background: #fee2e2; color: #991b1b; }
 
 .participant-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    background: white;
-}
-
-.participant-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.participant-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-}
-
-.participant-details {
-    flex: 1;
-}
-
-.participant-name {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.participant-meta {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-top: 0.25rem;
-}
-
-.participant-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.badge-seed {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    background: var(--primary);
-    color: white;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.badge-paid {
-    background: var(--success);
-}
-
-.badge-pending {
-    background: var(--warning);
-}
-
-.bracket-round {
-    display: inline-block;
-    vertical-align: top;
-    margin-right: 2rem;
-}
-
-.bracket-round-title {
-    text-align: center;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--primary);
-}
-
-.bracket-match {
-    background: white;
-    border: 2px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    overflow: hidden;
-    min-width: 200px;
-}
-
-.bracket-player {
-    padding: 0.75rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     border-bottom: 1px solid var(--border);
 }
 
-.bracket-player:last-child {
+.participant-item:last-child {
     border-bottom: none;
-}
-
-.bracket-player.winner {
-    background: #f0fdf4;
-    font-weight: 600;
-}
-
-.bracket-player-name {
-    flex: 1;
-}
-
-.bracket-player-score {
-    font-weight: 600;
-    margin-left: 1rem;
 }
 
 .match-card {
     background: white;
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 1.5rem;
+    padding: 1rem;
     margin-bottom: 1rem;
 }
 
-.match-header {
+.match-teams {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
 }
 
-.match-players {
-    display: grid;
-    gap: 1rem;
+.team {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
 }
 
-.match-player {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background: var(--bg-secondary);
-    border-radius: 8px;
+.team.winner {
+    font-weight: bold;
+    color: var(--success);
 }
 
-.match-player.winner {
-    background: #f0fdf4;
-    border: 2px solid var(--success);
+.match-score {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 1rem;
 }
 
-.user-search-item {
-    padding: 1rem;
+.search-result-item {
+    padding: 0.75rem;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 6px;
     margin-bottom: 0.5rem;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.user-search-item:hover {
-    background: var(--bg-secondary);
+.search-result-item:hover {
+    background: #f8f9fa;
     border-color: var(--primary);
 }
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+}
+
+.data-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.data-table tr:hover {
+    background: #f8f9fa;
+}
+
+.medal {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.medal-gold { background: #fbbf24; color: white; }
+.medal-silver { background: #9ca3af; color: white; }
+.medal-bronze { background: #d97706; color: white; }
 </style>
 
 <script>
-let tournament = null;
-let currentMatchId = null;
-let currentTab = 'participants';
+const tournamentId = {{ tournament.id }};
+let tournamentData = null;
+let allUsers = [];
 
-// Загрузка турнира
-async function loadTournament() {
-    const tournamentId = {{ tournament.id }};
-
+// Загрузка данных турнира
+async function loadTournamentData() {
     try {
-        const response = await fetch(`/manager/tournaments/api/${tournamentId}/`);
+        const response = await fetch(`/tournaments/api/${tournamentId}/`);
         const data = await response.json();
 
         if (data.success) {
-            tournament = data.tournament;
-            displayTournamentInfo(tournament);
-            displayParticipants(tournament.participants);
-            loadCourts();
+            tournamentData = data.tournament;
+            displayParticipants(tournamentData.participants);
+            displayMatches(tournamentData.rounds);
 
-            if (tournament.rounds && tournament.rounds.length > 0) {
-                displayBracket(tournament.rounds);
-                displayMatches(tournament.rounds);
-            }
+            // Обновляем счетчики
+            document.getElementById('participantsCount').textContent = tournamentData.participants.length;
+            document.getElementById('infoParticipantsCount').textContent = tournamentData.participants.length;
         }
     } catch (error) {
         console.error('Error loading tournament:', error);
-        showNotification('Ошибка загрузки турнира', 'error');
     }
-}
-
-// Отображение информации о турнире
-function displayTournamentInfo(t) {
-    document.getElementById('tournamentName').textContent = t.name;
-    document.getElementById('tournamentDates').textContent =
-        `${new Date(t.start_date).toLocaleDateString('ru')} - ${new Date(t.end_date).toLocaleDateString('ru')}`;
-    document.getElementById('registrationDeadline').textContent =
-        new Date(t.registration_deadline).toLocaleString('ru');
-    document.getElementById('participantsCount').textContent =
-        `${t.participants_count} / ${t.max_participants}`;
-    document.getElementById('prizePool').textContent = `${t.prize_pool}₽`;
-    document.getElementById('tournamentFormat').textContent = t.format_display;
-    document.getElementById('tournamentStatus').textContent = t.status_display;
-    document.getElementById('tournamentDescription').textContent = t.description || 'Описание отсутствует';
 }
 
 // Отображение участников
 function displayParticipants(participants) {
-    const loading = document.getElementById('participantsLoading');
-    const list = document.getElementById('participantsList');
-    const empty = document.getElementById('participantsEmpty');
+    const container = document.getElementById('participantsList');
 
-    loading.style.display = 'none';
-
-    if (!participants || participants.length === 0) {
-        empty.style.display = 'block';
-        list.style.display = 'none';
+    if (participants.length === 0) {
+        container.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--text-secondary);">Нет участников</p>';
         return;
     }
 
-    empty.style.display = 'none';
-    list.style.display = 'block';
-
-    list.innerHTML = participants.map(p => `
+    container.innerHTML = participants.map(p => `
         <div class="participant-item">
-            <div class="participant-info">
-                <div class="participant-avatar">${p.user_name.charAt(0).toUpperCase()}</div>
-                <div class="participant-details">
-                    <div class="participant-name">${p.user_name}</div>
-                    <div class="participant-meta">
-                        ${p.rating ? `Рейтинг: ${p.rating}` : 'Без рейтинга'} •
-                        ${p.user_email}
-                    </div>
+            <div>
+                <strong>${p.user_name}</strong>
+                ${p.partner_name ? `<span style="color: var(--text-secondary);"> + ${p.partner_name}</span>` : ''}
+                ${p.team_name ? `<div style="color: var(--text-secondary); font-size: 0.875rem;">${p.team_name}</div>` : ''}
+                <div style="margin-top: 0.25rem;">
+                    ${p.total_points > 0 ? `<span class="badge" style="background: #dcfce7; color: #166534;">${p.total_points} очков</span>` : ''}
+                    ${p.matches_played > 0 ? `<span class="badge" style="background: #e0e7ff; color: #3730a3;">${p.matches_won}W/${p.matches_lost}L</span>` : ''}
+                    ${p.current_rank ? `<span class="badge" style="background: #fef3c7; color: #92400e;">#${p.current_rank}</span>` : ''}
                 </div>
-                ${p.seed ? `<span class="badge-seed">Посев ${p.seed}</span>` : ''}
-                <span class="badge-seed badge-${p.payment_status}">${p.payment_status === 'paid' ? 'Оплачено' : 'Ожидает оплаты'}</span>
             </div>
-            <div class="participant-actions">
-                <button class="btn-sm btn-secondary" onclick="setSeed(${p.id})">
-                    <i class="fas fa-sort-numeric-down"></i> Посев
-                </button>
-                <button class="btn-sm btn-danger" onclick="removeParticipant(${p.id}, '${p.user_name}')">
-                    <i class="fas fa-times"></i>
+            <div>
+                <span class="badge badge-${p.payment_status}">${p.payment_status === 'paid' ? 'Оплачено' : 'Ожидание'}</span>
+                <button class="btn btn-danger btn-sm" onclick="removeParticipant(${p.id}, '${p.user_name}')" style="margin-left: 0.5rem;">
+                    <i class="fas fa-trash"></i>
                 </button>
             </div>
         </div>
     `).join('');
 }
 
-// Отображение сетки
-function displayBracket(rounds) {
-    const loading = document.getElementById('bracketLoading');
-    const container = document.getElementById('bracketContainer');
-    const empty = document.getElementById('bracketEmpty');
-
-    loading.style.display = 'none';
+// Отображение матчей по раундам
+function displayMatches(rounds) {
+    const container = document.getElementById('matchesByRound');
 
     if (!rounds || rounds.length === 0) {
-        empty.style.display = 'block';
-        container.style.display = 'none';
+        container.innerHTML = '<div class="card"><div class="card-body" style="text-align: center; padding: 3rem;"><p>Сетка еще не сгенерирована</p></div></div>';
         return;
     }
-
-    empty.style.display = 'none';
-    container.style.display = 'block';
 
     container.innerHTML = rounds.map(round => `
-        <div class="bracket-round">
-            <div class="bracket-round-title">${round.name}</div>
-            ${round.matches.map(match => `
-                <div class="bracket-match">
-                    <div class="bracket-player ${match.winner_id === match.player1_id ? 'winner' : ''}">
-                        <span class="bracket-player-name">${match.player1_name}</span>
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+                <h3>${round.name}</h3>
+                ${round.is_completed ? '<span class="badge" style="background: #dcfce7; color: #166534;">Завершен</span>' : ''}
+                ${!round.is_completed ? `<span class="badge" style="background: #e0e7ff; color: #3730a3;">${round.completion_percentage}%</span>` : ''}
+            </div>
+            <div class="card-body">
+                ${round.matches.map(match => `
+                    <div class="match-card">
+                        <div class="match-teams">
+                            <div class="team ${match.winning_team_id === match.team1_id ? 'winner' : ''}">
+                                <div style="font-weight: 600;">${match.team1_name}</div>
+                                <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                                    ${match.team1_player1} + ${match.team1_player2}
+                                </div>
+                            </div>
+                            <div class="match-score">
+                                ${match.status === 'completed' ? `${match.score_team1} - ${match.score_team2}` : 'vs'}
+                            </div>
+                            <div class="team ${match.winning_team_id === match.team2_id ? 'winner' : ''}">
+                                <div style="font-weight: 600;">${match.team2_name}</div>
+                                <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                                    ${match.team2_player1} + ${match.team2_player2}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                                ${match.court_name ? `<i class="fas fa-map-marker-alt"></i> ${match.court_name}` : ''}
+                                ${match.scheduled_date ? `<i class="fas fa-calendar"></i> ${match.scheduled_date}` : ''}
+                            </div>
+                            ${match.status !== 'completed' ? `
+                                <button class="btn btn-primary btn-sm" onclick="showSetScoreModal(${match.id}, '${match.team1_name}', '${match.team2_name}')">
+                                    <i class="fas fa-edit"></i> Установить счет
+                                </button>
+                            ` : `
+                                <span class="badge" style="background: #dcfce7; color: #166534;">Завершен</span>
+                            `}
+                        </div>
                     </div>
-                    <div class="bracket-player ${match.winner_id === match.player2_id ? 'winner' : ''}">
-                        <span class="bracket-player-name">${match.player2_name}</span>
-                    </div>
-                </div>
-            `).join('')}
+                `).join('')}
+            </div>
         </div>
     `).join('');
 }
 
-// Отображение матчей
-function displayMatches(rounds) {
-    const loading = document.getElementById('matchesLoading');
-    const list = document.getElementById('matchesList');
-    const empty = document.getElementById('matchesEmpty');
-
-    loading.style.display = 'none';
-
-    const allMatches = rounds.flatMap(r => r.matches);
-
-    if (allMatches.length === 0) {
-        empty.style.display = 'block';
-        list.style.display = 'none';
-        return;
-    }
-
-    empty.style.display = 'none';
-    list.style.display = 'block';
-
-    list.innerHTML = rounds.map(round => `
-        <div style="margin-bottom: 2rem;">
-            <h3 style="color: var(--primary); margin-bottom: 1rem;">${round.name}</h3>
-            ${round.matches.map(match => `
-                <div class="match-card">
-                    <div class="match-header">
-                        <div>
-                            <strong>Матч #${match.match_number}</strong>
-                            <span class="tournament-badge badge-${match.status}" style="margin-left: 1rem;">${match.status}</span>
-                        </div>
-                        <div>
-                            ${match.scheduled_date ? `${match.scheduled_date} ${match.scheduled_time || ''}` : 'Время не назначено'}
-                            ${match.court_name ? `• ${match.court_name}` : ''}
-                        </div>
-                    </div>
-                    <div class="match-players">
-                        <div class="match-player ${match.winner_id === match.player1_id ? 'winner' : ''}">
-                            <span>${match.player1_name}</span>
-                            ${match.winner_id === match.player1_id ? '<i class="fas fa-crown" style="color: gold;"></i>' : ''}
-                        </div>
-                        <div class="match-player ${match.winner_id === match.player2_id ? 'winner' : ''}">
-                            <span>${match.player2_name}</span>
-                            ${match.winner_id === match.player2_id ? '<i class="fas fa-crown" style="color: gold;"></i>' : ''}
-                        </div>
-                    </div>
-                    ${match.is_ready_to_play && !match.winner_id ? `
-                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem;">
-                            <button class="btn-sm btn-primary" onclick="showSetWinnerModal(${match.id}, '${match.player1_name}', ${match.player1_id}, '${match.player2_name}', ${match.player2_id})">
-                                <i class="fas fa-crown"></i> Установить победителя
-                            </button>
-                            <button class="btn-sm btn-secondary" onclick="showScheduleMatchModal(${match.id}, '${match.scheduled_date || ''}', '${match.scheduled_time || ''}', ${match.court_id || 'null'})">
-                                <i class="fas fa-calendar"></i> Расписание
-                            </button>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('')}
-        </div>
-    `).join('');
-}
-
-// Переключение табов
-function switchTab(tab) {
-    currentTab = tab;
-
-    // Скрываем все табы
-    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-    // Показываем нужный таб
-    document.getElementById(tab + 'Tab').style.display = 'block';
-    event.target.classList.add('active');
-
-    // Загружаем данные если нужно
-    if (tab === 'bracket' && tournament) {
-        loadBracket();
-    }
-}
-
-// Загрузка сетки
-async function loadBracket() {
+// Загрузка таблицы лидеров
+async function loadLeaderboard() {
     try {
-        const response = await fetch(`/manager/tournaments/api/${tournament.id}/bracket/`);
+        const response = await fetch(`/tournaments/api/${tournamentId}/leaderboard/`);
         const data = await response.json();
 
         if (data.success) {
-            displayBracket(data.bracket);
+            displayLeaderboard(data.leaderboard);
         }
     } catch (error) {
-        console.error('Error loading bracket:', error);
+        console.error('Error loading leaderboard:', error);
+    }
+}
+
+// Отображение таблицы лидеров
+function displayLeaderboard(leaderboard) {
+    const tbody = document.getElementById('leaderboardBody');
+
+    if (leaderboard.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Нет данных</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = leaderboard.map(player => `
+        <tr>
+            <td>
+                ${player.rank === 1 ? '<span class="medal medal-gold">🥇</span>' : ''}
+                ${player.rank === 2 ? '<span class="medal medal-silver">🥈</span>' : ''}
+                ${player.rank === 3 ? '<span class="medal medal-bronze">🥉</span>' : ''}
+                ${player.rank > 3 ? player.rank : ''}
+            </td>
+            <td><strong>${player.user_name}</strong></td>
+            <td><strong>${player.total_points}</strong></td>
+            <td>${player.matches_played}</td>
+            <td style="color: var(--success);">${player.matches_won}</td>
+            <td style="color: var(--danger);">${player.matches_lost}</td>
+            <td>${player.win_rate.toFixed(1)}%</td>
+            <td>${player.average_points_per_match.toFixed(1)}</td>
+        </tr>
+    `).join('');
+}
+
+// Генерация сетки
+async function generateBracket() {
+    if (!confirm('Сгенерировать турнирную сетку? После этого изменить участников будет нельзя.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/tournaments/api/${tournamentId}/generate-bracket/`, {
+            method: 'POST'
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Ошибка генерации сетки');
+    }
+}
+
+// Генерация следующего раунда (Mexicano)
+async function generateNextRound() {
+    if (!confirm('Сгенерировать следующий раунд? Убедитесь что все матчи текущего раунда завершены.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/tournaments/api/${tournamentId}/generate-next-round/`, {
+            method: 'POST'
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            loadTournamentData();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Ошибка генерации раунда');
+    }
+}
+
+// Модальное окно установки счета
+function showSetScoreModal(matchId, team1Name, team2Name) {
+    document.getElementById('scoreMatchId').value = matchId;
+    document.getElementById('scoreTeamsDisplay').innerHTML = `
+        <div style="display: flex; justify-content: space-between; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+            <strong>${team1Name}</strong>
+            <span style="color: var(--text-secondary);">vs</span>
+            <strong>${team2Name}</strong>
+        </div>
+    `;
+    document.getElementById('scoreTeam1').value = '';
+    document.getElementById('scoreTeam2').value = '';
+    document.getElementById('detailedScore').value = '';
+    document.getElementById('setScoreModal').style.display = 'flex';
+}
+
+// Отправка счета
+async function submitScore() {
+    const matchId = document.getElementById('scoreMatchId').value;
+    const scoreTeam1 = parseInt(document.getElementById('scoreTeam1').value);
+    const scoreTeam2 = parseInt(document.getElementById('scoreTeam2').value);
+    const detailedScore = document.getElementById('detailedScore').value.trim();
+
+    if (isNaN(scoreTeam1) || isNaN(scoreTeam2)) {
+        alert('Введите счет обеих пар');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/tournaments/api/matches/${matchId}/set-score/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                score_team1: scoreTeam1,
+                score_team2: scoreTeam2,
+                detailed_score: detailedScore || null
+            })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            closeModal('setScoreModal');
+            loadTournamentData();
+            {% if tournament.format in 'americano,mexicano,mixed_americano' %}
+            loadLeaderboard();
+            {% endif %}
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Ошибка установки счета');
     }
 }
 
@@ -728,331 +608,128 @@ async function loadBracket() {
 function showAddParticipantModal() {
     document.getElementById('addParticipantModal').style.display = 'flex';
     document.getElementById('userSearch').value = '';
-    document.getElementById('userSearchResults').innerHTML = '';
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('selectedUserId').value = '';
+    document.getElementById('selectedUserDisplay').style.display = 'none';
 }
 
-// Поиск пользователей
-let searchTimeout;
-async function searchUsers(query) {
-    clearTimeout(searchTimeout);
-
+async function searchUsers() {
+    const query = document.getElementById('userSearch').value;
     if (query.length < 2) {
-        document.getElementById('userSearchResults').innerHTML = '';
+        document.getElementById('searchResults').innerHTML = '';
         return;
     }
 
-    searchTimeout = setTimeout(async () => {
-        try {
-            const response = await fetch(`/manager/api/users/?search=${encodeURIComponent(query)}`);
-            const data = await response.json();
-
-            if (data.success) {
-                const results = document.getElementById('userSearchResults');
-                results.innerHTML = data.users.map(user => `
-                    <div class="user-search-item" onclick="addParticipant(${user.id}, '${user.full_name}')">
-                        <div style="font-weight: 600;">${user.full_name}</div>
-                        <div style="font-size: 0.875rem; color: var(--text-secondary);">${user.email}</div>
-                    </div>
-                `).join('');
-            }
-        } catch (error) {
-            console.error('Error searching users:', error);
-        }
-    }, 300);
-}
-
-// Добавить участника
-async function addParticipant(userId, userName) {
+    // Используем API поиска пользователей из manager
     try {
-        const response = await fetch(`/manager/tournaments/api/${tournament.id}/add-participant/`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({user_id: userId})
-        });
-
+        const response = await fetch(`/admin/api/users/?search=${query}`);
         const data = await response.json();
 
         if (data.success) {
-            showNotification(data.message, 'success');
+            displaySearchResults(data.users.slice(0, 5));
+        }
+    } catch (error) {
+        console.error('Error searching users:', error);
+    }
+}
+
+function displaySearchResults(users) {
+    const container = document.getElementById('searchResults');
+    container.innerHTML = users.map(user => `
+        <div class="search-result-item" onclick="selectUser(${user.id}, '${user.full_name || user.username}')">
+            <strong>${user.full_name || user.username}</strong>
+            <div style="font-size: 0.875rem; color: var(--text-secondary);">${user.email}</div>
+        </div>
+    `).join('');
+}
+
+function selectUser(userId, userName) {
+    document.getElementById('selectedUserId').value = userId;
+    document.getElementById('selectedUserName').textContent = userName;
+    document.getElementById('selectedUserDisplay').style.display = 'block';
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('userSearch').value = '';
+}
+
+async function addParticipant() {
+    const userId = document.getElementById('selectedUserId').value;
+    if (!userId) {
+        alert('Выберите пользователя');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/tournaments/api/${tournamentId}/add-participant/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({user_id: parseInt(userId)})
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
             closeModal('addParticipantModal');
-            loadTournament();
+            loadTournamentData();
         } else {
-            showNotification('Ошибка: ' + data.error, 'error');
+            alert('Ошибка: ' + data.error);
         }
     } catch (error) {
         console.error('Error:', error);
-        showNotification('Ошибка добавления участника', 'error');
+        alert('Ошибка добавления участника');
     }
 }
 
-// Удалить участника
-async function removeParticipant(participantId, name) {
-    if (!confirm(`Удалить ${name} из турнира?`)) return;
-
-    try {
-        const response = await fetch(`/manager/tournaments/api/${tournament.id}/participants/${participantId}/remove/`, {
-            method: 'POST'
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification(data.message, 'success');
-            loadTournament();
-        } else {
-            showNotification('Ошибка: ' + data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showNotification('Ошибка удаления участника', 'error');
-    }
-}
-
-// Установить посев
-async function setSeed(participantId) {
-    const seed = prompt('Введите номер посева:');
-    if (!seed) return;
-
-    try {
-        const response = await fetch(`/manager/tournaments/api/${tournament.id}/participants/${participantId}/set-seed/`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({seed: parseInt(seed)})
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification(data.message, 'success');
-            loadTournament();
-        } else {
-            showNotification('Ошибка: ' + data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showNotification('Ошибка установки посева', 'error');
-    }
-}
-
-// Автоматический посев
-async function autoSeedParticipants() {
-    if (!confirm('Автоматически установить посев всем участникам по рейтингу?')) return;
-
-    // Сортируем участников по рейтингу
-    const sortedParticipants = [...tournament.participants].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-
-    for (let i = 0; i < sortedParticipants.length; i++) {
-        const participant = sortedParticipants[i];
-        try {
-            await fetch(`/manager/tournaments/api/${tournament.id}/participants/${participant.id}/set-seed/`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({seed: i + 1})
-            });
-        } catch (error) {
-            console.error('Error setting seed:', error);
-        }
-    }
-
-    showNotification('Посев установлен!', 'success');
-    loadTournament();
-}
-
-// Генерация сетки
-async function generateBracket() {
-    if (!confirm('Сгенерировать турнирную сетку? После этого изменить участников будет нельзя.')) return;
-
-    try {
-        const response = await fetch(`/manager/tournaments/api/${tournament.id}/generate-bracket/`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'}
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification(data.message, 'success');
-            loadTournament();
-            switchTab('bracket');
-        } else {
-            showNotification('Ошибка: ' + data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showNotification('Ошибка генерации сетки', 'error');
-    }
-}
-
-// Модальное окно установки победителя
-function showSetWinnerModal(matchId, player1Name, player1Id, player2Name, player2Id) {
-    currentMatchId = matchId;
-
-    document.getElementById('matchInfo').innerHTML = `
-        <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: 8px;">
-            <strong>${player1Name}</strong> vs <strong>${player2Name}</strong>
-        </div>
-    `;
-
-    document.getElementById('winnerSelection').innerHTML = `
-        <div style="display: grid; gap: 1rem;">
-            <button class="btn btn-primary" onclick="selectWinner(${player1Id})" style="width: 100%;">
-                ${player1Name}
-            </button>
-            <button class="btn btn-primary" onclick="selectWinner(${player2Id})" style="width: 100%;">
-                ${player2Name}
-            </button>
-        </div>
-    `;
-
-    document.getElementById('setWinnerModal').style.display = 'flex';
-}
-
-let selectedWinnerId = null;
-function selectWinner(winnerId) {
-    selectedWinnerId = winnerId;
-    document.querySelectorAll('#winnerSelection button').forEach(btn => {
-        btn.classList.remove('btn-success');
-        btn.classList.add('btn-primary');
-    });
-    event.target.classList.remove('btn-primary');
-    event.target.classList.add('btn-success');
-}
-
-async function confirmWinner() {
-    if (!selectedWinnerId) {
-        alert('Выберите победителя');
+async function removeParticipant(participantId, userName) {
+    if (!confirm(`Удалить ${userName} из турнира?`)) {
         return;
     }
 
-    const score = document.getElementById('matchScore').value;
-
     try {
-        const response = await fetch(`/manager/tournaments/api/matches/${currentMatchId}/set-winner/`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                winner_id: selectedWinnerId,
-                score: {sets: score.split(',').map(s => s.trim())}
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification(data.message, 'success');
-            closeModal('setWinnerModal');
-            loadTournament();
-        } else {
-            showNotification('Ошибка: ' + data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showNotification('Ошибка установки победителя', 'error');
-    }
-}
-
-// Расписание матча
-function showScheduleMatchModal(matchId, date, time, courtId) {
-    currentMatchId = matchId;
-
-    document.getElementById('matchDate').value = date;
-    document.getElementById('matchTime').value = time;
-    document.getElementById('matchCourt').value = courtId || '';
-
-    document.getElementById('scheduleMatchModal').style.display = 'flex';
-}
-
-async function confirmSchedule() {
-    const date = document.getElementById('matchDate').value;
-    const time = document.getElementById('matchTime').value;
-    const courtId = document.getElementById('matchCourt').value;
-
-    try {
-        const response = await fetch(`/manager/tournaments/api/matches/${currentMatchId}/schedule/`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                scheduled_date: date,
-                scheduled_time: time,
-                court_id: courtId ? parseInt(courtId) : null
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification(data.message, 'success');
-            closeModal('scheduleMatchModal');
-            loadTournament();
-        } else {
-            showNotification('Ошибка: ' + data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showNotification('Ошибка обновления расписания', 'error');
-    }
-}
-
-// Загрузка кортов
-async function loadCourts() {
-    try {
-        const response = await fetch('/manager/api/courts/');
-        const data = await response.json();
-
-        if (data.success) {
-            const select = document.getElementById('matchCourt');
-            select.innerHTML = '<option value="">Не назначен</option>' +
-                data.courts.map(court => `<option value="${court.id}">${court.name}</option>`).join('');
-        }
-    } catch (error) {
-        console.error('Error loading courts:', error);
-    }
-}
-
-// Экспорт сетки
-function exportBracket() {
-    showNotification('Функция экспорта в разработке', 'info');
-}
-
-// Удаление турнира
-async function deleteTournament() {
-    if (!confirm(`Удалить турнир "${tournament.name}"? Это действие необратимо!`)) return;
-
-    try {
-        const response = await fetch(`/manager/tournaments/api/${tournament.id}/delete/`, {
+        const response = await fetch(`/tournaments/api/${tournamentId}/participants/${participantId}/remove/`, {
             method: 'POST'
         });
-
         const data = await response.json();
 
         if (data.success) {
-            showNotification(data.message, 'success');
-            window.location.href = '/manager/tournaments/';
+            alert(data.message);
+            loadTournamentData();
         } else {
-            showNotification('Ошибка: ' + data.error, 'error');
+            alert('Ошибка: ' + data.error);
         }
     } catch (error) {
         console.error('Error:', error);
-        showNotification('Ошибка удаления турнира', 'error');
+        alert('Ошибка удаления участника');
     }
 }
 
-function editTournament() {
-    showNotification('Функция редактирования в разработке', 'info');
+// Переключение табов
+function switchTab(tabName) {
+    // Скрываем все табы
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Показываем выбранный таб
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    event.target.classList.add('active');
+
+    // Загружаем данные для таблицы лидеров при переключении
+    if (tabName === 'leaderboard') {
+        loadLeaderboard();
+    }
 }
 
+// Закрытие модального окна
 function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
-    selectedWinnerId = null;
-}
-
-function showNotification(message, type = 'info') {
-    alert(message);
 }
 
 // Загрузка при открытии страницы
 document.addEventListener('DOMContentLoaded', function() {
-    loadTournament();
+    loadTournamentData();
 });
 </script>
 {% endblock %}
