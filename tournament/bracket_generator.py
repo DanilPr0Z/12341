@@ -29,7 +29,7 @@ class AmericanoGenerator:
 
         Возвращает: список созданных матчей
         """
-        from .models_padel import TournamentParticipant, PadelTeam, TournamentMatch, TournamentRound
+        from .models import TournamentParticipant, PadelTeam, TournamentMatch, TournamentRound
 
         # Получаем участников
         participants = list(
@@ -223,7 +223,7 @@ class MexicanoGenerator:
 
         Первый раунд - случайные пары (или по посеву)
         """
-        from .models_padel import TournamentParticipant, PadelTeam, TournamentMatch, TournamentRound
+        from .models import TournamentParticipant, PadelTeam, TournamentMatch, TournamentRound
 
         participants = list(
             tournament.participants.filter(payment_status='paid')
@@ -306,7 +306,7 @@ class MexicanoGenerator:
         - Топ-2 играют вместе против 3-4
         - 5-6 против 7-8 и т.д.
         """
-        from .models_padel import TournamentParticipant, PadelTeam, TournamentMatch, TournamentRound
+        from .models import TournamentParticipant, PadelTeam, TournamentMatch, TournamentRound
 
         # Получаем текущее количество раундов
         current_round_num = tournament.rounds.count()
@@ -398,7 +398,7 @@ class DoublesEliminationGenerator:
 
         Аналогично существующему SingleElimination, но для пар
         """
-        from .models_padel import TournamentParticipant, PadelTeam, TournamentMatch, TournamentRound
+        from .models import TournamentParticipant, PadelTeam, TournamentMatch, TournamentRound
 
         # Получаем участников
         participants = list(

@@ -14,8 +14,8 @@ urlpatterns = [
                   # Новости
                   path('news/', TemplateView.as_view(template_name='news.html'), name='news'),
 
-                  # Турниры
-                  path('tournaments/', TemplateView.as_view(template_name='tournaments.html'), name='tournaments'),
+                  # Турниры - приложение tournament
+                  path('tournaments/', include('tournament.urls')),
 
                   # Бронирование - основное приложение
                   path('booking/', include('booking.urls')),

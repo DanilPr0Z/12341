@@ -31,9 +31,12 @@ urlpatterns = [
 
     # API - Сетка турнира
     path('api/<int:tournament_id>/generate-bracket/', views.api_tournament_generate_bracket, name='api_generate_bracket'),
+    path('api/<int:tournament_id>/generate-next-round/', views.api_tournament_generate_next_round, name='api_generate_next_round'),
     path('api/<int:tournament_id>/bracket/', views.api_tournament_bracket, name='api_tournament_bracket'),
+    path('api/<int:tournament_id>/leaderboard/', views.api_tournament_leaderboard, name='api_tournament_leaderboard'),
 
     # API - Матчи
-    path('api/matches/<int:match_id>/set-winner/', views.api_match_set_winner, name='api_match_set_winner'),
+    path('api/matches/<int:match_id>/set-score/', views.api_match_set_score, name='api_match_set_score'),
+    path('api/matches/<int:match_id>/set-winner/', views.api_match_set_winner, name='api_match_set_winner'),  # legacy
     path('api/matches/<int:match_id>/schedule/', views.api_match_schedule, name='api_match_schedule'),
 ]

@@ -1,5 +1,6 @@
 """
 API Views для управления турнирами
+Обновлено для поддержки паддл-турниров (2v2) с новыми форматами
 """
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
@@ -7,11 +8,17 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import Q, Count
+from django.contrib.auth.models import User
 from datetime import datetime
 import json
 
-from .models import Tournament, TournamentParticipant, TournamentMatch, TournamentRound
-from .bracket_generator import BracketGenerator
+from .models import (
+    Tournament, TournamentParticipant, TournamentMatch,
+    TournamentRound, PadelTeam
+)
+from .bracket_generator import (
+    AmericanoGenerator, MexicanoGenerator, DoublesEliminationGenerator
+)
 
 
 # Декоратор для проверки прав
@@ -94,12 +101,21 @@ def public_tournament_register(request, tournament_id):
     if not can_register:
         return JsonResponse({'success': False, 'error': message}, status=400)
 
-    # Создаем участника
-    participant = TournamentParticipant.objects.create(
-        tournament=tournament,
-        user=request.user,
-        payment_status='pending' if tournament.entry_fee > 0 else 'paid'
-    )
+    # Для Team форматов нужен партнер
+    if tournament.is_team_tournament:
+        # Пока просто создаем, партнера можно указать позже
+        participant = TournamentParticipant.objects.create(
+            tournament=tournament,
+            user=request.user,
+            payment_status='pending' if tournament.entry_fee > 0 else 'paid'
+        )
+    else:
+        # Индивидуальный зачет (Americano/Mexicano)
+        participant = TournamentParticipant.objects.create(
+            tournament=tournament,
+            user=request.user,
+            payment_status='pending' if tournament.entry_fee > 0 else 'paid'
+        )
 
     return JsonResponse({
         'success': True,
@@ -154,9 +170,9 @@ def api_tournaments_list(request):
                 'prize_pool': float(tournament.prize_pool),
                 'format': tournament.format,
                 'format_display': tournament.get_format_display(),
-                'is_team_tournament': tournament.is_team_tournament,  # НОВОЕ
-                'is_mixed': tournament.is_mixed,  # НОВОЕ
-                'points_per_match': tournament.points_per_match,  # НОВОЕ
+                'is_team_tournament': tournament.is_team_tournament,
+                'is_mixed': tournament.is_mixed,
+                'points_per_match': tournament.points_per_match,
                 'status': tournament.status,
                 'status_display': tournament.get_status_display(),
                 'is_registration_open': tournament.is_registration_open,
@@ -192,7 +208,7 @@ def api_tournament_detail(request, tournament_id):
 
         # Участники
         participants = []
-        for participant in tournament.participants.all():
+        for participant in tournament.participants.all().order_by('-total_points', 'registered_at'):
             participants.append({
                 'id': participant.id,
                 'user_id': participant.user.id,
@@ -203,34 +219,54 @@ def api_tournament_detail(request, tournament_id):
                 'payment_date': participant.payment_date.isoformat() if participant.payment_date else None,
                 'registered_at': participant.registered_at.isoformat(),
                 'rating': float(participant.user.rating.numeric_rating) if hasattr(participant.user, 'rating') else None,
+                # Для Americano/Mexicano
+                'total_points': participant.total_points,
+                'matches_played': participant.matches_played,
+                'matches_won': participant.matches_won,
+                'matches_lost': participant.matches_lost,
+                'current_rank': participant.current_rank,
+                # Для Team форматов
+                'partner_id': participant.partner.id if participant.partner else None,
+                'partner_name': participant.partner.get_full_name() if participant.partner else None,
+                'team_name': participant.team_name,
             })
 
         # Матчи по раундам
         rounds = []
-        for round_obj in tournament.rounds.all():
+        for round_obj in tournament.rounds.all().order_by('round_number'):
             matches_in_round = []
-            for match in tournament.matches.filter(round=round_obj.round_number):
-                matches_in_round.append({
+            for match in tournament.matches.filter(round=round_obj.round_number).order_by('match_number'):
+                match_data = {
                     'id': match.id,
                     'match_number': match.match_number,
-                    'player1_id': match.player1.id if match.player1 else None,
-                    'player1_name': match.player1.get_full_name() if match.player1 else 'TBD',
-                    'player2_id': match.player2.id if match.player2 else None,
-                    'player2_name': match.player2.get_full_name() if match.player2 else 'TBD',
-                    'winner_id': match.winner.id if match.winner else None,
-                    'score': match.score,
                     'status': match.status,
                     'scheduled_date': match.scheduled_date.isoformat() if match.scheduled_date else None,
                     'scheduled_time': match.scheduled_time.strftime('%H:%M') if match.scheduled_time else None,
                     'court_id': match.court.id if match.court else None,
                     'court_name': match.court.name if match.court else None,
                     'is_ready_to_play': match.is_ready_to_play,
-                })
+                    # НОВОЕ: Пары вместо индивидуальных игроков
+                    'team1_id': match.team1.id if match.team1 else None,
+                    'team1_name': str(match.team1) if match.team1 else 'TBD',
+                    'team1_player1': match.team1.player1.get_full_name() if match.team1 else None,
+                    'team1_player2': match.team1.player2.get_full_name() if match.team1 else None,
+                    'team2_id': match.team2.id if match.team2 else None,
+                    'team2_name': str(match.team2) if match.team2 else 'TBD',
+                    'team2_player1': match.team2.player1.get_full_name() if match.team2 else None,
+                    'team2_player2': match.team2.player2.get_full_name() if match.team2 else None,
+                    'winning_team_id': match.winning_team.id if match.winning_team else None,
+                    'score_team1': match.score_team1,
+                    'score_team2': match.score_team2,
+                    'score_display': match.score_display,
+                }
+                matches_in_round.append(match_data)
 
             rounds.append({
                 'round_number': round_obj.round_number,
                 'name': round_obj.name,
                 'start_date': round_obj.start_date.isoformat() if round_obj.start_date else None,
+                'is_completed': round_obj.is_completed,
+                'completion_percentage': round_obj.completion_percentage,
                 'matches': matches_in_round
             })
 
@@ -248,6 +284,9 @@ def api_tournament_detail(request, tournament_id):
             'prize_pool': float(tournament.prize_pool),
             'format': tournament.format,
             'format_display': tournament.get_format_display(),
+            'is_team_tournament': tournament.is_team_tournament,
+            'is_mixed': tournament.is_mixed,
+            'points_per_match': tournament.points_per_match,
             'status': tournament.status,
             'status_display': tournament.get_status_display(),
             'is_registration_open': tournament.is_registration_open,
@@ -266,6 +305,8 @@ def api_tournament_detail(request, tournament_id):
             'tournament': tournament_data
         })
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
@@ -302,9 +343,9 @@ def api_tournament_create(request):
             entry_fee=float(data.get('entry_fee', 0)),
             prize_pool=float(data.get('prize_pool', 0)),
             format=tournament_format,
-            is_team_tournament=is_team,  # НОВОЕ
-            is_mixed=tournament_format == 'mixed_americano',  # НОВОЕ
-            points_per_match=int(data.get('points_per_match', 24)),  # НОВОЕ
+            is_team_tournament=is_team,
+            is_mixed=tournament_format == 'mixed_americano',
+            points_per_match=int(data.get('points_per_match', 24)),
             min_rating=float(data['min_rating']) if data.get('min_rating') else None,
             max_rating=float(data['max_rating']) if data.get('max_rating') else None,
             status=data.get('status', 'draft')
@@ -319,6 +360,8 @@ def api_tournament_create(request):
             }
         })
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
@@ -349,6 +392,8 @@ def api_tournament_update(request, tournament_id):
             tournament.prize_pool = float(data['prize_pool'])
         if 'format' in data:
             tournament.format = data['format']
+        if 'points_per_match' in data:
+            tournament.points_per_match = int(data['points_per_match'])
         if 'min_rating' in data:
             tournament.min_rating = float(data['min_rating']) if data['min_rating'] else None
         if 'max_rating' in data:
@@ -399,20 +444,22 @@ def api_tournament_add_participant(request, tournament_id):
         if not user_id:
             return JsonResponse({'success': False, 'error': 'user_id обязателен'}, status=400)
 
-        from django.contrib.auth.models import User
         user = get_object_or_404(User, id=user_id)
 
-        # Проверяем возможность регистрации
-        can_register, message = tournament.can_register(user)
-        if not can_register and message != "Вы уже зарегистрированы":
-            # Разрешаем добавление через админку даже если регистрация закрыта
-            pass
+        # Для Team форматов нужен партнер
+        partner = None
+        if tournament.is_team_tournament and data.get('partner_id'):
+            partner = get_object_or_404(User, id=data['partner_id'])
 
         # Создаем участника
         participant, created = TournamentParticipant.objects.get_or_create(
             tournament=tournament,
             user=user,
-            defaults={'payment_status': 'paid' if tournament.entry_fee == 0 else 'pending'}
+            defaults={
+                'payment_status': 'paid' if tournament.entry_fee == 0 else 'pending',
+                'partner': partner,
+                'team_name': data.get('team_name', '')
+            }
         )
 
         if not created:
@@ -427,6 +474,8 @@ def api_tournament_add_participant(request, tournament_id):
             }
         })
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
@@ -480,25 +529,42 @@ def api_tournament_generate_bracket(request, tournament_id):
         tournament = get_object_or_404(Tournament, id=tournament_id)
 
         # Проверяем статус
-        if tournament.status not in ['registration_closed', 'draft', 'registration_open']:
+        if tournament.status == 'in_progress':
             return JsonResponse({
                 'success': False,
-                'error': 'Сетку можно генерировать только после закрытия регистрации'
+                'error': 'Сетка уже сгенерирована'
             }, status=400)
 
         # Проверяем количество участников
-        if tournament.participants_count < 2:
+        paid_count = tournament.participants.filter(payment_status='paid').count()
+        if paid_count < 4:
             return JsonResponse({
                 'success': False,
-                'error': 'Недостаточно участников (минимум 2)'
+                'error': f'Недостаточно участников (минимум 4, оплачено: {paid_count})'
             }, status=400)
 
-        # Генерируем сетку
-        generator = BracketGenerator()
-        if tournament.format == 'single_elimination':
-            matches = generator.generate_single_elimination(tournament)
-        elif tournament.format == 'round_robin':
-            matches = generator.generate_round_robin(tournament)
+        # Генерируем сетку в зависимости от формата
+        matches = []
+
+        if tournament.format in ['americano', 'mixed_americano']:
+            # Americano - все раунды сразу
+            matches = AmericanoGenerator.generate(tournament)
+
+        elif tournament.format == 'mexicano':
+            # Mexicano - только первый раунд
+            matches = MexicanoGenerator.generate_first_round(tournament)
+
+        elif tournament.format in ['team_americano', 'team_mexicano']:
+            # Team форматы - аналогично, но с постоянными парами
+            if tournament.format == 'team_americano':
+                matches = AmericanoGenerator.generate(tournament)
+            else:
+                matches = MexicanoGenerator.generate_first_round(tournament)
+
+        elif tournament.format in ['doubles_elimination', 'doubles_round_robin']:
+            # Bracket форматы для пар
+            matches = DoublesEliminationGenerator.generate(tournament)
+
         else:
             return JsonResponse({
                 'success': False,
@@ -512,8 +578,51 @@ def api_tournament_generate_bracket(request, tournament_id):
         return JsonResponse({
             'success': True,
             'message': f'Сетка сгенерирована! Создано {len(matches)} матчей',
+            'matches_count': len(matches),
+            'format': tournament.format
+        })
+
+    except ValueError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+@require_POST
+def api_tournament_generate_next_round(request, tournament_id):
+    """API: Сгенерировать следующий раунд (для Mexicano)"""
+    try:
+        tournament = get_object_or_404(Tournament, id=tournament_id)
+
+        # Только для Mexicano
+        if tournament.format not in ['mexicano', 'team_mexicano']:
+            return JsonResponse({
+                'success': False,
+                'error': 'Генерация следующего раунда доступна только для Mexicano'
+            }, status=400)
+
+        # Проверяем что предыдущий раунд завершен
+        last_round = tournament.rounds.order_by('-round_number').first()
+        if last_round and not last_round.is_completed:
+            return JsonResponse({
+                'success': False,
+                'error': f'Завершите все матчи раунда {last_round.round_number}'
+            }, status=400)
+
+        # Генерируем следующий раунд
+        matches = MexicanoGenerator.generate_next_round(tournament)
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Раунд {last_round.round_number + 1 if last_round else 1} сгенерирован! Создано {len(matches)} матчей',
             'matches_count': len(matches)
         })
+
+    except ValueError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -526,35 +635,58 @@ def api_tournament_generate_bracket(request, tournament_id):
 
 @staff_required
 @require_POST
+def api_match_set_score(request, match_id):
+    """API: Установить счет матча"""
+    try:
+        match = get_object_or_404(TournamentMatch, id=match_id)
+        data = json.loads(request.body)
+
+        score_team1 = data.get('score_team1')
+        score_team2 = data.get('score_team2')
+
+        if score_team1 is None or score_team2 is None:
+            return JsonResponse({'success': False, 'error': 'Укажите счет обеих пар'}, status=400)
+
+        # Устанавливаем счет (это также определит победителя)
+        detailed_score = data.get('detailed_score')
+        match.set_score(
+            team1_score=int(score_team1),
+            team2_score=int(score_team2),
+            detailed_score=detailed_score
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Счет установлен: {score_team1}-{score_team2}',
+            'winning_team_id': match.winning_team.id if match.winning_team else None
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+@require_POST
 def api_match_set_winner(request, match_id):
-    """API: Установить победителя матча"""
+    """API: Установить победителя матча (legacy, использовать api_match_set_score)"""
+    # Для обратной совместимости перенаправляем на set_score
     try:
         match = get_object_or_404(TournamentMatch, id=match_id)
         data = json.loads(request.body)
 
         winner_id = data.get('winner_id')
-        score = data.get('score', {})
-
         if not winner_id:
             return JsonResponse({'success': False, 'error': 'winner_id обязателен'}, status=400)
 
-        from django.contrib.auth.models import User
-        winner = get_object_or_404(User, id=winner_id)
-
-        # Проверяем что победитель - один из игроков
-        if winner not in [match.player1, match.player2]:
-            return JsonResponse({
-                'success': False,
-                'error': 'Победитель должен быть одним из игроков матча'
-            }, status=400)
-
-        # Устанавливаем победителя
-        match.set_winner(winner, score)
-
+        # Определяем какая пара победила
+        # Эта функция устарела для новой модели, но оставляем для совместимости
         return JsonResponse({
-            'success': True,
-            'message': f'Победитель: {winner.get_full_name()}'
-        })
+            'success': False,
+            'error': 'Используйте api_match_set_score для установки счета'
+        }, status=400)
+
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
@@ -598,16 +730,22 @@ def api_tournament_bracket(request, tournament_id):
             for match in tournament.matches.filter(round=round_obj.round_number).order_by('match_number'):
                 matches_in_round.append({
                     'id': match.id,
-                    'player1': {
-                        'id': match.player1.id if match.player1 else None,
-                        'name': match.player1.get_full_name() if match.player1 else 'TBD',
+                    'team1': {
+                        'id': match.team1.id if match.team1 else None,
+                        'name': str(match.team1) if match.team1 else 'TBD',
+                        'player1': match.team1.player1.get_full_name() if match.team1 else None,
+                        'player2': match.team1.player2.get_full_name() if match.team1 else None,
                     },
-                    'player2': {
-                        'id': match.player2.id if match.player2 else None,
-                        'name': match.player2.get_full_name() if match.player2 else 'TBD',
+                    'team2': {
+                        'id': match.team2.id if match.team2 else None,
+                        'name': str(match.team2) if match.team2 else 'TBD',
+                        'player1': match.team2.player1.get_full_name() if match.team2 else None,
+                        'player2': match.team2.player2.get_full_name() if match.team2 else None,
                     },
-                    'winner_id': match.winner.id if match.winner else None,
-                    'score': match.score,
+                    'winning_team_id': match.winning_team.id if match.winning_team else None,
+                    'score_team1': match.score_team1,
+                    'score_team2': match.score_team2,
+                    'score_display': match.score_display,
                     'status': match.status,
                 })
 
@@ -623,4 +761,50 @@ def api_tournament_bracket(request, tournament_id):
             'format': tournament.format
         })
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@staff_required
+def api_tournament_leaderboard(request, tournament_id):
+    """API: Получить таблицу лидеров (для Americano/Mexicano)"""
+    try:
+        tournament = get_object_or_404(Tournament, id=tournament_id)
+
+        # Только для Americano/Mexicano
+        if tournament.format not in ['americano', 'mexicano', 'mixed_americano']:
+            return JsonResponse({
+                'success': False,
+                'error': 'Таблица лидеров доступна только для Americano/Mexicano'
+            }, status=400)
+
+        # Получаем участников, отсортированных по очкам
+        participants = tournament.participants.filter(
+            payment_status='paid'
+        ).order_by('-total_points', '-matches_won', 'registered_at')
+
+        leaderboard = []
+        for rank, participant in enumerate(participants, start=1):
+            leaderboard.append({
+                'rank': rank,
+                'user_id': participant.user.id,
+                'user_name': participant.user.get_full_name() or participant.user.username,
+                'total_points': participant.total_points,
+                'matches_played': participant.matches_played,
+                'matches_won': participant.matches_won,
+                'matches_lost': participant.matches_lost,
+                'win_rate': participant.win_rate,
+                'average_points_per_match': participant.average_points_per_match,
+            })
+
+        return JsonResponse({
+            'success': True,
+            'leaderboard': leaderboard,
+            'format': tournament.format
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
