@@ -3,8 +3,8 @@ API Views для управления турнирами
 Обновлено для поддержки паддл-турниров (2v2) с новыми форматами
 """
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import user_passes_test
-from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import Q, Count
@@ -24,11 +24,16 @@ from .bracket_generator import (
 # Декоратор для проверки прав
 def staff_required(view_func):
     """Decorator that checks if user is staff"""
-    decorated_view = user_passes_test(
-        lambda u: u.is_active and u.is_staff,
-        login_url='/users/login/'
-    )(view_func)
-    return decorated_view
+    @login_required(login_url='/users/login/')
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_staff:
+            return HttpResponseForbidden(
+                '<h1>403 Доступ запрещён</h1>'
+                '<p>Эта страница доступна только администраторам.</p>'
+                '<p><a href="/">Вернуться на главную</a></p>'
+            )
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 # =============================================================================

@@ -9,7 +9,7 @@
             <a href="{% url 'news' %}" class="nav-item {% if request.path == '/news/' %}active{% endif %}">Новости</a>
             <a href="{% url 'booking' %}" class="nav-item {% if request.path == '/booking/' %}active{% endif %}">Бронирование</a>
             <a href="{% url 'coaches_list' %}" class="nav-item {% if '/users/coaches/' in request.path %}active{% endif %}">Тренеры</a>
-            <a href="{% url 'tournaments' %}" class="nav-item {% if request.path == '/tournaments/' %}active{% endif %}">Турниры</a>
+            <a href="{% url 'tournament:tournaments_list' %}" class="nav-item {% if request.path == '/tournaments/' %}active{% endif %}">Турниры</a>
         </div>
 
         <div class="nav-auth">
