@@ -10,6 +10,9 @@
             <a href="{% url 'booking' %}" class="nav-item {% if request.path == '/booking/' %}active{% endif %}">Бронирование</a>
             <a href="{% url 'coaches_list' %}" class="nav-item {% if '/users/coaches/' in request.path %}active{% endif %}">Тренеры</a>
             <a href="{% url 'tournament:tournaments_list' %}" class="nav-item {% if request.path == '/tournaments/' %}active{% endif %}">Турниры</a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'games_list' %}" class="nav-item {% if '/booking/games/' in request.path %}active{% endif %}">Игры</a>
+            {% endif %}
         </div>
 
         <div class="nav-auth">

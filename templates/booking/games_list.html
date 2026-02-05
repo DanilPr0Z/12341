@@ -1,0 +1,687 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Игры - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<style>
+    .games-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1a2332 0%, #2d3a4e 100%);
+        padding: 30px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .page-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 32px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .page-header p {
+        margin: 0;
+        opacity: 0.8;
+        font-size: 16px;
+    }
+
+    .section-tabs {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e0e0e0;
+        overflow-x: auto;
+    }
+
+    .tab-button {
+        padding: 15px 25px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 16px;
+        color: #666;
+        transition: all 0.3s;
+        white-space: nowrap;
+        position: relative;
+    }
+
+    .tab-button:hover {
+        color: var(--primary-color);
+    }
+
+    .tab-button.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+    }
+
+    .tab-button .badge {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        background: #ff4444;
+        color: white;
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .game-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        transition: all 0.3s;
+        border: 2px solid transparent;
+    }
+
+    .game-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        border-color: var(--primary-color);
+    }
+
+    .game-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .game-mode-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .mode-americano {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+        color: white;
+    }
+
+    .mode-mexicano {
+        background: linear-gradient(135deg, #4ecdc4 0%, #6ee7df 100%);
+        color: white;
+    }
+
+    .game-status-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-ready {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-in-progress {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .game-info {
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        color: var(--text-color);
+    }
+
+    .info-row i {
+        color: var(--primary-color);
+        width: 20px;
+        text-align: center;
+    }
+
+    .info-row strong {
+        color: var(--secondary-color);
+    }
+
+    .players-section {
+        margin: 20px 0;
+    }
+
+    .players-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--secondary-color);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .players-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .player-slot {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: rgba(158, 240, 26, 0.05);
+        border-radius: 12px;
+        border: 2px solid rgba(158, 240, 26, 0.2);
+    }
+
+    .player-slot.empty {
+        background: rgba(0,0,0,0.02);
+        border: 2px dashed #ddd;
+        justify-content: center;
+        color: #999;
+    }
+
+    .player-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .player-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .player-name {
+        font-weight: 600;
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--secondary-color);
+    }
+
+    .player-rating {
+        display: inline-block;
+        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .game-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(158, 240, 26, 0.3);
+    }
+
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #666;
+    }
+
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+
+    .btn-danger {
+        background: #ff4444;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #cc0000;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .empty-state h3 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+        color: var(--text-color);
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 16px;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .games-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .players-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="games-container">
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-gamepad"></i>
+            Игры
+        </h1>
+        <p>Найдите игру для участия или создайте свою</p>
+    </div>
+
+    <div class="section-tabs">
+        <button class="tab-button active" data-tab="invitations">
+            <i class="fas fa-envelope"></i> Приглашения
+            {% if game_invitations %}
+            <span class="badge">{{ game_invitations.count }}</span>
+            {% endif %}
+        </button>
+        <button class="tab-button" data-tab="my-games">
+            <i class="fas fa-user"></i> Мои игры
+        </button>
+        <button class="tab-button" data-tab="public-games">
+            <i class="fas fa-globe"></i> Публичные игры
+        </button>
+    </div>
+
+    <!-- Приглашения -->
+    <div id="invitations-tab" class="tab-content active">
+        {% if game_invitations %}
+        <div class="games-grid">
+            {% for invitation in game_invitations %}
+            <div class="game-card">
+                <div class="game-header">
+                    <span class="game-mode-badge mode-{{ invitation.booking.game_mode }}">
+                        {{ invitation.booking.get_game_mode_display }}
+                    </span>
+                    <span class="game-status-badge status-{{ invitation.booking.game_status }}">
+                        Приглашение
+                    </span>
+                </div>
+
+                <div class="game-info">
+                    <div class="info-row">
+                        <i class="fas fa-user-circle"></i>
+                        <span>От: <strong>{{ invitation.booking.user.get_full_name|default:invitation.booking.user.username }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-calendar"></i>
+                        <span><strong>{{ invitation.booking.date|date:"d.m.Y" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-clock"></i>
+                        <span><strong>{{ invitation.booking.start_time|time:"H:i" }} - {{ invitation.booking.end_time|time:"H:i" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span><strong>{{ invitation.booking.court.name }}</strong></span>
+                    </div>
+                </div>
+
+                <div class="game-actions">
+                    <button class="btn btn-primary" onclick="acceptGameInvitation({{ invitation.id }})">
+                        <i class="fas fa-check"></i> Принять
+                    </button>
+                    <button class="btn btn-danger" onclick="declineGameInvitation({{ invitation.id }})">
+                        <i class="fas fa-times"></i> Отклонить
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>Нет приглашений</h3>
+            <p>У вас пока нет приглашений в игры</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Мои игры -->
+    <div id="my-games-tab" class="tab-content">
+        {% if my_games %}
+        <div class="games-grid">
+            {% for participation in my_games %}
+            {% with game=participation.booking %}
+            <div class="game-card" onclick="window.location.href='{% url 'game_detail' game.id %}'">
+                <div class="game-header">
+                    <span class="game-mode-badge mode-{{ game.game_mode }}">
+                        {{ game.get_game_mode_display }}
+                    </span>
+                    <span class="game-status-badge status-{{ game.game_status }}">
+                        {{ game.get_game_status_display }}
+                    </span>
+                </div>
+
+                <div class="game-info">
+                    <div class="info-row">
+                        <i class="fas fa-calendar"></i>
+                        <span><strong>{{ game.date|date:"d.m.Y" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-clock"></i>
+                        <span><strong>{{ game.start_time|time:"H:i" }} - {{ game.end_time|time:"H:i" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span><strong>{{ game.court.name }}</strong></span>
+                    </div>
+                    {% if game.current_round > 0 %}
+                    <div class="info-row">
+                        <i class="fas fa-flag"></i>
+                        <span>Раунд: <strong>{{ game.current_round }}/{{ game.rounds_count }}</strong></span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="players-section">
+                    <div class="players-title">
+                        <i class="fas fa-users"></i>
+                        Участники
+                    </div>
+                    <div class="players-grid">
+                        {% for participant in game.game_participants.all %}
+                        <div class="player-slot">
+                            <div class="player-avatar">
+                                {{ participant.user.first_name.0|default:"?" }}{{ participant.user.last_name.0|default:"" }}
+                            </div>
+                            <div class="player-info">
+                                <div class="player-name">{{ participant.user.get_full_name|default:participant.user.username }}</div>
+                                {% if participant.user.rating %}
+                                <span class="player-rating">{{ participant.user.rating.level }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-gamepad"></i>
+            <h3>Нет активных игр</h3>
+            <p>Вы пока не участвуете ни в одной игре</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Публичные игры -->
+    <div id="public-games-tab" class="tab-content">
+        {% if public_games %}
+        <div class="games-grid">
+            {% for game in public_games %}
+            <div class="game-card">
+                <div class="game-header">
+                    <span class="game-mode-badge mode-{{ game.game_mode }}">
+                        {{ game.get_game_mode_display }}
+                    </span>
+                    <span class="game-status-badge status-{{ game.game_status }}">
+                        {{ game.get_game_status_display }}
+                    </span>
+                </div>
+
+                <div class="game-info">
+                    <div class="info-row">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Организатор: <strong>{{ game.user.get_full_name|default:game.user.username }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-calendar"></i>
+                        <span><strong>{{ game.date|date:"d.m.Y" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-clock"></i>
+                        <span><strong>{{ game.start_time|time:"H:i" }} - {{ game.end_time|time:"H:i" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span><strong>{{ game.court.name }}</strong></span>
+                    </div>
+                </div>
+
+                <div class="players-section">
+                    <div class="players-title">
+                        <i class="fas fa-users"></i>
+                        Участники ({{ game.game_participants.count }}/4)
+                    </div>
+                    <div class="players-grid">
+                        {% for participant in game.game_participants.all %}
+                        <div class="player-slot">
+                            <div class="player-avatar">
+                                {{ participant.user.first_name.0|default:"?" }}{{ participant.user.last_name.0|default:"" }}
+                            </div>
+                            <div class="player-info">
+                                <div class="player-name">{{ participant.user.get_full_name|default:participant.user.username }}</div>
+                                {% if participant.user.rating %}
+                                <span class="player-rating">{{ participant.user.rating.level }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% for i in "x"|rjust:game.game_participants.count|slice:"1:" %}
+                        {% if forloop.counter0 < 3 %}
+                        <div class="player-slot empty">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Свободно</span>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="game-actions">
+                    <button class="btn btn-primary" onclick="window.location.href='{% url 'game_detail' game.id %}'">
+                        <i class="fas fa-eye"></i> Подробнее
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-globe"></i>
+            <h3>Нет публичных игр</h3>
+            <p>Сейчас нет доступных публичных игр</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Переключение табов
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.dataset.tab;
+
+            // Деактивируем все табы
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Активируем выбранный таб
+            button.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        });
+    });
+
+    // Принять приглашение в игру
+    function acceptGameInvitation(participantId) {
+        if (!confirm('Вы уверены, что хотите присоединиться к этой игре?')) {
+            return;
+        }
+
+        fetch(`/booking/games/invitation/${participantId}/accept/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showMessage('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', 'Ошибка при принятии приглашения');
+        });
+    }
+
+    // Отклонить приглашение в игру
+    function declineGameInvitation(participantId) {
+        if (!confirm('Вы уверены, что хотите отклонить приглашение?')) {
+            return;
+        }
+
+        fetch(`/booking/games/invitation/${participantId}/decline/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showMessage('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', 'Ошибка при отклонении приглашения');
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Если есть функция showMessage из main.js, используем её
+    function showMessage(type, message) {
+        if (typeof window.showMessage !== 'undefined') {
+            window.showMessage(type, message);
+        } else {
+            alert(message);
+        }
+    }
+</script>
+{% endblock %}

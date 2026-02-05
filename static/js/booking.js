@@ -1604,5 +1604,80 @@ document.addEventListener('DOMContentLoaded', function() {
     window.formatDate = formatDate;
     window.selectedCourtData = { id: null, name: null, price: null };
 
-    console.log('✅ Booking JS загружен - ПОЛНАЯ ВЕРСИЯ');
+    // ==================== GAME MODE HANDLING ====================
+
+    // Обработка выбора режима игры
+    const gameModeOptions = document.querySelectorAll('.game-mode-option');
+    const socialGameParams = document.getElementById('social-game-params');
+    const partnerSearchSection = document.getElementById('partner-search-section');
+    const gameModeSection = document.getElementById('game-mode-section');
+    const bookingTypeOptions = document.querySelectorAll('.type-option');
+
+    // Обработка выбора типа бронирования (Игра/Тренировка)
+    bookingTypeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            bookingTypeOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+
+            const bookingType = radio.value;
+
+            // Показываем/скрываем режим игры в зависимости от типа бронирования
+            if (bookingType === 'game') {
+                if (gameModeSection) gameModeSection.style.display = 'block';
+                if (partnerSearchSection) partnerSearchSection.style.display = 'block';
+            } else {
+                if (gameModeSection) gameModeSection.style.display = 'none';
+                if (partnerSearchSection) partnerSearchSection.style.display = 'none';
+                if (socialGameParams) socialGameParams.style.display = 'none';
+            }
+        });
+    });
+
+    // Обработка выбора режима игры
+    gameModeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            gameModeOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+
+            const gameMode = radio.value;
+            const modeCard = this.querySelector('.mode-card');
+
+            // Обновляем визуальное выделение
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.style.borderColor = '#ddd';
+                card.style.background = 'white';
+                card.style.transform = 'scale(1)';
+            });
+
+            modeCard.style.borderColor = 'var(--primary-color)';
+            modeCard.style.background = 'linear-gradient(135deg, rgba(158,240,26,0.1) 0%, rgba(158,240,26,0.05) 100%)';
+            modeCard.style.transform = 'scale(1.02)';
+
+            // Показываем/скрываем параметры социальной игры
+            if (gameMode === 'americano' || gameMode === 'mexicano') {
+                if (socialGameParams) {
+                    socialGameParams.style.display = 'block';
+                    socialGameParams.style.animation = 'fadeIn 0.3s ease';
+                }
+                if (partnerSearchSection) {
+                    partnerSearchSection.style.display = 'none';
+                }
+            } else {
+                if (socialGameParams) {
+                    socialGameParams.style.display = 'none';
+                }
+                if (partnerSearchSection) {
+                    partnerSearchSection.style.display = 'block';
+                }
+            }
+        });
+    });
+
+    console.log('✅ Booking JS загружен - ПОЛНАЯ ВЕРСИЯ (с режимами игры)');
 });

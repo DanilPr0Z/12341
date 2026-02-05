@@ -92,6 +92,72 @@ class Booking(models.Model):
         help_text='Список буквенных рейтингов для поиска партнёров (например: ["C+", "B-", "B"])'
     )
 
+    # Социальные игры (Americano/Mexicano)
+    GAME_MODE_CHOICES = [
+        ('regular', 'Обычная игра'),
+        ('americano', 'Americano - Меняющиеся пары'),
+        ('mexicano', 'Mexicano - Пары по рейтингу'),
+        ('training', 'Тренировка'),
+    ]
+    game_mode = models.CharField(
+        max_length=20,
+        choices=GAME_MODE_CHOICES,
+        default='regular',
+        verbose_name='Режим игры',
+        db_index=True
+    )
+    is_public = models.BooleanField(
+        default=False,
+        verbose_name='Публичная игра',
+        help_text='Игра видна другим пользователям во вкладке "Игры"'
+    )
+    rounds_count = models.IntegerField(
+        default=3,
+        verbose_name='Количество раундов',
+        help_text='Для Americano/Mexicano режимов'
+    )
+    points_per_round = models.IntegerField(
+        default=24,
+        verbose_name='Очков в раунде',
+        help_text='Количество очков для игры до окончания раунда'
+    )
+
+    GAME_STATUS_CHOICES = [
+        ('pending', 'Ожидает игроков'),
+        ('ready', 'Готова к началу'),
+        ('in_progress', 'В процессе'),
+        ('completed', 'Завершена'),
+        ('cancelled', 'Отменена'),
+    ]
+    game_status = models.CharField(
+        max_length=20,
+        choices=GAME_STATUS_CHOICES,
+        default='pending',
+        verbose_name='Статус игры',
+        db_index=True
+    )
+    current_round = models.IntegerField(
+        default=0,
+        verbose_name='Текущий раунд',
+        help_text='Номер текущего раунда (0 = игра не началась)'
+    )
+    min_rating_required = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name='Минимальный рейтинг',
+        help_text='Минимальный рейтинг для участия'
+    )
+    max_rating_required = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name='Максимальный рейтинг',
+        help_text='Максимальный рейтинг для участия'
+    )
+
     class Meta:
         ordering = ['-date', '-start_time']
         indexes = [
@@ -540,6 +606,156 @@ class BookingInvitation(models.Model):
         self.status = 'cancelled'
         self.save()
         return True, "Приглашение отменено"
+
+
+class GameParticipant(models.Model):
+    """Участник социальной игры (Americano/Mexicano)"""
+
+    STATUS_CHOICES = [
+        ('invited', 'Приглашен'),
+        ('accepted', 'Принял'),
+        ('declined', 'Отклонил'),
+        ('joined', 'Присоединился'),
+        ('left', 'Покинул'),
+    ]
+
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='game_participants',
+        verbose_name='Бронирование'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='game_participations',
+        verbose_name='Участник'
+    )
+    position = models.IntegerField(
+        verbose_name='Позиция',
+        help_text='Порядковый номер участника (1-4)'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='invited',
+        db_index=True,
+        verbose_name='Статус'
+    )
+    total_points = models.IntegerField(
+        default=0,
+        verbose_name='Всего очков',
+        help_text='Сумма очков за все раунды'
+    )
+    rating_before = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        verbose_name='Рейтинг до игры',
+        help_text='Рейтинг игрока перед началом игры'
+    )
+    rating_change = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=0,
+        verbose_name='Изменение рейтинга',
+        help_text='Изменение рейтинга после игры (может быть отрицательным)'
+    )
+    joined_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Присоединился'
+    )
+
+    class Meta:
+        verbose_name = 'Участник игры'
+        verbose_name_plural = 'Участники игр'
+        ordering = ['position']
+        unique_together = [('booking', 'user'), ('booking', 'position')]
+        indexes = [
+            models.Index(fields=['booking', 'status']),
+            models.Index(fields=['user', 'status']),
+        ]
+
+    def __str__(self):
+        full_name = f"{self.user.first_name} {self.user.last_name}".strip()
+        display_name = full_name if full_name else self.user.username
+        return f"{display_name} - Поз. {self.position} ({self.get_status_display()})"
+
+
+class GameRound(models.Model):
+    """Раунд социальной игры"""
+
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='game_rounds',
+        verbose_name='Бронирование'
+    )
+    round_number = models.IntegerField(
+        verbose_name='Номер раунда',
+        help_text='Номер раунда (1, 2, 3, ...)'
+    )
+    team1_player1 = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='rounds_as_team1_player1',
+        verbose_name='Команда 1 - Игрок 1'
+    )
+    team1_player2 = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='rounds_as_team1_player2',
+        verbose_name='Команда 1 - Игрок 2'
+    )
+    team2_player1 = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='rounds_as_team2_player1',
+        verbose_name='Команда 2 - Игрок 1'
+    )
+    team2_player2 = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='rounds_as_team2_player2',
+        verbose_name='Команда 2 - Игрок 2'
+    )
+    team1_score = models.IntegerField(
+        default=0,
+        verbose_name='Счет команды 1'
+    )
+    team2_score = models.IntegerField(
+        default=0,
+        verbose_name='Счет команды 2'
+    )
+    is_completed = models.BooleanField(
+        default=False,
+        verbose_name='Завершен'
+    )
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Время завершения'
+    )
+
+    class Meta:
+        verbose_name = 'Раунд игры'
+        verbose_name_plural = 'Раунды игр'
+        ordering = ['round_number']
+        unique_together = [('booking', 'round_number')]
+        indexes = [
+            models.Index(fields=['booking', 'round_number']),
+            models.Index(fields=['booking', 'is_completed']),
+        ]
+
+    def __str__(self):
+        return f"Раунд {self.round_number} - {self.booking}"
+
+    def get_player_points(self, user):
+        """Получить очки игрока в этом раунде"""
+        if user in [self.team1_player1, self.team1_player2]:
+            return self.team1_score
+        elif user in [self.team2_player1, self.team2_player2]:
+            return self.team2_score
+        return 0
 
 
 @receiver(pre_save, sender=BookingInvitation)

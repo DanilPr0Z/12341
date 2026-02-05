@@ -335,6 +335,12 @@ def create_booking(request):
                 except User.DoesNotExist:
                     coach = None
 
+            # Получаем параметры игрового режима
+            game_mode = request.POST.get('game_mode', 'regular')
+            is_public = request.POST.get('is_public') == '1'
+            rounds_count = int(request.POST.get('rounds_count', 3))
+            points_per_round = int(request.POST.get('points_per_round', 24))
+
             # Создаем бронирование
             booking = Booking.objects.create(
                 user=request.user,
@@ -347,7 +353,12 @@ def create_booking(request):
                 coach=coach,
                 looking_for_partner=looking_for_partner if booking_type == 'game' else False,
                 max_players=max_players if booking_type == 'game' else 1,
-                required_rating_levels=required_rating_levels if (required_rating_levels and booking_type == 'game') else []
+                required_rating_levels=required_rating_levels if (required_rating_levels and booking_type == 'game') else [],
+                game_mode=game_mode,
+                is_public=is_public if game_mode in ['americano', 'mexicano'] else False,
+                rounds_count=rounds_count if game_mode in ['americano', 'mexicano'] else 3,
+                points_per_round=points_per_round if game_mode in ['americano', 'mexicano'] else 24,
+                game_status='pending' if game_mode in ['americano', 'mexicano'] else 'pending'
             )
 
             # Повторная проверка (защита от race condition)
@@ -1305,3 +1316,453 @@ def api_decline_invitation(request, invitation_id):
             'success': False,
             'message': 'Ошибка при отклонении приглашения'
         }, status=500)
+
+
+# ========== СОЦИАЛЬНЫЕ ИГРЫ (AMERICANO/MEXICANO) ==========
+
+@login_required
+def games_list(request):
+    """Страница со списком социальных игр"""
+    from .models import GameParticipant
+
+    today = timezone.now().date()
+
+    # Публичные игры, в которых можно участвовать
+    public_games = Booking.objects.filter(
+        is_public=True,
+        game_mode__in=['americano', 'mexicano'],
+        date__gte=today,
+        game_status__in=['pending', 'ready']
+    ).select_related('user', 'court', 'user__rating').prefetch_related(
+        'game_participants__user__rating'
+    ).order_by('date', 'start_time')
+
+    # Приглашения пользователя в социальные игры
+    game_invitations = GameParticipant.objects.filter(
+        user=request.user,
+        status='invited',
+        booking__date__gte=today
+    ).select_related('booking', 'booking__court', 'booking__user').order_by('booking__date', 'booking__start_time')
+
+    # Игры, в которых пользователь участвует
+    my_games = GameParticipant.objects.filter(
+        user=request.user,
+        status__in=['accepted', 'joined'],
+        booking__date__gte=today
+    ).select_related('booking', 'booking__court').prefetch_related(
+        'booking__game_participants__user__rating'
+    ).order_by('booking__date', 'booking__start_time')
+
+    context = {
+        'public_games': public_games,
+        'game_invitations': game_invitations,
+        'my_games': my_games,
+        'today': today
+    }
+
+    return render(request, 'booking/games_list.html', context)
+
+
+@login_required
+@require_POST
+def invite_to_game(request, booking_id):
+    """Пригласить игрока в социальную игру"""
+    from .models import GameParticipant
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+
+        if booking.game_mode not in ['americano', 'mexicano']:
+            return JsonResponse({
+                'success': False,
+                'message': 'Это не социальная игра'
+            })
+
+        user_id = request.POST.get('user_id')
+        invited_user = get_object_or_404(User, id=user_id)
+
+        # Проверяем, что игрок еще не приглашен
+        existing = GameParticipant.objects.filter(booking=booking, user=invited_user).first()
+        if existing:
+            return JsonResponse({
+                'success': False,
+                'message': 'Этот игрок уже приглашен'
+            })
+
+        # Проверяем количество участников
+        participants_count = GameParticipant.objects.filter(booking=booking).count()
+        if participants_count >= 4:
+            return JsonResponse({
+                'success': False,
+                'message': 'Достигнуто максимальное количество участников (4)'
+            })
+
+        # Получаем рейтинг приглашаемого
+        try:
+            rating_before = invited_user.rating.numeric_rating
+        except:
+            rating_before = 1.00
+
+        # Создаем приглашение
+        participant = GameParticipant.objects.create(
+            booking=booking,
+            user=invited_user,
+            position=participants_count + 1,
+            status='invited',
+            rating_before=rating_before
+        )
+
+        logger.info(f"User {request.user.username} invited {invited_user.username} to game {booking_id}")
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Приглашение отправлено пользователю {invited_user.get_full_name() or invited_user.username}'
+        })
+
+    except Exception as e:
+        logger.error(f"Error inviting to game: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка при отправке приглашения'
+        }, status=500)
+
+
+@login_required
+@require_POST
+def accept_game_invitation(request, participant_id):
+    """Принять приглашение в социальную игру"""
+    from .models import GameParticipant
+
+    try:
+        participant = get_object_or_404(GameParticipant, id=participant_id, user=request.user, status='invited')
+
+        participant.status = 'accepted'
+        participant.save()
+
+        # Проверяем, все ли приглашения приняты
+        booking = participant.booking
+        all_accepted = not booking.game_participants.filter(status='invited').exists()
+
+        if all_accepted and booking.game_participants.count() == 4:
+            booking.game_status = 'ready'
+            booking.save()
+
+        logger.info(f"User {request.user.username} accepted game invitation {participant_id}")
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Вы присоединились к игре!'
+        })
+
+    except Exception as e:
+        logger.error(f"Error accepting game invitation: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка при принятии приглашения'
+        }, status=500)
+
+
+@login_required
+@require_POST
+def decline_game_invitation(request, participant_id):
+    """Отклонить приглашение в социальную игру"""
+    from .models import GameParticipant
+
+    try:
+        participant = get_object_or_404(GameParticipant, id=participant_id, user=request.user, status='invited')
+
+        participant.status = 'declined'
+        participant.save()
+
+        logger.info(f"User {request.user.username} declined game invitation {participant_id}")
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Приглашение отклонено'
+        })
+
+    except Exception as e:
+        logger.error(f"Error declining game invitation: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка при отклонении приглашения'
+        }, status=500)
+
+
+@login_required
+@require_POST
+def start_game(request, booking_id):
+    """Начать игру и сгенерировать раунды"""
+    from .models import GameParticipant, GameRound
+    import random
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+
+        if booking.game_status != 'ready':
+            return JsonResponse({
+                'success': False,
+                'message': 'Игра не готова к началу'
+            })
+
+        # Получаем всех участников
+        participants = list(booking.game_participants.filter(status='accepted').order_by('position'))
+
+        if len(participants) != 4:
+            return JsonResponse({
+                'success': False,
+                'message': 'Для начала игры требуется 4 участника'
+            })
+
+        # Обновляем статус участников
+        for participant in participants:
+            participant.status = 'joined'
+            participant.save()
+
+        # Генерируем раунды
+        players = [p.user for p in participants]
+
+        if booking.game_mode == 'americano':
+            # Americano: каждый играет с каждым в паре
+            rounds_data = [
+                # Раунд 1: 1-2 vs 3-4
+                (players[0], players[1], players[2], players[3]),
+                # Раунд 2: 1-3 vs 2-4
+                (players[0], players[2], players[1], players[3]),
+                # Раунд 3: 1-4 vs 2-3
+                (players[0], players[3], players[1], players[2]),
+            ]
+        else:  # mexicano
+            # Mexicano: пары формируются по рейтингу после каждого раунда
+            # Первый раунд - случайные пары
+            random.shuffle(players)
+            rounds_data = [
+                (players[0], players[1], players[2], players[3])
+            ]
+
+        # Создаем раунды
+        for round_num, (p1, p2, p3, p4) in enumerate(rounds_data, start=1):
+            if round_num <= booking.rounds_count:
+                GameRound.objects.create(
+                    booking=booking,
+                    round_number=round_num,
+                    team1_player1=p1,
+                    team1_player2=p2,
+                    team2_player1=p3,
+                    team2_player2=p4
+                )
+
+        booking.game_status = 'in_progress'
+        booking.current_round = 1
+        booking.save()
+
+        logger.info(f"Game {booking_id} started by user {request.user.username}")
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Игра началась!',
+            'current_round': 1
+        })
+
+    except Exception as e:
+        logger.error(f"Error starting game: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка при начале игры'
+        }, status=500)
+
+
+@login_required
+@require_POST
+def submit_round_score(request, booking_id, round_number):
+    """Ввести счет раунда"""
+    from .models import GameParticipant, GameRound
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+
+        # Проверяем, что пользователь является участником
+        participant = GameParticipant.objects.filter(booking=booking, user=request.user, status='joined').first()
+        if not participant:
+            return JsonResponse({
+                'success': False,
+                'message': 'Вы не являетесь участником этой игры'
+            })
+
+        game_round = get_object_or_404(GameRound, booking=booking, round_number=round_number)
+
+        if game_round.is_completed:
+            return JsonResponse({
+                'success': False,
+                'message': 'Этот раунд уже завершен'
+            })
+
+        team1_score = int(request.POST.get('team1_score', 0))
+        team2_score = int(request.POST.get('team2_score', 0))
+
+        # Валидация счета
+        if team1_score < 0 or team2_score < 0:
+            return JsonResponse({
+                'success': False,
+                'message': 'Счет не может быть отрицательным'
+            })
+
+        if team1_score + team2_score != booking.points_per_round:
+            return JsonResponse({
+                'success': False,
+                'message': f'Сумма очков должна быть {booking.points_per_round}'
+            })
+
+        # Сохраняем счет
+        game_round.team1_score = team1_score
+        game_round.team2_score = team2_score
+        game_round.is_completed = True
+        game_round.completed_at = timezone.now()
+        game_round.save()
+
+        # Обновляем очки участников
+        participants = booking.game_participants.filter(status='joined')
+        for participant in participants:
+            points = game_round.get_player_points(participant.user)
+            participant.total_points += points
+            participant.save()
+
+        # Проверяем, все ли раунды завершены
+        all_completed = not booking.game_rounds.filter(is_completed=False).exists()
+
+        if all_completed:
+            booking.game_status = 'completed'
+            booking.save()
+
+            # Рассчитываем изменения рейтинга
+            calculate_rating_changes(booking)
+
+            logger.info(f"Game {booking_id} completed")
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Игра завершена! Рейтинги обновлены.',
+                'game_completed': True
+            })
+        else:
+            # Переходим к следующему раунду
+            if booking.game_mode == 'mexicano' and round_number < booking.rounds_count:
+                # Генерируем следующий раунд по рейтингу
+                generate_next_mexicano_round(booking, round_number + 1)
+
+            booking.current_round = round_number + 1
+            booking.save()
+
+            logger.info(f"Round {round_number} of game {booking_id} completed")
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Раунд {round_number} завершен!',
+                'next_round': round_number + 1,
+                'game_completed': False
+            })
+
+    except Exception as e:
+        logger.error(f"Error submitting round score: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка при сохранении счета'
+        }, status=500)
+
+
+def generate_next_mexicano_round(booking, round_number):
+    """Генерация следующего раунда для Mexicano"""
+    from .models import GameParticipant, GameRound
+
+    # Получаем участников, отсортированных по очкам
+    participants = list(booking.game_participants.filter(status='joined').order_by('-total_points'))
+
+    if len(participants) != 4:
+        return
+
+    # Формируем пары: 1-й с 4-м, 2-й с 3-м (сильные со слабыми)
+    team1_p1 = participants[0].user
+    team1_p2 = participants[3].user
+    team2_p1 = participants[1].user
+    team2_p2 = participants[2].user
+
+    GameRound.objects.create(
+        booking=booking,
+        round_number=round_number,
+        team1_player1=team1_p1,
+        team1_player2=team1_p2,
+        team2_player1=team2_p1,
+        team2_player2=team2_p2
+    )
+
+    logger.info(f"Generated Mexicano round {round_number} for game {booking.id}")
+
+
+def calculate_rating_changes(booking):
+    """Рассчитать изменения рейтинга после завершения игры"""
+    from .models import GameParticipant
+    from users.models import PlayerRating
+
+    participants = list(booking.game_participants.filter(status='joined').order_by('-total_points'))
+
+    if len(participants) != 4:
+        return
+
+    # Простая система: победитель +0.05, второй +0.02, третий -0.02, четвертый -0.05
+    rating_changes = [0.05, 0.02, -0.02, -0.05]
+
+    for i, participant in enumerate(participants):
+        change = rating_changes[i]
+        participant.rating_change = change
+        participant.save()
+
+        # Обновляем рейтинг пользователя
+        try:
+            rating = participant.user.rating
+            old_rating = rating.numeric_rating
+            new_rating = max(1.00, min(7.00, float(old_rating) + change))
+            rating.numeric_rating = new_rating
+            rating.save()
+
+            # Добавляем в историю
+            rating.add_to_history(
+                old_rating=old_rating,
+                new_rating=new_rating,
+                updated_by=None,
+                comment=f'Игра {booking.game_mode}: {i+1} место, {participant.total_points} очков'
+            )
+
+            logger.info(f"Updated rating for {participant.user.username}: {old_rating} -> {new_rating} ({change:+.2f})")
+        except Exception as e:
+            logger.error(f"Error updating rating for user {participant.user.id}: {str(e)}")
+
+
+@login_required
+def game_detail(request, booking_id):
+    """Детальная страница игры"""
+    from .models import GameParticipant, GameRound
+
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    # Проверяем доступ
+    is_participant = GameParticipant.objects.filter(booking=booking, user=request.user).exists()
+    is_creator = booking.user == request.user
+
+    if not (is_participant or is_creator or booking.is_public):
+        return JsonResponse({
+            'success': False,
+            'message': 'У вас нет доступа к этой игре'
+        }, status=403)
+
+    participants = booking.game_participants.all().select_related('user', 'user__rating').order_by('position')
+    rounds = booking.game_rounds.all().order_by('round_number')
+
+    context = {
+        'booking': booking,
+        'participants': participants,
+        'rounds': rounds,
+        'is_creator': is_creator,
+        'is_participant': is_participant
+    }
+
+    return render(request, 'booking/game_detail.html', context)

@@ -27,4 +27,13 @@ urlpatterns = [
     path('api/notifications/', views.api_get_notifications, name='api_get_notifications'),
     path('api/invitation/<int:invitation_id>/accept/', views.api_accept_invitation, name='api_accept_invitation'),
     path('api/invitation/<int:invitation_id>/decline/', views.api_decline_invitation, name='api_decline_invitation'),
+
+    # Социальные игры (Americano/Mexicano)
+    path('games/', views.games_list, name='games_list'),
+    path('games/<int:booking_id>/', views.game_detail, name='game_detail'),
+    path('games/<int:booking_id>/invite/', views.invite_to_game, name='invite_to_game'),
+    path('games/<int:booking_id>/start/', views.start_game, name='start_game'),
+    path('games/<int:booking_id>/round/<int:round_number>/score/', views.submit_round_score, name='submit_round_score'),
+    path('games/invitation/<int:participant_id>/accept/', views.accept_game_invitation, name='accept_game_invitation'),
+    path('games/invitation/<int:participant_id>/decline/', views.decline_game_invitation, name='decline_game_invitation'),
 ]
