@@ -42,8 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Открытие модального окна выхода
     if (openLogoutModalBtn) {
         openLogoutModalBtn.addEventListener('click', function() {
-            if (logoutModal) {
-                logoutModal.style.display = 'flex';
+            if (logoutModal && window.openModal) {
+                window.openModal(logoutModal);
             }
         });
     }
@@ -51,22 +51,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Закрытие модальных окон при клике на крестик
     closeModalBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            this.closest('.modal').style.display = 'none';
+            if (window.closeModal) {
+                window.closeModal(this.closest('.modal'));
+            }
         });
-    });
-
-    // Закрытие модальных окон при клике вне окна
-    window.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal')) {
-            e.target.style.display = 'none';
-        }
     });
 
     // Отмена выхода
     if (cancelLogoutBtn) {
         cancelLogoutBtn.addEventListener('click', function() {
-            if (logoutModal) {
-                logoutModal.style.display = 'none';
+            if (logoutModal && window.closeModal) {
+                window.closeModal(logoutModal);
             }
         });
     }

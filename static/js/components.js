@@ -79,8 +79,17 @@ class ToastNotification {
     }
 
     remove(toast) {
-        toast.style.animation = 'slideOutRight 0.4s ease';
-        setTimeout(() => toast.remove(), 400);
+        // Плавное исчезновение
+        toast.style.animation = 'slideOutRight 0.4s cubic-bezier(0.6, -0.28, 0.74, 0.05)';
+        toast.style.opacity = '0';
+        toast.style.marginBottom = '-20px'; // Плавное сжатие пространства
+
+        // Удаляем элемент после анимации
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 400);
     }
 }
 
@@ -444,6 +453,246 @@ function hideLoading() {
     }
 }
 
+// ==================== MODAL HELPERS ====================
+/**
+ * Открыть модальное окно с блокировкой прокрутки
+ * @param {HTMLElement|string} modal - элемент модального окна или его ID
+ */
+function openModal(modal) {
+    const modalEl = typeof modal === 'string' ? document.getElementById(modal) : modal;
+
+    if (!modalEl) {
+        console.error('Modal element not found:', modal);
+        return;
+    }
+
+    // Показываем модальное окно
+    modalEl.style.display = 'flex';
+
+    // Блокируем прокрутку body
+    document.body.classList.add('modal-open');
+
+    // Добавляем обработчик закрытия по клику на фон
+    modalEl.addEventListener('click', function(e) {
+        if (e.target === modalEl) {
+            closeModal(modalEl);
+        }
+    });
+
+    // Добавляем обработчик закрытия по Escape
+    const escapeHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeModal(modalEl);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+    modalEl._escapeHandler = escapeHandler;
+}
+
+/**
+ * Закрыть модальное окно и восстановить прокрутку
+ * @param {HTMLElement|string} modal - элемент модального окна или его ID
+ */
+function closeModal(modal) {
+    const modalEl = typeof modal === 'string' ? document.getElementById(modal) : modal;
+
+    if (!modalEl) {
+        console.error('Modal element not found:', modal);
+        return;
+    }
+
+    // Скрываем модальное окно
+    modalEl.style.display = 'none';
+
+    // Проверяем, есть ли другие открытые модальные окна
+    const openModals = document.querySelectorAll('.modal[style*="display: flex"], .modal[style*="display: block"]');
+    const hasOpenModals = Array.from(openModals).some(m => m !== modalEl && m.style.display !== 'none');
+
+    // Разблокируем прокрутку только если нет других открытых модалок
+    if (!hasOpenModals) {
+        document.body.classList.remove('modal-open');
+    }
+
+    // Удаляем обработчик Escape
+    if (modalEl._escapeHandler) {
+        document.removeEventListener('keydown', modalEl._escapeHandler);
+        delete modalEl._escapeHandler;
+    }
+}
+
+/**
+ * Закрыть все открытые модальные окна
+ */
+function closeAllModals() {
+    const modals = document.querySelectorAll('.modal, .profile-modal');
+    modals.forEach(modal => {
+        if (modal.style.display !== 'none') {
+            closeModal(modal);
+        }
+    });
+}
+
+// ==================== DEBOUNCE UTILITY ====================
+/**
+ * Debounce функция - откладывает выполнение функции до тех пор,
+ * пока не пройдет указанное время с момента последнего вызова
+ *
+ * @param {Function} func - Функция для выполнения
+ * @param {Number} wait - Время ожидания в миллисекундах
+ * @returns {Function} Debounced функция
+ *
+ * @example
+ * const debouncedSearch = debounce((query) => {
+ *     fetch(`/api/search?q=${query}`)
+ *         .then(response => response.json())
+ *         .then(data => console.log(data));
+ * }, 300);
+ *
+ * searchInput.addEventListener('input', (e) => {
+ *     debouncedSearch(e.target.value);
+ * });
+ */
+function debounce(func, wait = 300) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+/**
+ * Throttle функция - ограничивает частоту вызовов функции
+ *
+ * @param {Function} func - Функция для выполнения
+ * @param {Number} limit - Минимальный интервал между вызовами в миллисекундах
+ * @returns {Function} Throttled функция
+ */
+function throttle(func, limit = 300) {
+    let inThrottle;
+    return function(...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+}
+
+// ==================== AUTO-APPLY DEBOUNCE TO SEARCH INPUTS ====================
+/**
+ * Автоматически применяет debounce ко всем поисковым полям при загрузке страницы
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Находим все search input поля
+    const searchInputs = document.querySelectorAll(
+        'input[type="search"], input[id*="search" i], input[id*="Search"], input.search-input'
+    );
+
+    searchInputs.forEach(input => {
+        // Получаем функцию из onkeyup атрибута
+        const onkeyupAttr = input.getAttribute('onkeyup');
+
+        if (onkeyupAttr) {
+            // Удаляем старый onkeyup обработчик
+            input.removeAttribute('onkeyup');
+
+            // Создаем функцию из строки атрибута
+            const filterFunction = new Function(onkeyupAttr);
+
+            // Оборачиваем в debounce и применяем как input обработчик
+            const debouncedFilter = debounce(filterFunction, 300);
+
+            input.addEventListener('input', debouncedFilter);
+        }
+    });
+
+    // Инициализируем lazy loading для изображений
+    initLazyLoading();
+});
+
+// ==================== LAZY LOADING FOR IMAGES ====================
+/**
+ * Инициализирует lazy loading для изображений
+ * Поддерживает современный атрибут loading="lazy" и data-src для старых браузеров
+ */
+function initLazyLoading() {
+    // Проверяем поддержку нативного loading="lazy"
+    const supportsNativeLazyLoading = 'loading' in HTMLImageElement.prototype;
+
+    if (supportsNativeLazyLoading) {
+        // Браузер поддерживает нативный lazy loading
+        // Добавляем loading="lazy" ко всем изображениям без этого атрибута
+        document.querySelectorAll('img:not([loading])').forEach(img => {
+            // Пропускаем маленькие изображения (иконки, аватары < 100px)
+            if (img.width > 100 || img.height > 100 || (!img.width && !img.height)) {
+                img.setAttribute('loading', 'lazy');
+            }
+        });
+    } else {
+        // Используем Intersection Observer для старых браузеров
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+
+                    // Загружаем изображение
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                    }
+
+                    // Добавляем класс для CSS анимации появления
+                    img.classList.add('lazy-loaded');
+
+                    // Перестаем наблюдать за этим изображением
+                    observer.unobserve(img);
+                }
+            });
+        }, {
+            rootMargin: '50px 0px', // Начинаем загрузку за 50px до появления в viewport
+            threshold: 0.01
+        });
+
+        // Находим все изображения с data-src или без src
+        document.querySelectorAll('img[data-src], img[loading="lazy"]:not([src])').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+}
+
+/**
+ * Добавить изображение в очередь lazy loading (для динамически добавляемых изображений)
+ * @param {HTMLImageElement} img - элемент изображения
+ */
+function addToLazyLoad(img) {
+    if ('loading' in HTMLImageElement.prototype) {
+        img.setAttribute('loading', 'lazy');
+    } else {
+        // Создаем observer если его еще нет
+        if (!window._lazyImageObserver) {
+            window._lazyImageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        if (img.dataset.src) {
+                            img.src = img.dataset.src;
+                            img.removeAttribute('data-src');
+                        }
+                        img.classList.add('lazy-loaded');
+                        window._lazyImageObserver.unobserve(img);
+                    }
+                });
+            }, { rootMargin: '50px 0px', threshold: 0.01 });
+        }
+        window._lazyImageObserver.observe(img);
+    }
+}
+
 // Экспортируем в глобальную область
 window.toast = toast;
 window.animateCounter = animateCounter;
@@ -455,3 +704,10 @@ window.showConfirmDialog = showConfirmDialog;
 window.updateProgressBar = updateProgressBar;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.closeAllModals = closeAllModals;
+window.debounce = debounce;
+window.throttle = throttle;
+window.addToLazyLoad = addToLazyLoad;
+window.initLazyLoading = initLazyLoading;

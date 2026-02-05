@@ -1506,22 +1506,30 @@ document.addEventListener('DOMContentLoaded', function() {
         durationInput.value = duration;
 
         // Показываем модальное окно
-        modal.style.display = 'block';
+        if (window.openModal) {
+            window.openModal(modal);
+        } else {
+            modal.style.display = 'block';
+        }
 
         // Обработчики закрытия
         const closeBtn = modal.querySelector('.close-modal');
         const cancelBtn = modal.querySelector('.cancel-booking');
 
-        const closeModal = function() {
-            modal.style.display = 'none';
+        const closeThisModal = function() {
+            if (window.closeModal) {
+                window.closeModal(modal);
+            } else {
+                modal.style.display = 'none';
+            }
         };
 
-        closeBtn.onclick = closeModal;
-        cancelBtn.onclick = closeModal;
+        closeBtn.onclick = closeThisModal;
+        cancelBtn.onclick = closeThisModal;
 
         window.onclick = function(e) {
             if (e.target === modal) {
-                closeModal();
+                closeThisModal();
             }
         };
     }

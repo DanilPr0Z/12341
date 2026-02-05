@@ -70,37 +70,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    function closeAllModals() {
-        [loginModal, registerModal, logoutModal].forEach(modal => {
-            if (modal) modal.style.display = 'none';
-        });
-        document.body.style.overflow = 'auto';
-    }
-
     // ==================== УПРАВЛЕНИЕ МОДАЛЬНЫМИ ОКНАМИ ====================
 
     // Открытие модальных окон
     if (openLoginBtn) {
         openLoginBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            closeAllModals();
-            if (loginModal) loginModal.style.display = 'block';
+            window.window.closeAllModals();
+            if (loginModal) window.openModal(loginModal);
         });
     }
 
     if (openRegisterBtn) {
         openRegisterBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            closeAllModals();
-            if (registerModal) registerModal.style.display = 'block';
+            window.window.closeAllModals();
+            if (registerModal) window.openModal(registerModal);
         });
     }
 
     if (openLogoutBtn) {
         openLogoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            closeAllModals();
-            if (logoutModal) logoutModal.style.display = 'block';
+            window.closeAllModals();
+            if (logoutModal) window.openModal(logoutModal);
         });
     }
 
@@ -111,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.addEventListener('click', function(event) {
         if (event.target.classList.contains('modal')) {
-            closeAllModals();
+            window.closeAllModals();
         }
     });
 
@@ -123,16 +116,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.switch-to-register').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            closeAllModals();
-            if (registerModal) registerModal.style.display = 'block';
+            window.closeAllModals();
+            if (registerModal) window.openModal(registerModal);
         });
     });
 
     document.querySelectorAll('.switch-to-login').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            closeAllModals();
-            if (loginModal) loginModal.style.display = 'block';
+            window.closeAllModals();
+            if (loginModal) window.openModal(loginModal);
         });
     });
 
@@ -272,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (data.success) {
                     showMessage('success', data.message);
-                    closeAllModals();
+                    window.closeAllModals();
 
                     // Обновляем страницу через 1.5 секунды
                     setTimeout(() => {

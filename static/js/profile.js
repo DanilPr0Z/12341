@@ -148,15 +148,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Закрытие модальных окон профиля
         document.querySelectorAll('.profile-close-modal').forEach(closeBtn => {
             closeBtn.addEventListener('click', function() {
-                this.closest('.profile-modal').style.display = 'none';
+                const modal = this.closest('.profile-modal');
+                if (modal && window.closeModal) {
+                    window.closeModal(modal);
+                }
             });
-        });
-
-        // Закрытие модальных окон профиля при клике вне их
-        window.addEventListener('click', function(e) {
-            if (e.target.classList.contains('profile-modal')) {
-                e.target.style.display = 'none';
-            }
         });
 
         // Закрытие уведомления
@@ -185,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             document.querySelector('#confirmModal .confirm-action').dataset.bookingId = bookingId;
 
                             // Показываем модальное окно
-                            confirmModal.style.display = 'flex';
+                            if (window.openModal) window.openModal(confirmModal);
                         } else {
                             showErrorNotification('Ошибка загрузки информации о бронировании');
                         }
@@ -215,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             document.querySelector('#cancelModal .confirm-action').dataset.bookingId = bookingId;
 
                             // Показываем модальное окно
-                            cancelModal.style.display = 'flex';
+                            if (window.openModal) window.openModal(cancelModal);
                         } else {
                             showErrorNotification('Ошибка загрузки информации о бронировании');
                         }
@@ -249,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if (data.success) {
                         // Закрываем модальное окно
-                        confirmModal.style.display = 'none';
+                        if (window.closeModal) window.closeModal(confirmModal);
                         // Показываем уведомление
                         showSuccessNotification(data.message);
                         // Обновляем страницу через 2 секунды
@@ -295,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if (data.success) {
                         // Закрываем модальное окно
-                        cancelModal.style.display = 'none';
+                        if (window.closeModal) window.closeModal(cancelModal);
                         // Показываем уведомление
                         showSuccessNotification(data.message);
                         // Обновляем страницу через 2 секунды
@@ -341,12 +337,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (ratingUpdateModal) {
             // Настройка закрытия модального окна
             ratingUpdateModal.querySelector('.profile-close-modal').addEventListener('click', function() {
-                ratingUpdateModal.style.display = 'none';
+                if (window.closeModal) window.closeModal(ratingUpdateModal);
             });
 
             // Настройка кнопки отмены
             ratingUpdateModal.querySelector('.cancel-action').addEventListener('click', function() {
-                ratingUpdateModal.style.display = 'none';
+                if (window.closeModal) window.closeModal(ratingUpdateModal);
             });
 
             // Настройка сохранения рейтинга

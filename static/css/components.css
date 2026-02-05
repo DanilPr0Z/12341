@@ -2,6 +2,44 @@
    ПЕРЕИСПОЛЬЗУЕМЫЕ UI КОМПОНЕНТЫ
    ============================================ */
 
+/* ==================== MODAL UTILITIES ==================== */
+/* Блокировка прокрутки body когда открыто модальное окно */
+body.modal-open {
+    overflow: hidden;
+    padding-right: 0; /* Предотвращаем сдвиг контента при скрытии scrollbar */
+}
+
+/* Плавное появление модальных окон */
+.modal {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal[style*="display: flex"],
+.modal[style*="display: block"] {
+    opacity: 1;
+}
+
+/* ==================== LAZY LOADING ==================== */
+/* Плавное появление загруженных изображений */
+img[loading="lazy"] {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+img[loading="lazy"].lazy-loaded,
+img[loading="lazy"][src]:not([data-src]) {
+    opacity: 1;
+}
+
+/* Placeholder для изображений до загрузки */
+img[data-src]:not([src]) {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    min-height: 200px;
+}
+
 /* ==================== BADGE/СТАТУСЫ ==================== */
 .status-badge {
     padding: 6px 14px;
@@ -70,8 +108,9 @@
     z-index: 9999;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    max-width: 400px;
+    gap: 12px;
+    max-width: 420px;
+    pointer-events: none; /* Позволяет кликать сквозь контейнер */
 }
 
 .toast-notification {
@@ -79,13 +118,17 @@
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     overflow: hidden;
-    animation: slideInRight 0.4s ease;
+    animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     display: flex;
     align-items: flex-start;
     padding: 16px;
     gap: 12px;
     position: relative;
     border-left: 5px solid #9ef01a;
+    pointer-events: auto; /* Восстанавливаем события для самого toast */
+    min-width: 300px;
+    max-width: 100%;
+    transition: all 0.3s ease, margin-bottom 0.3s ease, opacity 0.3s ease, transform 0.3s ease; /* Плавное перемещение при удалении других */
 }
 
 .toast-notification.success {
