@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Политика конфиденциальности - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-hero">
+        <h1>Политика конфиденциальности</h1>
+        <p>Порядок обработки и защиты персональных данных пользователей Paddle Booking</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-info-circle"></i> 1. Общие положения</h2>
+        <p>Настоящая Политика конфиденциальности определяет порядок обработки и защиты персональных данных пользователей сервиса Paddle Booking.</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-database"></i> 2. Собираемая информация</h2>
+        <p>Мы собираем следующую информацию:</p>
+        <ul>
+            <li>ФИО, email, телефон при регистрации</li>
+            <li>История бронирований и игр</li>
+            <li>Рейтинг и статистика</li>
+            <li>Техническая информация (IP-адрес, cookies)</li>
+        </ul>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-tasks"></i> 3. Использование информации</h2>
+        <p>Ваши данные используются для:</p>
+        <ul>
+            <li>Предоставления услуг бронирования</li>
+            <li>Связи с вами</li>
+            <li>Улучшения сервиса</li>
+            <li>Безопасности аккаунта</li>
+        </ul>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-shield-alt"></i> 4. Защита данных</h2>
+        <p>Мы применяем современные методы защиты данных: SSL-шифрование, защищенные серверы, регулярные аудиты безопасности.</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-exchange-alt"></i> 5. Передача данных третьим лицам</h2>
+        <p>Мы не передаем ваши данные третьим лицам без вашего согласия, кроме случаев, предусмотренных законом.</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-user-shield"></i> 6. Ваши права</h2>
+        <p>Вы имеете право:</p>
+        <ul>
+            <li>Получить доступ к своим данным</li>
+            <li>Исправить неточные данные</li>
+            <li>Удалить свои данные</li>
+            <li>Ограничить обработку</li>
+        </ul>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-envelope"></i> 7. Контакты</h2>
+        <p>По вопросам конфиденциальности: <a href="mailto:privacy@paddlebooking.ru">privacy@paddlebooking.ru</a></p>
+    </div>
+</div>
+{% endblock %}

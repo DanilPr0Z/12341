@@ -1,0 +1,364 @@
+/**
+ * ============================================
+ * FAB MENU (Floating Action Button)
+ * ============================================
+ *
+ * Круговое всплывающее меню как в Lunda Padel
+ * - Центральная кнопка с анимацией
+ * - Радиальное раскрытие опций
+ * - Backdrop затемнение
+ * - Smooth анимации
+ */
+
+/* ==================== FAB CONTAINER ==================== */
+.fab-container {
+    position: fixed;
+    bottom: 80px; /* Над нижней навигацией */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==================== BACKDROP ==================== */
+.fab-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 999;
+}
+
+.fab-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ==================== MAIN FAB BUTTON ==================== */
+.fab-main {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(158, 240, 26, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    z-index: 1001;
+}
+
+.fab-main:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 32px rgba(158, 240, 26, 0.5);
+}
+
+.fab-main:active {
+    transform: scale(0.95);
+}
+
+/* Иконка в основной кнопке */
+.fab-main-icon {
+    font-size: 28px;
+    color: #1a1a1a;
+    transition: transform 0.25s ease;
+}
+
+.fab-main.active .fab-main-icon {
+    transform: rotate(45deg); /* Превращаем + в × */
+}
+
+/* ==================== FAB MENU OPTIONS ==================== */
+.fab-options {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    pointer-events: none;
+}
+
+.fab-options.active {
+    pointer-events: auto;
+}
+
+/* Отдельная опция */
+.fab-option {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #38b000 0%, #2e8f00 100%);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-shadow: 0 8px 24px rgba(56, 176, 0, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    opacity: 0;
+    transform: scale(0) translateY(0);
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    margin-left: -35px;
+    will-change: transform, opacity;
+}
+
+/* Позиционирование опций */
+.fab-option:nth-child(1) {
+    /* Левая опция */
+    animation-delay: 0.05s;
+}
+
+.fab-option:nth-child(2) {
+    /* Центральная опция */
+    animation-delay: 0.1s;
+}
+
+.fab-option:nth-child(3) {
+    /* Правая опция */
+    animation-delay: 0.15s;
+}
+
+/* Анимация появления */
+.fab-options.active .fab-option:nth-child(1) {
+    animation: fabSlideLeft 0.25s ease-out forwards;
+}
+
+.fab-options.active .fab-option:nth-child(2) {
+    animation: fabSlideUp 0.25s ease-out forwards;
+}
+
+.fab-options.active .fab-option:nth-child(3) {
+    animation: fabSlideRight 0.25s ease-out forwards;
+}
+
+@keyframes fabSlideLeft {
+    0% {
+        opacity: 0;
+        transform: scale(0) translateY(0) translateX(0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(-10px) translateX(-90px);
+    }
+}
+
+@keyframes fabSlideUp {
+    0% {
+        opacity: 0;
+        transform: scale(0) translateY(0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(-100px);
+    }
+}
+
+@keyframes fabSlideRight {
+    0% {
+        opacity: 0;
+        transform: scale(0) translateY(0) translateX(0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(-10px) translateX(90px);
+    }
+}
+
+/* Hover эффект для опций */
+.fab-options.active .fab-option:nth-child(1):hover {
+    transform: scale(1.1) translateY(-10px) translateX(-90px);
+    box-shadow: 0 12px 32px rgba(56, 176, 0, 0.5);
+}
+
+.fab-options.active .fab-option:nth-child(2):hover {
+    transform: scale(1.1) translateY(-100px);
+    box-shadow: 0 12px 32px rgba(56, 176, 0, 0.5);
+}
+
+.fab-options.active .fab-option:nth-child(3):hover {
+    transform: scale(1.1) translateY(-10px) translateX(90px);
+    box-shadow: 0 12px 32px rgba(56, 176, 0, 0.5);
+}
+
+/* Иконка и текст в опции */
+.fab-option-icon {
+    font-size: 22px;
+    color: white;
+}
+
+.fab-option-text {
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ==================== ВАРИАНТЫ ЦВЕТОВ ДЛЯ ОПЦИЙ ==================== */
+.fab-option.primary {
+    background: linear-gradient(135deg, #9ef01a 0%, #7cc00f 100%);
+    box-shadow: 0 8px 24px rgba(158, 240, 26, 0.4);
+}
+
+.fab-option.primary:hover {
+    box-shadow: 0 12px 32px rgba(158, 240, 26, 0.5);
+}
+
+.fab-option.secondary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+.fab-option.secondary:hover {
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+}
+
+.fab-option.info {
+    background: linear-gradient(135deg, #2196f3 0%, #1565c0 100%);
+    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.4);
+}
+
+.fab-option.info:hover {
+    box-shadow: 0 12px 32px rgba(33, 150, 243, 0.5);
+}
+
+/* ==================== BADGE НА FAB ==================== */
+.fab-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #f44336;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 12px;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* ==================== АДАПТИВНОСТЬ ==================== */
+@media (max-width: 768px) {
+    .fab-container {
+        bottom: 70px;
+    }
+
+    .fab-main {
+        width: 65px;
+        height: 65px;
+    }
+
+    .fab-option {
+        width: 65px;
+        height: 65px;
+    }
+
+    @keyframes fabSlideLeft {
+        100% {
+            transform: scale(1) translateY(-10px) translateX(-80px);
+        }
+    }
+
+    @keyframes fabSlideRight {
+        100% {
+            transform: scale(1) translateY(-10px) translateX(80px);
+        }
+    }
+
+    @keyframes fabSlideUp {
+        100% {
+            transform: scale(1) translateY(-90px);
+        }
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+    .fab-main {
+        width: 60px;
+        height: 60px;
+    }
+
+    .fab-option {
+        width: 60px;
+        height: 60px;
+    }
+
+    .fab-main-icon {
+        font-size: 24px;
+    }
+
+    .fab-option-icon {
+        font-size: 20px;
+    }
+
+    .fab-option-text {
+        font-size: 9px;
+    }
+
+    @keyframes fabSlideLeft {
+        100% {
+            transform: scale(1) translateY(-8px) translateX(-70px);
+        }
+    }
+
+    @keyframes fabSlideRight {
+        100% {
+            transform: scale(1) translateY(-8px) translateX(70px);
+        }
+    }
+
+    @keyframes fabSlideUp {
+        100% {
+            transform: scale(1) translateY(-80px);
+        }
+    }
+}
+
+/* ==================== ТЕМНАЯ ТЕМА ==================== */
+:root[data-theme="dark"] .fab-backdrop {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* ==================== АНИМАЦИЯ RIPPLE ПРИ КЛИКЕ ==================== */
+.fab-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    transform: scale(0);
+    animation: ripple 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}

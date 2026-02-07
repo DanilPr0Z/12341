@@ -1,19 +1,88 @@
 :root {
+    /* Brand Colors */
     --primary-color: #9ef01a;
     --primary-dark: #7cc00f;
     --primary-light: #bff167;
     --secondary-color: #38b000;
+
+    /* Semantic Colors */
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+
+    /* Grayscale */
     --dark-color: #1a1a1a;
     --light-color: #f8f9fa;
     --gray-color: #6c757d;
-    --success-color: #28a745;
-    --danger-color: #dc3545;
+    --gray-light: #999;
+    --gray-lighter: #ccc;
+    --gray-lightest: #e0e0e0;
+    --gray-border: #ddd;
+
+    /* Background Colors */
     --bg-color: #f8fff0;
+    --bg-white: #ffffff;
+    --bg-light: #f8f9fa;
+    --bg-dark: #e9ecef;
+
+    /* Text Colors */
     --text-color: #1a1a1a;
+    --text-muted: #666;
+    --text-light: #999;
+
+    /* Card & Container */
     --card-bg: white;
     --card-border: #f0f0f0;
     --navbar-bg: white;
     --shadow-color: rgba(0, 0, 0, 0.1);
+
+    /* Spacing System */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 20px;
+    --spacing-2xl: 24px;
+    --spacing-3xl: 32px;
+    --spacing-4xl: 40px;
+
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-full: 50px;
+    --radius-round: 50%;
+
+    /* Font Sizes */
+    --font-xs: 11px;
+    --font-sm: 13px;
+    --font-base: 14px;
+    --font-md: 15px;
+    --font-lg: 16px;
+    --font-xl: 18px;
+    --font-2xl: 20px;
+    --font-3xl: 24px;
+    --font-4xl: 32px;
+
+    /* Font Weights */
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.2s ease;
+    --transition-slow: 0.3s ease;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 /* ========== ТЕМНАЯ ТЕМА ========== */
@@ -488,22 +557,7 @@ body {
     border-color: var(--primary-color);
 }
 
-.btn-primary {
-    background-color: var(--primary-color);
-    color: var(--dark-color);
-    border: none;
-    padding: 12px 30px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    width: 100%;
-}
-
-.btn-primary:hover {
-    background-color: var(--primary-dark);
-}
+/* Button styles moved to buttons.css for consistency */
 
 /* Страницы-заглушки */
 .coming-soon {
@@ -665,109 +719,158 @@ footer {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.6);
     overflow: auto;
+    backdrop-filter: blur(4px);
 }
 
 .modal-content {
     background-color: white;
-    margin: 10% auto;
-    padding: 30px;
-    border-radius: 15px;
+    margin: 8% auto;
+    padding: 0;
+    border-radius: 16px;
     width: 90%;
-    max-width: 500px;
+    max-width: 450px;
     position: relative;
-    box-shadow: 0 5px 30px rgba(0,0,0,0.3);
-    animation: modalSlide 0.3s ease;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    animation: modalSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
 }
 
 @keyframes modalSlide {
     from {
         opacity: 0;
-        transform: translateY(-50px);
+        transform: translateY(-30px) scale(0.95);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
 .close-modal {
     position: absolute;
-    right: 20px;
-    top: 15px;
-    font-size: 28px;
+    right: 16px;
+    top: 16px;
+    font-size: 24px;
     font-weight: bold;
-    color: var(--gray-color);
+    color: #666;
     cursor: pointer;
-    transition: color 0.3s;
+    transition: all 0.2s;
+    z-index: 10;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: transparent;
 }
 
 .close-modal:hover {
-    color: var(--dark-color);
+    color: #333;
+    background: rgba(0,0,0,0.05);
+    transform: rotate(90deg);
 }
 
 /* Формы в модальных окнах */
 .modal-content h2 {
-    color: var(--secondary-color);
-    margin-bottom: 25px;
+    background: var(--primary-color);
+    color: #1a1a1a;
+    margin: 0;
+    padding: 24px 30px;
     text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.modal-content form {
+    padding: 30px;
 }
 
 .modal-content .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .modal-content .form-group label {
     display: block;
     margin-bottom: 8px;
-    color: var(--secondary-color);
-    font-weight: 500;
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
 .modal-content .form-group input {
     width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
     font-size: 1rem;
     transition: all 0.3s;
+    background: #fafafa;
 }
 
 .modal-content .form-group input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(158, 240, 26, 0.2);
+    box-shadow: 0 0 0 4px rgba(158, 240, 26, 0.15);
+    background: white;
 }
 
 .modal-content .form-group small {
     display: block;
-    margin-top: 5px;
-    color: var(--gray-color);
-    font-size: 0.85rem;
+    margin-top: 6px;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.modal-content .form-group .help-text {
+    color: #999;
+    font-size: 0.75rem;
 }
 
 .modal-content .btn-primary {
     width: 100%;
     margin-top: 10px;
+    padding: 14px;
+    background: var(--primary-color);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.modal-content .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(158, 240, 26, 0.4);
 }
 
 .modal-content .form-footer {
     margin-top: 20px;
     text-align: center;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
+    padding-top: 18px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.modal-content .form-footer p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
 }
 
 .modal-content .form-footer a {
-    color: var(--secondary-color);
+    color: var(--primary-color);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
     transition: color 0.3s;
 }
 
 .modal-content .form-footer a:hover {
-    color: var(--primary-color);
+    color: var(--primary-dark);
     text-decoration: underline;
 }
 
@@ -795,16 +898,95 @@ footer {
 /* Адаптивность модальных окон */
 @media (max-width: 768px) {
     .modal-content {
-        margin: 20% auto;
-        padding: 20px;
+        margin: 5% auto;
         width: 95%;
+        max-width: none;
+    }
+
+    .modal-content h2 {
+        padding: 20px;
+        font-size: 1.3rem;
+    }
+
+    .modal-content form {
+        padding: 24px;
+    }
+
+    .logout-confirmation {
+        padding: 30px 20px;
+    }
+
+    .logout-buttons {
+        flex-direction: column;
+    }
+
+    .logout-buttons .btn-secondary,
+    .logout-buttons .btn-danger {
+        width: 100%;
     }
 }
 
 /* Окно подтверждения выхода */
 .logout-confirmation {
     text-align: center;
-    padding: 20px 0;
+    padding: 40px 30px;
+}
+
+.logout-confirmation i {
+    font-size: 48px;
+    color: var(--danger-color);
+    margin-bottom: 16px;
+}
+
+.logout-confirmation h2 {
+    background: transparent;
+    padding: 0;
+    margin: 0 0 12px 0;
+    color: #1a1a1a;
+    font-size: 1.5rem;
+}
+
+.logout-confirmation p {
+    color: #666;
+    margin-bottom: 24px;
+    font-size: 1rem;
+}
+
+.logout-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.logout-buttons .btn-secondary,
+.logout-buttons .btn-danger {
+    padding: 12px 32px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.logout-buttons .btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.logout-buttons .btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+.logout-buttons .btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.logout-buttons .btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 .logout-confirmation i {
@@ -1565,77 +1747,7 @@ footer {
 /* ========== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ КНОПОК И УВЕДОМЛЕНИЙ ========== */
 
 /* Кнопки действий */
-.btn-success {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-success:hover:not(:disabled) {
-    background: linear-gradient(135deg, #20c997 0%, #198754 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-danger:hover:not(:disabled) {
-    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    color: var(--dark-color);
-    border: none;
-    padding: 12px 30px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-color) 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 20px rgba(158, 240, 26, 0.4);
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-    color: white;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-secondary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
-}
+/* All button styles moved to buttons.css for consistency */
 
 /* Уведомления */
 .notification {

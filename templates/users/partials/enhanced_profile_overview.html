@@ -1,0 +1,314 @@
+{% load static %}
+
+<!-- Улучшенный обзор профиля игрока -->
+<div class="enhanced-profile-overview">
+
+    <!-- Предупреждение о неподтвержденном рейтинге -->
+    {% if not rating.updated_by or rating.numeric_rating == 1.00 %}
+    <div class="rating-verification-banner">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div class="rating-verification-banner-content">
+            <h4>Рейтинг не подтвержден</h4>
+            <p>Ваш рейтинг будет подтвержден тренером после первой игры или тренировки</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Визуальный прогресс-бар рейтинга -->
+    <div class="rating-progress-bar-container">
+        <div class="rating-progress-header">
+            <div class="current-rating-display">
+                <div class="current-rating-badge">
+                    {{ rating.level }}
+                </div>
+                <div class="current-rating-info">
+                    <h3>{{ rating.get_level_display_full }}</h3>
+                    <p>Рейтинг: <span class="rating-numeric-value">{{ rating.numeric_rating }}</span></p>
+                </div>
+            </div>
+            <div class="rating-numeric-value">
+                Прогресс: {{ progress_percentage|floatformat:0 }}%
+            </div>
+        </div>
+
+        <!-- Горизонтальный прогресс-бар от D до PRO -->
+        <div class="horizontal-progress-bar">
+            <!-- Индикатор текущей позиции -->
+            <div class="progress-indicator" id="ratingIndicator">
+                <div class="progress-indicator-tooltip">
+                    {{ rating.level }}: {{ rating.numeric_rating }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Метки уровней -->
+        <div class="progress-labels">
+            <span class="progress-label {% if rating.level == 'D' %}active{% endif %}">D</span>
+            <span class="progress-label {% if rating.level == 'D+' %}active{% endif %}">D+</span>
+            <span class="progress-label {% if rating.level == 'C-' or rating.level == 'C' %}active{% endif %}">C</span>
+            <span class="progress-label {% if rating.level == 'C+' %}active{% endif %}">C+</span>
+            <span class="progress-label {% if rating.level == 'B-' or rating.level == 'B' %}active{% endif %}">B</span>
+            <span class="progress-label {% if rating.level == 'B+' %}active{% endif %}">B+</span>
+            <span class="progress-label {% if rating.level == 'A' %}active{% endif %}">A</span>
+            <span class="progress-label {% if rating.level == 'PRO' %}active{% endif %}">PRO</span>
+        </div>
+    </div>
+
+    <!-- Статистические карточки -->
+    <div class="profile-stats-grid">
+        <!-- Турниры -->
+        <div class="profile-stat-card" onclick="window.location.href='{% url 'tournament:tournaments_list' %}'">
+            <div class="stat-card-icon tournaments">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h2 class="stat-card-value">{{ stats.tournaments_played|default:0 }}</h2>
+            <p class="stat-card-label">Турниры</p>
+            {% if stats.tournaments_won %}
+            <div class="stat-card-trend positive">
+                <i class="fas fa-arrow-up"></i>
+                <span>{{ stats.tournaments_won }} побед</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Игры -->
+        <div class="profile-stat-card" onclick="document.querySelector('.tab-btn[data-tab=&quot;bookings&quot;]').click()">
+            <div class="stat-card-icon games">
+                <i class="fas fa-tennis-ball"></i>
+            </div>
+            <h2 class="stat-card-value">{{ stats.total_games|default:0 }}</h2>
+            <p class="stat-card-label">Игры</p>
+            {% if stats.games_this_month %}
+            <div class="stat-card-trend positive">
+                <i class="fas fa-arrow-up"></i>
+                <span>{{ stats.games_this_month }} в этом месяце</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Партнеры -->
+        <div class="profile-stat-card" onclick="window.location.href='{% url 'find_partners' %}'">
+            <div class="stat-card-icon partners">
+                <i class="fas fa-users"></i>
+            </div>
+            <h2 class="stat-card-value">{{ stats.unique_partners|default:0 }}</h2>
+            <p class="stat-card-label">Партнеры</p>
+        </div>
+
+        <!-- Победы -->
+        <div class="profile-stat-card">
+            <div class="stat-card-icon wins">
+                <i class="fas fa-medal"></i>
+            </div>
+            <h2 class="stat-card-value">{{ stats.wins|default:0 }}</h2>
+            <p class="stat-card-label">Победы</p>
+            {% if stats.win_rate %}
+            <div class="stat-card-trend {% if stats.win_rate >= 50 %}positive{% else %}negative{% endif %}">
+                {% if stats.win_rate >= 50 %}<i class="fas fa-arrow-up"></i>{% else %}<i class="fas fa-arrow-down"></i>{% endif %}
+                <span>{{ stats.win_rate|floatformat:0 }}% винрейт</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Круговая диаграмма эффективности -->
+    <div class="efficiency-diagram-container">
+        <div class="efficiency-diagram-header">
+            <h3>Эффективность игрока</h3>
+        </div>
+        <div class="efficiency-diagram-content">
+            <!-- SVG круговая диаграмма -->
+            <div class="circular-progress">
+                <svg width="180" height="180" viewBox="0 0 180 180">
+                    <!-- Градиент для заполнения -->
+                    <defs>
+                        <linearGradient id="efficiency-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#9ef01a;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#38b000;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Фоновый круг -->
+                    <circle class="circular-progress-bg" cx="90" cy="90" r="80"></circle>
+                    <!-- Заполненный круг (прогресс) -->
+                    <circle class="circular-progress-fill" cx="90" cy="90" r="80" id="efficiencyCircle"></circle>
+                </svg>
+                <div class="circular-progress-text">
+                    <h2 class="efficiency-percentage" id="efficiencyValue">{{ stats.efficiency|default:0|floatformat:0 }}%</h2>
+                    <p class="efficiency-label">Эффективность</p>
+                </div>
+            </div>
+
+            <!-- Статистика эффективности -->
+            <div class="efficiency-stats">
+                <div class="efficiency-stat-row">
+                    <span class="efficiency-stat-label">Точность подач</span>
+                    <span class="efficiency-stat-value">{{ stats.serve_accuracy|default:0 }}%</span>
+                </div>
+                <div class="efficiency-stat-bar">
+                    <div class="efficiency-stat-bar-fill" style="width: {{ stats.serve_accuracy|default:0 }}%"></div>
+                </div>
+
+                <div class="efficiency-stat-row">
+                    <span class="efficiency-stat-label">Выигранные розыгрыши</span>
+                    <span class="efficiency-stat-value">{{ stats.rallies_won|default:0 }}%</span>
+                </div>
+                <div class="efficiency-stat-bar">
+                    <div class="efficiency-stat-bar-fill" style="width: {{ stats.rallies_won|default:0 }}%"></div>
+                </div>
+
+                <div class="efficiency-stat-row">
+                    <span class="efficiency-stat-label">Успешные удары</span>
+                    <span class="efficiency-stat-value">{{ stats.successful_shots|default:0 }}%</span>
+                </div>
+                <div class="efficiency-stat-bar">
+                    <div class="efficiency-stat-bar-fill" style="width: {{ stats.successful_shots|default:0 }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="profile-quick-actions">
+        <!-- Мои бронирования -->
+        <div class="quick-action-card" onclick="document.querySelector('.tab-btn[data-tab=&quot;bookings&quot;]').click()">
+            <div class="quick-action-header">
+                <h4>Мои бронирования</h4>
+                <i class="fas fa-chevron-right quick-action-arrow"></i>
+            </div>
+            <div class="quick-action-content">
+                {% if booking_stats.upcoming > 0 %}
+                    <p>Предстоящих: <strong>{{ booking_stats.upcoming }}</strong></p>
+                {% else %}
+                    <p>Нет предстоящих бронирований</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Результаты -->
+        <div class="quick-action-card" onclick="document.querySelector('.tab-btn[data-tab=&quot;statistics&quot;]').click()">
+            <div class="quick-action-header">
+                <h4>Результаты</h4>
+                <i class="fas fa-chevron-right quick-action-arrow"></i>
+            </div>
+            <div class="quick-action-content">
+                {% if stats.total_games > 0 %}
+                    <p>Всего игр: <strong>{{ stats.total_games }}</strong></p>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <p class="empty-state-text">Еще нет результатов</p>
+                        <a href="{% url 'create_game_page' %}" class="empty-state-action">
+                            Создать игру
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Метаданные пользователя -->
+    <div class="user-metadata">
+        <div class="metadata-row">
+            <div class="metadata-icon">
+                <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="metadata-content">
+                <p class="metadata-label">Город</p>
+                <p class="metadata-value">{{ user.profile.preferences.city|default:"Не указан" }}</p>
+            </div>
+        </div>
+
+        <div class="metadata-row">
+            <div class="metadata-icon">
+                <i class="fas fa-hand-paper"></i>
+            </div>
+            <div class="metadata-content">
+                <p class="metadata-label">Предпочитаемая сторона корта</p>
+                <p class="metadata-value">{{ user.profile.preferences.preferred_side|default:"Не указана" }}</p>
+            </div>
+        </div>
+
+        <div class="metadata-row">
+            <div class="metadata-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="metadata-content">
+                <p class="metadata-label">Дата регистрации</p>
+                <p class="metadata-value">{{ user.date_joined|date:"d.m.Y" }}</p>
+            </div>
+        </div>
+
+        {% if user.profile.birth_date %}
+        <div class="metadata-row">
+            <div class="metadata-icon">
+                <i class="fas fa-birthday-cake"></i>
+            </div>
+            <div class="metadata-content">
+                <p class="metadata-label">Дата рождения</p>
+                <p class="metadata-value">{{ user.profile.birth_date|date:"d.m.Y" }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript для анимации прогресс-бара и круговой диаграммы -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Анимация индикатора рейтинга
+    const ratingValue = parseFloat('{{ rating.numeric_rating }}');
+    const indicator = document.getElementById('ratingIndicator');
+
+    if (indicator) {
+        // Рассчитываем позицию индикатора (от 1.00 до 7.00)
+        // 1.00 = 0%, 7.00 = 100%
+        const minRating = 1.00;
+        const maxRating = 7.00;
+        const position = ((ratingValue - minRating) / (maxRating - minRating)) * 100;
+
+        // Устанавливаем позицию с задержкой для анимации
+        setTimeout(() => {
+            indicator.style.left = position + '%';
+        }, 300);
+    }
+
+    // Анимация круговой диаграммы эффективности
+    const efficiencyValue = parseFloat('{{ stats.efficiency|default:0 }}');
+    const efficiencyCircle = document.getElementById('efficiencyCircle');
+
+    if (efficiencyCircle) {
+        const radius = 80;
+        const circumference = 2 * Math.PI * radius; // 502.4
+        const offset = circumference - (efficiencyValue / 100) * circumference;
+
+        // Устанавливаем начальное значение
+        efficiencyCircle.style.strokeDashoffset = circumference;
+
+        // Анимируем до целевого значения
+        setTimeout(() => {
+            efficiencyCircle.style.strokeDashoffset = offset;
+        }, 500);
+    }
+
+    // Анимация счетчиков статистики
+    const statValues = document.querySelectorAll('.stat-card-value');
+    statValues.forEach((element) => {
+        const targetValue = parseInt(element.textContent);
+        if (!isNaN(targetValue)) {
+            let currentValue = 0;
+            const increment = targetValue / 50; // 50 шагов анимации
+            const timer = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= targetValue) {
+                    element.textContent = targetValue;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(currentValue);
+                }
+            }, 20);
+        }
+    });
+});
+</script>

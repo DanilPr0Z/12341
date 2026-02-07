@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Найти тренера - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/coaches-modern.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="coaches-modern-container">
+    <!-- Header -->
+    <div class="coaches-header">
+        <div class="coaches-header-content">
+            <h1 class="coaches-title">Найти тренера</h1>
+            <p class="coaches-subtitle">Выберите профессионального тренера для улучшения вашей игры</p>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="coaches-filters-section">
+        <!-- Rating Range Slider -->
+        <div class="filter-group filter-rating">
+            <label class="filter-label">
+                <i class="fas fa-star"></i>
+                Рейтинг тренера
+            </label>
+            <div class="rating-slider-container">
+                <div class="rating-values">
+                    <span class="rating-value" id="minRatingLabel">1.0</span>
+                    <span class="rating-separator">—</span>
+                    <span class="rating-value" id="maxRatingLabel">7.0</span>
+                </div>
+                <div class="double-range-slider">
+                    <input type="range" id="minRating" min="1" max="7" step="0.5" value="1" class="range-min">
+                    <input type="range" id="maxRating" min="1" max="7" step="0.5" value="7" class="range-max">
+                    <div class="slider-track"></div>
+                    <div class="slider-range" id="sliderRange"></div>
+                </div>
+                <div class="rating-labels">
+                    <span>D (1.0)</span>
+                    <span>D+ (2.0)</span>
+                    <span>C (3.0)</span>
+                    <span>C+ (4.0)</span>
+                    <span>B (5.0)</span>
+                    <span>B+ (6.0)</span>
+                    <span>PRO (7.0)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time of Day Filter -->
+        <div class="filter-group filter-time">
+            <label class="filter-label">
+                <i class="fas fa-clock"></i>
+                Время тренировки
+            </label>
+            <div class="time-filter-buttons">
+                <button class="time-btn active" data-time="all">
+                    <i class="fas fa-infinity"></i>
+                    <span>Все время</span>
+                </button>
+                <button class="time-btn" data-time="morning">
+                    <i class="fas fa-sunrise"></i>
+                    <span>Утро</span>
+                    <small>06:00 - 12:00</small>
+                </button>
+                <button class="time-btn" data-time="day">
+                    <i class="fas fa-sun"></i>
+                    <span>День</span>
+                    <small>12:00 - 18:00</small>
+                </button>
+                <button class="time-btn" data-time="evening">
+                    <i class="fas fa-sunset"></i>
+                    <span>Вечер</span>
+                    <small>18:00 - 22:00</small>
+                </button>
+                <button class="time-btn" data-time="night">
+                    <i class="fas fa-moon"></i>
+                    <span>Ночь</span>
+                    <small>22:00 - 06:00</small>
+                </button>
+            </div>
+        </div>
+
+        <!-- Specialization Filter -->
+        <div class="filter-group filter-spec">
+            <label class="filter-label">
+                <i class="fas fa-medal"></i>
+                Специализация
+            </label>
+            <div class="spec-filter-buttons">
+                <button class="spec-btn active" data-spec="all">Все</button>
+                <button class="spec-btn" data-spec="beginner">Начинающие</button>
+                <button class="spec-btn" data-spec="intermediate">Средний уровень</button>
+                <button class="spec-btn" data-spec="advanced">Продвинутые</button>
+                <button class="spec-btn" data-spec="kids">Детские группы</button>
+            </div>
+        </div>
+
+        <!-- Price Filter -->
+        <div class="filter-group filter-price">
+            <label class="filter-label">
+                <i class="fas fa-ruble-sign"></i>
+                Стоимость за час
+            </label>
+            <div class="price-filter-buttons">
+                <button class="price-btn active" data-price="all">Любая</button>
+                <button class="price-btn" data-price="0-1500">До 1500₽</button>
+                <button class="price-btn" data-price="1500-2500">1500-2500₽</button>
+                <button class="price-btn" data-price="2500">От 2500₽</button>
+            </div>
+        </div>
+
+        <!-- Apply Filters Button -->
+        <div class="filter-actions">
+            <button class="btn-reset-filters" onclick="resetFilters()">
+                <i class="fas fa-redo"></i>
+                Сбросить фильтры
+            </button>
+            <div class="results-count" id="resultsCount">
+                Найдено: <strong id="coachesCount">0</strong> тренеров
+            </div>
+        </div>
+    </div>
+
+    <!-- Coaches Grid -->
+    <div class="coaches-grid" id="coachesGrid">
+        <!-- Coaches will be loaded here by JavaScript -->
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Загрузка тренеров...</p>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-state-icon">
+            <i class="fas fa-user-slash"></i>
+        </div>
+        <h3 class="empty-state-title">Тренеры не найдены</h3>
+        <p class="empty-state-text">Попробуйте изменить фильтры поиска</p>
+        <button class="btn-primary" onclick="resetFilters()">
+            Сбросить фильтры
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Передаём данные тренеров из Django в JavaScript
+    const COACHES_DATA = {{ coaches_json|safe }};
+</script>
+<script src="{% static 'js/coaches-modern.js' %}"></script>
+{% endblock %}

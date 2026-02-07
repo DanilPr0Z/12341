@@ -1,0 +1,50 @@
+{% load static %}
+
+<!-- FAB Menu Backdrop -->
+<div class="fab-backdrop"></div>
+
+<!-- FAB Menu Container -->
+<div class="fab-container">
+    <!-- Main FAB Button -->
+    <button class="fab-main" aria-label="Открыть быстрое меню">
+        <i class="fas fa-plus fab-main-icon"></i>
+        <!-- Badge для уведомлений (опционально) -->
+        {% if user.is_authenticated and pending_invitations_count > 0 %}
+            <span class="fab-badge">{{ pending_invitations_count }}</span>
+        {% endif %}
+    </button>
+
+    <!-- FAB Options -->
+    <div class="fab-options">
+        <!-- Опция 1: Создать игру -->
+        <button class="fab-option primary"
+                data-action="game"
+                data-url="{% url 'create_game_page' %}"
+                aria-label="Создать игру">
+            <i class="fas fa-tennis-ball fab-option-icon"></i>
+            <span class="fab-option-text">Игра</span>
+        </button>
+
+        <!-- Опция 2: Подписка на игры -->
+        <button class="fab-option secondary"
+                data-action="subscription"
+                data-url="{% url 'find_partners' %}"
+                aria-label="Найти партнеров">
+            <i class="fas fa-user-plus fab-option-icon"></i>
+            <span class="fab-option-text">Партнеры</span>
+        </button>
+
+        <!-- Опция 3: Бронирование -->
+        <button class="fab-option info"
+                data-action="booking"
+                data-url="{% url 'booking' %}"
+                aria-label="Забронировать корт">
+            <i class="fas fa-calendar-plus fab-option-icon"></i>
+            <span class="fab-option-text">Бронь</span>
+        </button>
+    </div>
+</div>
+
+<!-- Подключаем CSS и JS -->
+<link rel="stylesheet" href="{% static 'css/fab-menu.css' %}">
+<script src="{% static 'js/fab-menu.js' %}"></script>

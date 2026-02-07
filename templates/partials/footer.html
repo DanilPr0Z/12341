@@ -1,0 +1,305 @@
+{% load static %}
+
+<!-- ==================== MODERN FOOTER ==================== -->
+<footer class="modern-footer">
+    <div class="footer-container">
+        <!-- Footer Main -->
+        <div class="footer-main">
+            <!-- О нас -->
+            <div class="footer-column">
+                <div class="footer-logo">
+                    <i class="fas fa-table-tennis"></i>
+                    <h3>Paddle Booking</h3>
+                </div>
+                <p class="footer-description">
+                    Современная платформа для бронирования кортов, поиска партнеров и участия в турнирах по падел-теннису
+                </p>
+                <div class="footer-social">
+                    <a href="#" class="social-link" aria-label="Telegram">
+                        <i class="fab fa-telegram"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="VK">
+                        <i class="fab fa-vk"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="YouTube">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Навигация -->
+            <div class="footer-column">
+                <h4 class="footer-heading">Навигация</h4>
+                <ul class="footer-links">
+                    <li><a href="{% url 'booking' %}"><i class="fas fa-calendar-alt"></i> Бронирование</a></li>
+                    <li><a href="{% url 'tournament:public_tournaments_list' %}"><i class="fas fa-trophy"></i> Турниры</a></li>
+                    <li><a href="{% url 'leaderboard' %}"><i class="fas fa-star"></i> Топ игроков</a></li>
+                    <li><a href="{% url 'coaches_list' %}"><i class="fas fa-chalkboard-teacher"></i> Тренеры</a></li>
+                </ul>
+            </div>
+
+            <!-- Информация -->
+            <div class="footer-column">
+                <h4 class="footer-heading">Информация</h4>
+                <ul class="footer-links">
+                    <li><a href="{% url 'about' %}"><i class="fas fa-info-circle"></i> О нас</a></li>
+                    <li><a href="{% url 'rules' %}"><i class="fas fa-handshake"></i> Правила</a></li>
+                    <li><a href="{% url 'privacy_policy' %}"><i class="fas fa-shield-alt"></i> Политика конфиденциальности</a></li>
+                    <li><a href="{% url 'terms_of_service' %}"><i class="fas fa-file-contract"></i> Пользовательское соглашение</a></li>
+                </ul>
+            </div>
+
+            <!-- Контакты -->
+            <div class="footer-column">
+                <h4 class="footer-heading">Контакты</h4>
+                <ul class="footer-contacts">
+                    <li>
+                        <i class="fas fa-phone"></i>
+                        <a href="tel:+79999999999">+7 (999) 999-99-99</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:info@paddlebooking.ru">info@paddlebooking.ru</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Москва, Россия</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-clock"></i>
+                        <span>Ежедневно 08:00 - 23:00</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-content">
+                <p class="copyright">
+                    © 2025 Paddle Booking. Все права защищены.
+                </p>
+                <div class="footer-payment">
+                    <span>Принимаем к оплате:</span>
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fab fa-cc-amex"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+/* ==================== MODERN FOOTER ==================== */
+.modern-footer {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+    color: #fff;
+    margin-top: 80px;
+    padding-top: 60px;
+}
+
+.footer-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Footer Main */
+.footer-main {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+    gap: 40px;
+    padding-bottom: 40px;
+}
+
+.footer-column {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Footer Logo */
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.footer-logo i {
+    font-size: 32px;
+    color: #9ef01a;
+}
+
+.footer-logo h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: #fff;
+}
+
+.footer-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #999;
+    margin-bottom: 24px;
+}
+
+/* Social Links */
+.footer-social {
+    display: flex;
+    gap: 12px;
+}
+
+.social-link {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(158, 240, 26, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ef01a;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    background: #9ef01a;
+    color: #1a1a1a;
+    transform: translateY(-3px);
+}
+
+/* Footer Headings */
+.footer-heading {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 20px 0;
+    position: relative;
+    padding-bottom: 12px;
+}
+
+.footer-heading::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 2px;
+    background: #9ef01a;
+}
+
+/* Footer Links */
+.footer-links,
+.footer-contacts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-links li a,
+.footer-contacts li a,
+.footer-contacts li span {
+    color: #999;
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.footer-links li a:hover {
+    color: #9ef01a;
+    padding-left: 4px;
+}
+
+.footer-links li a i,
+.footer-contacts li i {
+    font-size: 14px;
+    width: 20px;
+    color: #9ef01a;
+}
+
+.footer-contacts li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.footer-contacts li i {
+    margin-top: 2px;
+}
+
+/* Footer Bottom */
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 24px 0;
+}
+
+.footer-bottom-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.copyright {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+.footer-payment {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: #666;
+}
+
+.footer-payment i {
+    font-size: 28px;
+    color: #999;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .footer-main {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .modern-footer {
+        margin-top: 60px;
+        padding-top: 40px;
+    }
+
+    .footer-main {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .footer-bottom-content {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+
+    .footer-payment {
+        justify-content: center;
+    }
+}
+
+/* Dark Theme Support */
+:root[data-theme="dark"] .modern-footer {
+    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+}
+</style>

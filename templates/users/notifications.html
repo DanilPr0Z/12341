@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Уведомления - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <!-- Header -->
+    <div class="notifications-header">
+        <h1>
+            Уведомления
+            {% if unread_count > 0 %}
+                <span class="unread-count-badge">{{ unread_count }}</span>
+            {% endif %}
+        </h1>
+        <div class="notifications-header-actions">
+            <button class="btn-mark-all-read" id="markAllReadBtn" {% if unread_count == 0 %}disabled{% endif %}>
+                <i class="fas fa-check-double"></i>
+                Отметить все как прочитанные
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="notifications-filters" id="notificationsFilters">
+        <button class="filter-chip active" data-filter="all">
+            <i class="fas fa-list"></i>
+            Все
+            <span class="filter-chip-count">{{ unread_notifications.count|add:read_notifications.count }}</span>
+        </button>
+
+        {% if unread_notifications.count > 0 %}
+        <button class="filter-chip" data-filter="unread">
+            <i class="fas fa-circle"></i>
+            Непрочитанные
+            <span class="filter-chip-count">{{ unread_notifications.count }}</span>
+        </button>
+        {% endif %}
+
+        {% if read_notifications.count > 0 %}
+        <button class="filter-chip" data-filter="read">
+            <i class="fas fa-check"></i>
+            Прочитанные
+            <span class="filter-chip-count">{{ read_notifications.count }}</span>
+        </button>
+        {% endif %}
+
+        <button class="filter-chip" data-filter="booking">
+            <i class="fas fa-calendar-alt"></i>
+            Бронирования
+        </button>
+
+        <button class="filter-chip" data-filter="payment">
+            <i class="fas fa-credit-card"></i>
+            Платежи
+        </button>
+
+        <button class="filter-chip" data-filter="invitation">
+            <i class="fas fa-user-plus"></i>
+            Приглашения
+        </button>
+
+        <button class="filter-chip" data-filter="rating">
+            <i class="fas fa-star"></i>
+            Рейтинг
+        </button>
+    </div>
+
+    <!-- Notifications List -->
+    <div id="notificationsList">
+        {% if unread_notifications or read_notifications %}
+            <!-- Непрочитанные уведомления -->
+            {% if unread_notifications %}
+            <div class="notifications-section" data-section="unread">
+                <h2 class="notifications-section-header">Новые</h2>
+                <div class="notifications-list">
+                    {% for notification in unread_notifications %}
+                        {% include 'users/partials/notification_card.html' with notification=notification is_unread=True %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Прочитанные уведомления -->
+            {% if read_notifications %}
+            <div class="notifications-section" data-section="read">
+                <h2 class="notifications-section-header">Ранее</h2>
+                <div class="notifications-list">
+                    {% for notification in read_notifications %}
+                        {% include 'users/partials/notification_card.html' with notification=notification is_unread=False %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="notifications-empty">
+                <div class="notifications-empty-icon">
+                    <i class="fas fa-bell-slash"></i>
+                </div>
+                <h2 class="notifications-empty-title">Нет уведомлений</h2>
+                <p class="notifications-empty-text">
+                    Здесь будут отображаться уведомления о бронированиях, платежах и других событиях
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Loading State (скрыт по умолчанию) -->
+    <div class="notifications-loading" id="notificationsLoading" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/notifications.js' %}"></script>
+
+<script>
+// Инициализация временных меток
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновляем временные метки каждую минуту
+    function updateTimestamps() {
+        document.querySelectorAll('.notification-timestamp').forEach(function(el) {
+            const createdAt = el.dataset.createdAt;
+            if (createdAt) {
+                el.textContent = getRelativeTime(createdAt);
+            }
+        });
+    }
+
+    // Функция для получения относительного времени
+    function getRelativeTime(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Только что';
+        if (diffMins < 60) return `${diffMins} мин назад`;
+        if (diffHours < 24) return `${diffHours} ч назад`;
+        if (diffDays === 1) return 'Вчера';
+        if (diffDays < 7) return `${diffDays} дн назад`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} нед назад`;
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)} мес назад`;
+        return `${Math.floor(diffDays / 365)} г назад`;
+    }
+
+    // Обновляем метки сразу при загрузке
+    updateTimestamps();
+
+    // Обновляем каждую минуту
+    setInterval(updateTimestamps, 60000);
+});
+</script>
+{% endblock %}

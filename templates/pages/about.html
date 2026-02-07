@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}О нас - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="about-container">
+    <!-- Hero Section -->
+    <div class="about-hero">
+        <h1>О Paddle Booking</h1>
+        <p>
+            Мы создаем современную платформу для любителей падел-тенниса, где каждый может легко забронировать корт,
+            найти партнеров и участвовать в турнирах
+        </p>
+    </div>
+
+    <!-- О компании -->
+    <div class="about-section">
+        <h2>
+            <i class="fas fa-info-circle"></i>
+            Наша миссия
+        </h2>
+        <p>
+            Paddle Booking — это не просто сервис бронирования. Мы создаем сообщество игроков падел-тенниса,
+            где каждый может развивать свои навыки, находить новых друзей и наслаждаться игрой.
+        </p>
+        <p>
+            Наша платформа предоставляет удобные инструменты для организации игр, поиска партнеров,
+            бронирования кортов и участия в турнирах. Мы стремимся сделать падел-теннис доступным для всех.
+        </p>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">1000+</div>
+                <div class="stat-label">Активных игроков</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Кортов</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5000+</div>
+                <div class="stat-label">Игр проведено</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">100+</div>
+                <div class="stat-label">Турниров</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Преимущества -->
+    <div class="about-section">
+        <h2>
+            <i class="fas fa-star"></i>
+            Почему выбирают нас
+        </h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3>Удобное бронирование</h3>
+                <p>Бронируйте корты в любое удобное время через интуитивный календарь</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Поиск партнеров</h3>
+                <p>Находите единомышленников вашего уровня для совместных игр</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h3>Турниры</h3>
+                <p>Участвуйте в турнирах и соревнуйтесь с лучшими игроками</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Рейтинговая система</h3>
+                <p>Отслеживайте свой прогресс и развивайтесь как игрок</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h3>Тренеры</h3>
+                <p>Найдите профессионального тренера для индивидуальных занятий</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3>Мобильная версия</h3>
+                <p>Управляйте бронированиями со смартфона в любом месте</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Команда -->
+    <div class="team-section">
+        <h2>
+            <i class="fas fa-users"></i>
+            Наша команда
+        </h2>
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="team-avatar">АП</div>
+                <div class="team-name">Александр Петров</div>
+                <div class="team-role">Основатель и CEO</div>
+                <p class="team-bio">
+                    Профессиональный игрок с 10-летним опытом. Мечтал создать платформу для сообщества падела.
+                </p>
+            </div>
+
+            <div class="team-member">
+                <div class="team-avatar">МИ</div>
+                <div class="team-name">Мария Иванова</div>
+                <div class="team-role">СТО</div>
+                <p class="team-bio">
+                    Опыт разработки спортивных платформ более 7 лет. Отвечает за техническую часть проекта.
+                </p>
+            </div>
+
+            <div class="team-member">
+                <div class="team-avatar">ДС</div>
+                <div class="team-name">Дмитрий Смирнов</div>
+                <div class="team-role">Head of Community</div>
+                <p class="team-bio">
+                    Организатор турниров и мероприятий. Создает атмосферу в нашем сообществе.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контакты -->
+    <div class="about-section">
+        <h2>
+            <i class="fas fa-envelope"></i>
+            Свяжитесь с нами
+        </h2>
+        <p>
+            Есть вопросы или предложения? Мы всегда рады обратной связи!
+        </p>
+        <p>
+            <strong>Email:</strong> <a href="mailto:info@paddlebooking.ru">info@paddlebooking.ru</a><br>
+            <strong>Телефон:</strong> <a href="tel:+79999999999">+7 (999) 999-99-99</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

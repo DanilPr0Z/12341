@@ -1,0 +1,110 @@
+{% load static %}
+
+<!-- Карточка уведомления -->
+<div class="notification-card {% if is_unread %}unread{% endif %}"
+     data-notification-id="{{ notification.id }}"
+     data-notification-type="{{ notification.type }}"
+     data-is-read="{{ notification.is_read|lower }}">
+
+    <!-- Иконка уведомления -->
+    <div class="notification-icon {{ notification.type }}">
+        {% if 'booking' in notification.type %}
+            <i class="fas fa-calendar-alt"></i>
+        {% elif 'payment' in notification.type %}
+            <i class="fas fa-credit-card"></i>
+        {% elif 'rating' in notification.type %}
+            <i class="fas fa-star"></i>
+        {% elif 'invitation' in notification.type or 'partner' in notification.type %}
+            <i class="fas fa-user-plus"></i>
+        {% elif 'phone' in notification.type or 'verification' in notification.type %}
+            <i class="fas fa-mobile-alt"></i>
+        {% elif 'registration' in notification.type %}
+            <i class="fas fa-user-check"></i>
+        {% else %}
+            <i class="fas fa-bell"></i>
+        {% endif %}
+    </div>
+
+    <!-- Контент уведомления -->
+    <div class="notification-content">
+        <!-- Заголовок и временная метка -->
+        <div class="notification-header-row">
+            <h3 class="notification-title">{{ notification.title }}</h3>
+            <span class="notification-timestamp" data-created-at="{{ notification.created_at.isoformat }}">
+                {% load humanize %}
+                {{ notification.created_at|naturaltime }}
+            </span>
+        </div>
+
+        <!-- Сообщение -->
+        <p class="notification-message">{{ notification.message }}</p>
+
+        <!-- Метаданные (если есть) -->
+        {% if notification.metadata %}
+        <div class="notification-metadata">
+            {% if notification.metadata.booking_id %}
+            <span class="notification-tag">
+                <i class="fas fa-hashtag"></i>
+                Бронь #{{ notification.metadata.booking_id }}
+            </span>
+            {% endif %}
+
+            {% if notification.metadata.court_name %}
+            <span class="notification-tag">
+                <i class="fas fa-tennis-ball"></i>
+                {{ notification.metadata.court_name }}
+            </span>
+            {% endif %}
+
+            {% if notification.metadata.date %}
+            <span class="notification-tag">
+                <i class="fas fa-calendar"></i>
+                {{ notification.metadata.date }}
+            </span>
+            {% endif %}
+
+            {% if notification.metadata.time %}
+            <span class="notification-tag">
+                <i class="fas fa-clock"></i>
+                {{ notification.metadata.time }}
+            </span>
+            {% endif %}
+
+            {% if notification.metadata.amount %}
+            <span class="notification-tag">
+                <i class="fas fa-ruble-sign"></i>
+                {{ notification.metadata.amount }}
+            </span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Действия (если нужны) -->
+        {% if notification.type == 'booking_invitation' %}
+        <div class="notification-actions">
+            <button class="notification-action-btn" onclick="handleInvitationAccept('{{ notification.metadata.invitation_id }}')">
+                <i class="fas fa-check"></i>
+                Принять
+            </button>
+            <button class="notification-action-btn secondary" onclick="handleInvitationDecline('{{ notification.metadata.invitation_id }}')">
+                <i class="fas fa-times"></i>
+                Отклонить
+            </button>
+        </div>
+        {% elif notification.type == 'booking_reminder_24h' or notification.type == 'booking_reminder_1h' %}
+        <div class="notification-actions">
+            <button class="notification-action-btn" onclick="window.location.href='{% url 'profile' %}?tab=bookings'">
+                <i class="fas fa-eye"></i>
+                Просмотреть бронь
+            </button>
+        </div>
+        {% elif notification.type == 'rating_updated' %}
+        <div class="notification-actions">
+            <button class="notification-action-btn" onclick="window.location.href='{% url 'profile' %}#rating'">
+                <i class="fas fa-chart-line"></i>
+                Посмотреть рейтинг
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>

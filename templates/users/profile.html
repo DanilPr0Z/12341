@@ -154,6 +154,9 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="profile-content">
         <!-- Вкладка "Данные профиля" -->
         <div id="profile-tab" class="tab-content active">
+            <!-- Улучшенный обзор профиля с визуальным прогресс-баром -->
+            {% include 'users/partials/enhanced_profile_overview.html' %}
+
             <h2>Личные данные</h2>
             <div class="profile-info">
                 <div class="info-item">

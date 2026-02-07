@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tournament.name }} - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tournament-detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="tournament-detail-container">
+    <!-- Хедер с постером -->
+    <div class="tournament-detail-header" {% if tournament.image %}style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)), url('{{ tournament.image.url }}');"{% endif %}>
+        <div class="tournament-detail-header-content">
+            <div class="tournament-back-btn" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </div>
+
+            <!-- Статус бейдж -->
+            <div class="tournament-status-badge status-{{ tournament.status }}">
+                {% if tournament.status == 'registration_open' %}
+                    <i class="fas fa-door-open"></i> Регистрация открыта
+                {% elif tournament.status == 'registration_closed' %}
+                    <i class="fas fa-door-closed"></i> Регистрация закрыта
+                {% elif tournament.status == 'in_progress' %}
+                    <i class="fas fa-play-circle"></i> Идет турнир
+                {% elif tournament.status == 'completed' %}
+                    <i class="fas fa-check-circle"></i> Завершен
+                {% elif tournament.status == 'cancelled' %}
+                    <i class="fas fa-times-circle"></i> Отменен
+                {% endif %}
+            </div>
+
+            <h1 class="tournament-detail-title">{{ tournament.name }}</h1>
+
+            <!-- Формат турнира -->
+            <div class="tournament-format-badge">
+                <i class="fas fa-trophy"></i>
+                {{ tournament.get_format_display }}
+            </div>
+
+            <!-- Даты -->
+            <div class="tournament-dates">
+                <i class="fas fa-calendar"></i>
+                {{ tournament.start_date|date:"d.m.Y" }}
+                {% if tournament.start_date != tournament.end_date %}
+                    - {{ tournament.end_date|date:"d.m.Y" }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="tournament-detail-body">
+        <!-- Быстрая статистика -->
+        <div class="tournament-stats-grid">
+            <div class="tournament-stat-card">
+                <div class="tournament-stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="tournament-stat-content">
+                    <h3 class="tournament-stat-value">{{ tournament.participants_count }}/{{ tournament.max_participants }}</h3>
+                    <p class="tournament-stat-label">Участников</p>
+                </div>
+            </div>
+
+            <div class="tournament-stat-card">
+                <div class="tournament-stat-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="tournament-stat-content">
+                    <h3 class="tournament-stat-value">{{ tournament.entry_fee|floatformat:0 }}₽</h3>
+                    <p class="tournament-stat-label">Взнос</p>
+                </div>
+            </div>
+
+            <div class="tournament-stat-card">
+                <div class="tournament-stat-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="tournament-stat-content">
+                    <h3 class="tournament-stat-value">{{ tournament.prize_pool|floatformat:0 }}₽</h3>
+                    <p class="tournament-stat-label">Призовые</p>
+                </div>
+            </div>
+
+            {% if tournament.min_rating or tournament.max_rating %}
+            <div class="tournament-stat-card">
+                <div class="tournament-stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="tournament-stat-content">
+                    <h3 class="tournament-stat-value">
+                        {% if tournament.min_rating %}{{ tournament.min_rating }}{% else %}D{% endif %}
+                        -
+                        {% if tournament.max_rating %}{{ tournament.max_rating }}{% else %}PRO{% endif %}
+                    </h3>
+                    <p class="tournament-stat-label">Рейтинг</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Описание -->
+        <div class="tournament-section">
+            <h2 class="tournament-section-title">
+                <i class="fas fa-info-circle"></i>
+                Описание
+            </h2>
+            <div class="tournament-description">
+                {{ tournament.description|linebreaks }}
+            </div>
+        </div>
+
+        <!-- Информация о формате -->
+        <div class="tournament-section">
+            <h2 class="tournament-section-title">
+                <i class="fas fa-clipboard-list"></i>
+                Формат турнира
+            </h2>
+            <div class="tournament-format-info">
+                <div class="format-info-item">
+                    <i class="fas fa-trophy"></i>
+                    <span><strong>Тип:</strong> {{ tournament.get_format_display }}</span>
+                </div>
+                {% if tournament.is_team_tournament %}
+                <div class="format-info-item">
+                    <i class="fas fa-user-friends"></i>
+                    <span><strong>Постоянные пары</strong> - Регистрация только вместе с партнером</span>
+                </div>
+                {% else %}
+                <div class="format-info-item">
+                    <i class="fas fa-sync-alt"></i>
+                    <span><strong>Индивидуальный зачет</strong> - Партнеры меняются каждый раунд</span>
+                </div>
+                {% endif %}
+                {% if tournament.is_mixed %}
+                <div class="format-info-item">
+                    <i class="fas fa-venus-mars"></i>
+                    <span><strong>Mixed формат</strong> - Обязательно мужчина + женщина в паре</span>
+                </div>
+                {% endif %}
+                <div class="format-info-item">
+                    <i class="fas fa-bullseye"></i>
+                    <span><strong>Очки за матч:</strong> {{ tournament.points_per_match }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Регистрация -->
+        {% if user.is_authenticated %}
+        <div class="tournament-section">
+            <h2 class="tournament-section-title">
+                <i class="fas fa-user-plus"></i>
+                Регистрация
+            </h2>
+
+            {% if is_registered %}
+                <div class="tournament-registration-success">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Вы уже зарегистрированы на этот турнир</p>
+                    <button class="btn-secondary" onclick="unregisterFromTournament({{ tournament.id }})">
+                        Отменить регистрацию
+                    </button>
+                </div>
+            {% elif can_register %}
+                <div class="tournament-registration-form">
+                    {% if tournament.is_team_tournament %}
+                        <p class="registration-info">
+                            <i class="fas fa-info-circle"></i>
+                            Для регистрации необходимо указать партнера
+                        </p>
+                        <div class="form-group">
+                            <label for="partnerSearch">Поиск партнера</label>
+                            <input type="text" id="partnerSearch" class="form-control" placeholder="Введите имя партнера">
+                            <div id="partnerSearchResults" class="partner-search-results"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="teamName">Название пары (необязательно)</label>
+                            <input type="text" id="teamName" class="form-control" placeholder="Los Campeones">
+                        </div>
+                    {% else %}
+                        <p class="registration-info">
+                            <i class="fas fa-info-circle"></i>
+                            Индивидуальная регистрация. Партнеры будут определяться автоматически.
+                        </p>
+                    {% endif %}
+
+                    {% if tournament.entry_fee > 0 %}
+                    <div class="registration-fee">
+                        <i class="fas fa-coins"></i>
+                        <span>Взнос: <strong>{{ tournament.entry_fee }}₽</strong></span>
+                    </div>
+                    {% endif %}
+
+                    <button class="btn-primary btn-register" onclick="registerForTournament({{ tournament.id }})">
+                        Зарегистрироваться
+                    </button>
+                </div>
+            {% else %}
+                <div class="tournament-registration-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>{{ register_message }}</p>
+                </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="tournament-section">
+            <div class="tournament-login-required">
+                <i class="fas fa-sign-in-alt"></i>
+                <p>Для регистрации на турнир необходимо войти в систему</p>
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn-primary">
+                    Войти
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Участники -->
+        <div class="tournament-section">
+            <h2 class="tournament-section-title">
+                <i class="fas fa-users"></i>
+                Участники ({{ tournament.participants_count }})
+            </h2>
+            <div id="participantsList" class="participants-list">
+                <!-- JavaScript будет загружать участников -->
+                <div class="loading-state-small">
+                    <div class="spinner-small"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сетка турнира (если турнир начался) -->
+        {% if tournament.status in 'in_progress,completed' %}
+        <div class="tournament-section">
+            <h2 class="tournament-section-title">
+                <i class="fas fa-sitemap"></i>
+                Сетка турнира
+            </h2>
+            <div id="tournamentBracket" class="tournament-bracket">
+                <!-- JavaScript будет загружать сетку -->
+                <div class="loading-state-small">
+                    <div class="spinner-small"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Организатор -->
+        <div class="tournament-section">
+            <h2 class="tournament-section-title">
+                <i class="fas fa-user-tie"></i>
+                Организатор
+            </h2>
+            <div class="tournament-organizer">
+                <div class="organizer-avatar">
+                    {% if tournament.organizer.profile.avatar %}
+                        <img src="{{ tournament.organizer.profile.avatar.url }}" alt="{{ tournament.organizer.get_full_name }}">
+                    {% else %}
+                        <i class="fas fa-user"></i>
+                    {% endif %}
+                </div>
+                <div class="organizer-info">
+                    <h3>{{ tournament.organizer.get_full_name }}</h3>
+                    <p>{{ tournament.organizer.email }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/tournament-detail.js' %}"></script>
+<script>
+    const TOURNAMENT_ID = {{ tournament.id }};
+    const IS_TEAM_TOURNAMENT = {{ tournament.is_team_tournament|yesno:"true,false" }};
+    const IS_REGISTERED = {{ is_registered|yesno:"true,false" }};
+</script>
+{% endblock %}

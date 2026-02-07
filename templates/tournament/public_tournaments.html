@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Турниры - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tournaments.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="tournaments-container">
+    <!-- Заголовок -->
+    <div class="tournaments-header">
+        <h1 class="tournaments-title">Турниры</h1>
+        <p class="tournaments-subtitle">Участвуйте в турнирах и соревнуйтесь с лучшими</p>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="tournaments-filters">
+        <button class="tournament-filter-btn active" data-filter="all">
+            <i class="fas fa-trophy"></i>
+            Все турниры
+        </button>
+        <button class="tournament-filter-btn" data-filter="registration_open">
+            <i class="fas fa-door-open"></i>
+            Регистрация
+        </button>
+        <button class="tournament-filter-btn" data-filter="in_progress">
+            <i class="fas fa-play-circle"></i>
+            Идут сейчас
+        </button>
+        <button class="tournament-filter-btn" data-filter="completed">
+            <i class="fas fa-check-circle"></i>
+            Завершенные
+        </button>
+    </div>
+
+    <!-- Список турниров -->
+    <div id="tournamentsGrid" class="tournaments-grid">
+        <!-- JavaScript будет загружать турниры сюда -->
+    </div>
+
+    <!-- Пустое состояние -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <h3 class="empty-state-title">Турниров не найдено</h3>
+        <p class="empty-state-text">Попробуйте изменить фильтры</p>
+    </div>
+
+    <!-- Загрузка -->
+    <div id="loadingState" class="loading-state">
+        <div class="spinner"></div>
+        <p>Загрузка турниров...</p>
+    </div>
+</div>
+
+<!-- Модальное окно детального просмотра турнира -->
+<div id="tournamentModal" class="tournament-modal">
+    <div class="tournament-modal-content">
+        <button class="tournament-modal-close">
+            <i class="fas fa-times"></i>
+        </button>
+        <div id="tournamentModalBody">
+            <!-- Детали турнира будут загружаться сюда -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/tournaments.js' %}"></script>
+{% endblock %}

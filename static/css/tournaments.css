@@ -1,0 +1,437 @@
+/**
+ * ============================================
+ * TOURNAMENTS LIST PAGE
+ * ============================================
+ *
+ * Публичная страница списка турниров
+ */
+
+/* ==================== CONTAINER ==================== */
+.tournaments-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ==================== HEADER ==================== */
+.tournaments-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.tournaments-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 10px 0;
+}
+
+.tournaments-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+/* ==================== FILTERS ==================== */
+.tournaments-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.tournament-filter-btn {
+    flex-shrink: 0;
+    padding: 12px 24px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tournament-filter-btn:hover {
+    border-color: #9ef01a;
+    color: #38b000;
+    background: #f9fef4;
+}
+
+.tournament-filter-btn.active {
+    border-color: #9ef01a;
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    color: #1a1a1a;
+}
+
+.tournament-filter-btn i {
+    font-size: 16px;
+}
+
+/* ==================== GRID ==================== */
+.tournaments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* ==================== TOURNAMENT CARD ==================== */
+.tournament-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.tournament-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Хедер карточки с постером */
+.tournament-card-header {
+    position: relative;
+    height: 180px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 20px;
+}
+
+.tournament-card-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6));
+}
+
+/* Статус бейдж */
+.tournament-card-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 1;
+}
+
+.tournament-card-status.status-registration_open {
+    background: #4caf50;
+    color: white;
+}
+
+.tournament-card-status.status-registration_closed {
+    background: #ff9800;
+    color: white;
+}
+
+.tournament-card-status.status-in_progress {
+    background: #2196f3;
+    color: white;
+}
+
+.tournament-card-status.status-completed {
+    background: #9e9e9e;
+    color: white;
+}
+
+.tournament-card-status.status-cancelled {
+    background: #f44336;
+    color: white;
+}
+
+/* Название турнира */
+.tournament-card-title {
+    position: relative;
+    z-index: 1;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 8px 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Формат турнира */
+.tournament-card-format {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+}
+
+/* Тело карточки */
+.tournament-card-body {
+    padding: 20px;
+}
+
+/* Даты */
+.tournament-card-dates {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #666;
+}
+
+.tournament-card-dates i {
+    color: #9ef01a;
+}
+
+/* Статистика */
+.tournament-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.tournament-card-stat {
+    text-align: center;
+}
+
+.tournament-card-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 4px 0;
+}
+
+.tournament-card-stat-label {
+    font-size: 11px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* Прогресс бар участников */
+.tournament-card-progress {
+    margin-bottom: 16px;
+}
+
+.tournament-card-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.tournament-card-progress-bar {
+    height: 6px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.tournament-card-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #9ef01a 0%, #38b000 100%);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Кнопка */
+.tournament-card-button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    color: #1a1a1a;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tournament-card-button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(158, 240, 26, 0.3);
+}
+
+.tournament-card-button.disabled {
+    background: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.tournament-card-button.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* ==================== EMPTY STATE ==================== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    color: #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.empty-state-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #666;
+    margin: 0 0 10px 0;
+}
+
+.empty-state-text {
+    font-size: 16px;
+    color: #999;
+    margin: 0;
+}
+
+/* ==================== LOADING STATE ==================== */
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f0f0f0;
+    border-top-color: #9ef01a;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-state p {
+    font-size: 16px;
+    color: #666;
+}
+
+/* ==================== MODAL ==================== */
+.tournament-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: 20px;
+}
+
+.tournament-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.tournament-modal-content {
+    background: white;
+    border-radius: 16px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.tournament-modal.active .tournament-modal-content {
+    transform: translateY(0);
+}
+
+.tournament-modal-close {
+    position: sticky;
+    top: 20px;
+    right: 20px;
+    float: right;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+
+.tournament-modal-close:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .tournaments-title {
+        font-size: 28px;
+    }
+
+    .tournaments-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .tournament-filter-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tournaments-container {
+        padding: 16px;
+    }
+
+    .tournaments-filters {
+        gap: 8px;
+    }
+
+    .tournament-card-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .tournament-card-stat-value {
+        font-size: 16px;
+    }
+}

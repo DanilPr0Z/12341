@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Топ игроков - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/leaderboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="leaderboard-container">
+    <!-- Header -->
+    <div class="leaderboard-header">
+        <h1>🏆 Топ игроков</h1>
+        <p>Лучшие игроки по разным категориям</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="leaderboard-tabs">
+        <a href="?tab=rating" class="leaderboard-tab {% if active_tab == 'rating' %}active{% endif %}">
+            <i class="fas fa-star"></i>
+            <span class="leaderboard-tab-label">Рейтинг</span>
+        </a>
+
+        <a href="?tab=growth" class="leaderboard-tab {% if active_tab == 'growth' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i>
+            <span class="leaderboard-tab-label">Рост</span>
+        </a>
+
+        <a href="?tab=games" class="leaderboard-tab {% if active_tab == 'games' %}active{% endif %}">
+            <i class="fas fa-tennis-ball"></i>
+            <span class="leaderboard-tab-label">Игры</span>
+        </a>
+
+        <a href="?tab=tournaments" class="leaderboard-tab {% if active_tab == 'tournaments' %}active{% endif %}">
+            <i class="fas fa-trophy"></i>
+            <span class="leaderboard-tab-label">Турниры</span>
+        </a>
+    </div>
+
+    <!-- Podium для топ-3 (только для вкладки Рейтинг) -->
+    {% if active_tab == 'rating' and players_data|length >= 3 %}
+    <div class="leaderboard-podium">
+        <!-- 2 место -->
+        <div class="podium-player rank-2">
+            <div class="podium-rank">2</div>
+            {% if players_data.1.user.profile.avatar %}
+                <img src="{{ players_data.1.user.profile.avatar.url }}" alt="{{ players_data.1.user.username }}" class="podium-avatar">
+            {% else %}
+                <div class="podium-avatar-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+            <div class="podium-name">
+                {% if players_data.1.user.first_name or players_data.1.user.last_name %}
+                    {{ players_data.1.user.first_name }} {{ players_data.1.user.last_name }}
+                {% else %}
+                    {{ players_data.1.user.username }}
+                {% endif %}
+            </div>
+            <div class="podium-rating">
+                {{ players_data.1.rating.level }} ({{ players_data.1.rating.numeric_rating }})
+            </div>
+        </div>
+
+        <!-- 1 место -->
+        <div class="podium-player rank-1">
+            <div class="podium-rank">1</div>
+            {% if players_data.0.user.profile.avatar %}
+                <img src="{{ players_data.0.user.profile.avatar.url }}" alt="{{ players_data.0.user.username }}" class="podium-avatar">
+            {% else %}
+                <div class="podium-avatar-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+            <div class="podium-name">
+                {% if players_data.0.user.first_name or players_data.0.user.last_name %}
+                    {{ players_data.0.user.first_name }} {{ players_data.0.user.last_name }}
+                {% else %}
+                    {{ players_data.0.user.username }}
+                {% endif %}
+            </div>
+            <div class="podium-rating">
+                {{ players_data.0.rating.level }} ({{ players_data.0.rating.numeric_rating }})
+            </div>
+        </div>
+
+        <!-- 3 место -->
+        <div class="podium-player rank-3">
+            <div class="podium-rank">3</div>
+            {% if players_data.2.user.profile.avatar %}
+                <img src="{{ players_data.2.user.profile.avatar.url }}" alt="{{ players_data.2.user.username }}" class="podium-avatar">
+            {% else %}
+                <div class="podium-avatar-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+            <div class="podium-name">
+                {% if players_data.2.user.first_name or players_data.2.user.last_name %}
+                    {{ players_data.2.user.first_name }} {{ players_data.2.user.last_name }}
+                {% else %}
+                    {{ players_data.2.user.username }}
+                {% endif %}
+            </div>
+            <div class="podium-rating">
+                {{ players_data.2.rating.level }} ({{ players_data.2.rating.numeric_rating }})
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Player List -->
+    {% if players_data %}
+    <div class="leaderboard-list">
+        {% for player in players_data %}
+        <div class="player-card rank-{{ player.rank }}" onclick="window.location.href='#'">
+            <!-- Ранг -->
+            <div class="player-rank">
+                {% if player.rank == 1 %}
+                    🥇
+                {% elif player.rank == 2 %}
+                    🥈
+                {% elif player.rank == 3 %}
+                    🥉
+                {% else %}
+                    {{ player.rank }}
+                {% endif %}
+            </div>
+
+            <!-- Аватар -->
+            {% if player.user.profile.avatar %}
+                <img src="{{ player.user.profile.avatar.url }}" alt="{{ player.user.username }}" class="player-avatar">
+            {% else %}
+                <div class="player-avatar-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+
+            <!-- Информация об игроке -->
+            <div class="player-info">
+                <h3 class="player-name">
+                    {% if player.user.first_name or player.user.last_name %}
+                        {{ player.user.first_name }} {{ player.user.last_name }}
+                    {% else %}
+                        {{ player.user.username }}
+                    {% endif %}
+                </h3>
+
+                <div class="player-meta">
+                    {% if player.user.profile.preferences.city %}
+                    <div class="player-meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ player.user.profile.preferences.city }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="player-meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>На сайте с {{ player.user.date_joined|date:"M Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Рейтинг -->
+            {% if player.rating %}
+            <div class="player-rating-badge">
+                <span class="player-rating-level">{{ player.rating.level }}</span>
+                <span class="player-rating-numeric">{{ player.rating.numeric_rating }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Статистика (зависит от вкладки) -->
+            <div class="player-stats">
+                {% if active_tab == 'rating' %}
+                    <div class="player-stat">
+                        <p class="player-stat-value">{{ player.stats.games_count|default:0 }}</p>
+                        <p class="player-stat-label">Игр</p>
+                    </div>
+
+                {% elif active_tab == 'growth' %}
+                    <div class="player-stat growth-positive">
+                        <p class="player-stat-value">{{ player.stats.growth|floatformat:2 }}</p>
+                        <p class="player-stat-label">Прирост</p>
+                    </div>
+
+                {% elif active_tab == 'games' %}
+                    <div class="player-stat">
+                        <p class="player-stat-value">{{ player.stats.games_count }}</p>
+                        <p class="player-stat-label">Игр</p>
+                    </div>
+
+                {% elif active_tab == 'tournaments' %}
+                    <div class="player-stat">
+                        <p class="player-stat-value">{{ player.stats.tournaments_count }}</p>
+                        <p class="player-stat-label">Турниры</p>
+                    </div>
+                    <div class="player-stat">
+                        <p class="player-stat-value">{{ player.stats.tournaments_won }}</p>
+                        <p class="player-stat-label">Побед</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="leaderboard-empty">
+        <div class="leaderboard-empty-icon">
+            <i class="fas fa-users-slash"></i>
+        </div>
+        <h2 class="leaderboard-empty-title">
+            {% if active_tab == 'growth' %}
+                Нет данных о росте рейтинга
+            {% elif active_tab == 'tournaments' %}
+                Нет участников турниров
+            {% else %}
+                Нет данных для отображения
+            {% endif %}
+        </h2>
+        <p class="leaderboard-empty-text">
+            {% if active_tab == 'growth' %}
+                Здесь будут отображаться игроки с наибольшим ростом рейтинга
+            {% elif active_tab == 'tournaments' %}
+                Здесь будут отображаться участники турниров
+            {% else %}
+                Попробуйте выбрать другую вкладку
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Плавная прокрутка к топу при смене вкладки
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.leaderboard-tab');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            // Небольшая задержка для плавности
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+        });
+    });
+});
+</script>
+{% endblock %}

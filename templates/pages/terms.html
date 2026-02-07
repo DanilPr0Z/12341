@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Пользовательское соглашение - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-hero">
+        <h1>Пользовательское соглашение</h1>
+        <p>Условия использования сервиса Paddle Booking</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-file-contract"></i> 1. Предмет соглашения</h2>
+        <p>Настоящее Соглашение регулирует отношения между Paddle Booking и пользователем при использовании сервиса.</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-user-plus"></i> 2. Регистрация</h2>
+        <p>При регистрации вы обязуетесь:</p>
+        <ul>
+            <li>Предоставлять достоверную информацию</li>
+            <li>Сохранять конфиденциальность пароля</li>
+            <li>Немедленно уведомлять о несанкционированном доступе</li>
+        </ul>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-check-circle"></i> 3. Использование сервиса</h2>
+        <p>Пользователь имеет право:</p>
+        <ul>
+            <li>Бронировать корты</li>
+            <li>Участвовать в играх и турнирах</li>
+            <li>Использовать профессиональные тренеры</li>
+            <li>Общаться с другими пользователями</li>
+        </ul>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-ban"></i> 4. Запрещено</h2>
+        <ul>
+            <li>Использовать сервис в незаконных целях</li>
+            <li>Нарушать права других пользователей</li>
+            <li>Размещать спам или рекламу</li>
+            <li>Вмешиваться в работу сервиса</li>
+            <li>Использовать автоматизированные средства</li>
+        </ul>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-credit-card"></i> 5. Оплата и возврат</h2>
+        <p>Оплата услуг осуществляется согласно тарифам. Возврат средств возможен в случаях, предусмотренных правилами платформы.</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-exclamation-triangle"></i> 6. Ответственность</h2>
+        <p>Сервис не несет ответственности за:</p>
+        <ul>
+            <li>Действия пользователей</li>
+            <li>Качество услуг третьих лиц</li>
+            <li>Технические сбои</li>
+            <li>Потерю данных по вине пользователя</li>
+        </ul>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-copyright"></i> 7. Интеллектуальная собственность</h2>
+        <p>Все материалы сервиса защищены авторским правом. Использование без разрешения запрещено.</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-sync-alt"></i> 8. Изменение условий</h2>
+        <p>Мы оставляем за собой право изменять условия соглашения. Об изменениях будет сообщено пользователям.</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-sign-out-alt"></i> 9. Прекращение использования</h2>
+        <p>Вы можете в любой момент удалить аккаунт. Мы можем заблокировать доступ при нарушении условий.</p>
+    </div>
+
+    <div class="page-section">
+        <h2><i class="fas fa-envelope"></i> 10. Контакты</h2>
+        <p>По юридическим вопросам: <a href="mailto:legal@paddlebooking.ru">legal@paddlebooking.ru</a></p>
+    </div>
+</div>
+{% endblock %}

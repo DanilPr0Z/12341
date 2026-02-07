@@ -1,34 +1,64 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Вход - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="form-container">
     <h2>Вход в аккаунт</h2>
-    
-    <form method="post">
+    <p>Добро пожаловать! Введите свои данные для входа</p>
+
+    <form method="post" class="validate-form" id="loginForm">
         {% csrf_token %}
-        
+
         {% for field in form %}
         <div class="form-group">
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
+            {% if field.name == 'username' %}
+                <input type="text"
+                       name="{{ field.name }}"
+                       id="{{ field.id_for_label }}"
+                       data-validate="required"
+                       placeholder="Введите имя пользователя"
+                       value="{{ field.value|default:'' }}"
+                       class="{% if field.errors %}field-invalid{% endif %}">
+            {% elif field.name == 'password' %}
+                <input type="password"
+                       name="{{ field.name }}"
+                       id="{{ field.id_for_label }}"
+                       data-validate="required|minLength:8"
+                       placeholder="Введите пароль"
+                       class="{% if field.errors %}field-invalid{% endif %}">
+            {% else %}
+                {{ field }}
+            {% endif %}
+
             {% if field.help_text %}
                 <small class="help-text">{{ field.help_text }}</small>
             {% endif %}
             {% if field.errors %}
                 <div class="error-message">
-                    {{ field.errors }}
+                    {{ field.errors.0 }}
                 </div>
             {% endif %}
         </div>
         {% endfor %}
-        
-        <button type="submit" class="btn-primary">Войти</button>
+
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-sign-in-alt"></i> Войти
+        </button>
     </form>
-    
+
     <div class="form-footer">
         <p>Нет аккаунта? <a href="{% url 'register' %}">Зарегистрируйтесь</a></p>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/form-validation.js' %}"></script>
 {% endblock %}

@@ -1,21 +1,74 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Регистрация - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="form-container">
     <h2>Регистрация</h2>
-    
-    <form method="post">
+    <p>Создайте аккаунт для бронирования кортов</p>
+
+    <form method="post" class="validate-form" id="registerForm">
         {% csrf_token %}
-        
+
         {% for field in form %}
         <div class="form-group">
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
+
+            {% if field.name == 'username' %}
+                <input type="text"
+                       name="{{ field.name }}"
+                       id="{{ field.id_for_label }}"
+                       data-validate="required|username|minLength:3"
+                       placeholder="Только латиница, цифры и _"
+                       value="{{ field.value|default:'' }}"
+                       class="{% if field.errors %}field-invalid{% endif %}">
+
+            {% elif field.name == 'email' %}
+                <input type="email"
+                       name="{{ field.name }}"
+                       id="{{ field.id_for_label }}"
+                       data-validate="required|email"
+                       placeholder="example@email.com"
+                       value="{{ field.value|default:'' }}"
+                       class="{% if field.errors %}field-invalid{% endif %}">
+
+            {% elif field.name == 'phone_number' %}
+                <input type="tel"
+                       name="{{ field.name }}"
+                       id="{{ field.id_for_label }}"
+                       data-validate="required|phone"
+                       placeholder="+7 (XXX) XXX-XX-XX"
+                       value="{{ field.value|default:'' }}"
+                       class="{% if field.errors %}field-invalid{% endif %}">
+
+            {% elif field.name == 'password1' %}
+                <input type="password"
+                       name="{{ field.name }}"
+                       id="{{ field.id_for_label }}"
+                       data-validate="required|password|minLength:8"
+                       placeholder="Минимум 8 символов, буквы и цифры"
+                       class="{% if field.errors %}field-invalid{% endif %}">
+
+            {% elif field.name == 'password2' %}
+                <input type="password"
+                       name="{{ field.name }}"
+                       id="{{ field.id_for_label }}"
+                       data-validate="required|match:password1"
+                       placeholder="Повторите пароль"
+                       class="{% if field.errors %}field-invalid{% endif %}">
+
+            {% else %}
+                {{ field }}
+            {% endif %}
+
             {% if field.errors %}
                 <div class="error-message">
-                    {{ field.errors }}
+                    {{ field.errors.0 }}
                 </div>
             {% endif %}
             {% if field.help_text %}
@@ -23,12 +76,18 @@
             {% endif %}
         </div>
         {% endfor %}
-        
-        <button type="submit" class="btn-primary">Зарегистрироваться</button>
+
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-user-plus"></i> Зарегистрироваться
+        </button>
     </form>
-    
+
     <div class="form-footer">
         <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a></p>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/form-validation.js' %}"></script>
 {% endblock %}

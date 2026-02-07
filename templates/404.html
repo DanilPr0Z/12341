@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Страница не найдена - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        max-width: 600px;
+        margin: 100px auto;
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .error-code {
+        font-size: 120px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 20px;
+        line-height: 1;
+    }
+
+    .error-icon {
+        font-size: 80px;
+        color: #9ef01a;
+        margin-bottom: 30px;
+    }
+
+    .error-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+    }
+
+    .error-message {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 40px;
+        line-height: 1.6;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-error {
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary-error {
+        background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+        color: white;
+    }
+
+    .btn-primary-error:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(158, 240, 26, 0.3);
+    }
+
+    .btn-secondary-error {
+        background: white;
+        color: #666;
+        border: 2px solid #e0e0e0;
+    }
+
+    .btn-secondary-error:hover {
+        border-color: #9ef01a;
+        color: #38b000;
+    }
+
+    @media (max-width: 768px) {
+        .error-code {
+            font-size: 80px;
+        }
+
+        .error-title {
+            font-size: 24px;
+        }
+
+        .error-actions {
+            flex-direction: column;
+        }
+
+        .btn-error {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-icon">
+        <i class="fas fa-table-tennis"></i>
+    </div>
+    <div class="error-code">404</div>
+    <h1 class="error-title">Страница не найдена</h1>
+    <p class="error-message">
+        Упс! Похоже, мяч улетел за пределы корта.<br>
+        Страница, которую вы ищете, не существует или была перемещена.
+    </p>
+    <div class="error-actions">
+        <a href="{% url 'home' %}" class="btn-error btn-primary-error">
+            <i class="fas fa-home"></i>
+            На главную
+        </a>
+        <a href="{% url 'booking' %}" class="btn-error btn-secondary-error">
+            <i class="fas fa-calendar-check"></i>
+            Забронировать корт
+        </a>
+    </div>
+</div>
+{% endblock %}

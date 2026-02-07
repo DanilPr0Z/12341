@@ -1,0 +1,464 @@
+/**
+ * ============================================
+ * NOTIFICATIONS SYSTEM
+ * ============================================
+ *
+ * Система уведомлений с фильтрами и временными метками
+ * Вдохновлено Lunda Padel
+ */
+
+/* ==================== CONTAINER ==================== */
+.notifications-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* ==================== HEADER ==================== */
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.notifications-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.notifications-header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-mark-all-read {
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    color: #1a1a1a;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-mark-all-read:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(158, 240, 26, 0.4);
+}
+
+.btn-mark-all-read:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ==================== FILTERS ==================== */
+.notifications-filters {
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-chip {
+    background: #f5f7fa;
+    color: #666;
+    border: 2px solid transparent;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-chip:hover {
+    background: #e9ecef;
+}
+
+.filter-chip.active {
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    color: #1a1a1a;
+    border-color: #38b000;
+}
+
+.filter-chip-count {
+    background: rgba(0, 0, 0, 0.1);
+    color: #1a1a1a;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.filter-chip.active .filter-chip-count {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ==================== NOTIFICATIONS LIST ==================== */
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notification-card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.notification-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.notification-card.unread {
+    background: linear-gradient(90deg, #f0fdf4 0%, white 100%);
+    border-left: 4px solid #38b000;
+}
+
+.notification-card.unread::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: -8px;
+    width: 8px;
+    height: 8px;
+    background: #38b000;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(56, 176, 0, 0.2);
+}
+
+/* ==================== NOTIFICATION ICON ==================== */
+.notification-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+/* Иконки для разных типов уведомлений */
+.notification-icon.booking_created,
+.notification-icon.booking_confirmed {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.notification-icon.booking_cancelled {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.notification-icon.booking_reminder_24h,
+.notification-icon.booking_reminder_1h {
+    background: linear-gradient(135deg, #ffa751 0%, #ffe259 100%);
+    color: white;
+}
+
+.notification-icon.payment_success {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+}
+
+.notification-icon.payment_failed,
+.notification-icon.payment_pending {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: white;
+}
+
+.notification-icon.rating_updated {
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+    color: white;
+}
+
+.notification-icon.booking_invitation,
+.notification-icon.invitation_accepted,
+.notification-icon.invitation_declined,
+.notification-icon.partner_joined {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+/* ==================== NOTIFICATION CONTENT ==================== */
+.notification-content {
+    flex: 1;
+}
+
+.notification-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+}
+
+.notification-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.notification-timestamp {
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+}
+
+.notification-message {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.notification-metadata {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.notification-tag {
+    background: #f5f7fa;
+    color: #666;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ==================== EMPTY STATE ==================== */
+.notifications-empty {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.notifications-empty-icon {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 16px;
+}
+
+.notifications-empty-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 8px;
+}
+
+.notifications-empty-text {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
+}
+
+/* ==================== SECTION HEADERS ==================== */
+.notifications-section {
+    margin-bottom: 32px;
+}
+
+.notifications-section-header {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+/* ==================== LOADING STATE ==================== */
+.notifications-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f0f0f0;
+    border-top-color: #38b000;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==================== ACTIONS ==================== */
+.notification-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.notification-action-btn {
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    color: #1a1a1a;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notification-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(158, 240, 26, 0.4);
+}
+
+.notification-action-btn.secondary {
+    background: #f5f7fa;
+    color: #666;
+}
+
+.notification-action-btn.secondary:hover {
+    background: #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================== BADGE ==================== */
+.unread-count-badge {
+    background: #f44336;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-left: 8px;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 768px) {
+    .notifications-container {
+        padding: 16px;
+    }
+
+    .notifications-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .notifications-header h1 {
+        font-size: 24px;
+    }
+
+    .notifications-filters {
+        padding: 12px;
+        gap: 6px;
+    }
+
+    .filter-chip {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+
+    .notification-card {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .notification-header-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .notification-timestamp {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-mark-all-read {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .filter-chip {
+        flex: 1;
+        justify-content: center;
+        min-width: calc(50% - 4px);
+    }
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-card {
+    animation: slideIn 0.3s ease-out backwards;
+}
+
+.notification-card:nth-child(1) { animation-delay: 0.05s; }
+.notification-card:nth-child(2) { animation-delay: 0.1s; }
+.notification-card:nth-child(3) { animation-delay: 0.15s; }
+.notification-card:nth-child(4) { animation-delay: 0.2s; }
+.notification-card:nth-child(5) { animation-delay: 0.25s; }
+
+/* ==================== FADE OUT ANIMATION ==================== */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+}
+
+.notification-card.marking-read {
+    animation: fadeOut 0.3s ease-out forwards;
+}

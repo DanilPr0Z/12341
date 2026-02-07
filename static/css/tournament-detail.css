@@ -1,0 +1,575 @@
+/**
+ * ============================================
+ * TOURNAMENT DETAIL PAGE
+ * ============================================
+ *
+ * Детальная страница турнира
+ */
+
+/* ==================== CONTAINER ==================== */
+.tournament-detail-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* ==================== HEADER ==================== */
+.tournament-detail-header {
+    position: relative;
+    height: 300px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+    padding: 30px;
+}
+
+.tournament-detail-header-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+/* Кнопка назад */
+.tournament-back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.tournament-back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* Статус бейдж */
+.tournament-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(10px);
+}
+
+.tournament-status-badge.status-registration_open {
+    background: rgba(76, 175, 80, 0.9);
+    color: white;
+}
+
+.tournament-status-badge.status-registration_closed {
+    background: rgba(255, 152, 0, 0.9);
+    color: white;
+}
+
+.tournament-status-badge.status-in_progress {
+    background: rgba(33, 150, 243, 0.9);
+    color: white;
+}
+
+.tournament-status-badge.status-completed {
+    background: rgba(158, 158, 158, 0.9);
+    color: white;
+}
+
+.tournament-status-badge.status-cancelled {
+    background: rgba(244, 67, 54, 0.9);
+    color: white;
+}
+
+/* Название */
+.tournament-detail-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 12px 0;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Формат турнира */
+.tournament-format-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 12px;
+}
+
+/* Даты */
+.tournament-dates {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: white;
+}
+
+/* ==================== BODY ==================== */
+.tournament-detail-body {
+    padding: 24px;
+}
+
+/* ==================== STATS GRID ==================== */
+.tournament-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.tournament-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tournament-stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #1a1a1a;
+}
+
+.tournament-stat-content {
+    flex: 1;
+}
+
+.tournament-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 4px 0;
+}
+
+.tournament-stat-label {
+    font-size: 13px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* ==================== SECTION ==================== */
+.tournament-section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tournament-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 20px 0;
+}
+
+.tournament-section-title i {
+    color: #9ef01a;
+}
+
+/* ==================== DESCRIPTION ==================== */
+.tournament-description {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #555;
+}
+
+/* ==================== FORMAT INFO ==================== */
+.tournament-format-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.format-info-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.format-info-item i {
+    font-size: 18px;
+    color: #9ef01a;
+}
+
+.format-info-item span {
+    font-size: 14px;
+    color: #555;
+}
+
+/* ==================== REGISTRATION ==================== */
+.tournament-registration-success,
+.tournament-registration-error,
+.tournament-login-required {
+    text-align: center;
+    padding: 24px;
+    border-radius: 12px;
+}
+
+.tournament-registration-success {
+    background: #e8f5e9;
+    border: 2px solid #4caf50;
+}
+
+.tournament-registration-success i {
+    font-size: 48px;
+    color: #4caf50;
+    margin-bottom: 12px;
+}
+
+.tournament-registration-success p {
+    font-size: 16px;
+    color: #2e7d32;
+    margin: 0 0 16px 0;
+}
+
+.tournament-registration-error {
+    background: #ffebee;
+    border: 2px solid #f44336;
+}
+
+.tournament-registration-error i {
+    font-size: 48px;
+    color: #f44336;
+    margin-bottom: 12px;
+}
+
+.tournament-registration-error p {
+    font-size: 16px;
+    color: #c62828;
+    margin: 0;
+}
+
+.tournament-login-required {
+    background: #e3f2fd;
+    border: 2px solid #2196f3;
+}
+
+.tournament-login-required i {
+    font-size: 48px;
+    color: #2196f3;
+    margin-bottom: 12px;
+}
+
+.tournament-login-required p {
+    font-size: 16px;
+    color: #1565c0;
+    margin: 0 0 16px 0;
+}
+
+/* Форма регистрации */
+.tournament-registration-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.registration-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 16px;
+    background: #e3f2fd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.registration-info i {
+    color: #2196f3;
+    margin-top: 2px;
+}
+
+.registration-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #1565c0;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #9ef01a;
+}
+
+.partner-search-results {
+    margin-top: 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+}
+
+.partner-search-results.active {
+    display: block;
+}
+
+.partner-result-item {
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.partner-result-item:hover {
+    background: #f8f9fa;
+}
+
+.registration-fee {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+    background: #fff3e0;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.registration-fee i {
+    font-size: 20px;
+    color: #ff9800;
+}
+
+.registration-fee span {
+    font-size: 16px;
+    color: #e65100;
+}
+
+/* Buttons - using unified button system from buttons.css */
+/* Tournament-specific button modifications */
+.btn-register {
+    width: 100%;
+}
+
+/* ==================== PARTICIPANTS LIST ==================== */
+.participants-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.participant-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.participant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+}
+
+.participant-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.participant-info {
+    flex: 1;
+}
+
+.participant-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 4px 0;
+}
+
+.participant-rating {
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+}
+
+/* ==================== ORGANIZER ==================== */
+.tournament-organizer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.organizer-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a1a1a;
+    font-size: 24px;
+}
+
+.organizer-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.organizer-info h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 6px 0;
+}
+
+.organizer-info p {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
+}
+
+/* ==================== LOADING STATE ==================== */
+.loading-state-small {
+    text-align: center;
+    padding: 20px;
+}
+
+.spinner-small {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f0f0f0;
+    border-top-color: #9ef01a;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .tournament-detail-header {
+        height: 250px;
+        padding: 20px;
+    }
+
+    .tournament-detail-title {
+        font-size: 24px;
+    }
+
+    .tournament-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .tournament-detail-body {
+        padding: 16px;
+    }
+
+    .tournament-section {
+        padding: 20px;
+    }
+
+    .participants-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==================== DARK THEME SUPPORT ==================== */
+:root[data-theme="dark"] .tournament-section,
+:root[data-theme="dark"] .info-grid,
+:root[data-theme="dark"] .participants-card,
+:root[data-theme="dark"] .bracket-match {
+    background: var(--card-bg);
+    box-shadow: var(--shadow-xl);
+}
+
+:root[data-theme="dark"] .tournament-title,
+:root[data-theme="dark"] .tournament-section-title,
+:root[data-theme="dark"] .info-label {
+    color: var(--text-color);
+}
+
+:root[data-theme="dark"] .tournament-description,
+:root[data-theme="dark"] .info-value,
+:root[data-theme="dark"] .participant-name {
+    color: var(--text-muted);
+}
+
+:root[data-theme="dark"] .tournament-status-badge {
+    background: rgba(158, 240, 26, 0.1);
+    color: var(--primary-color);
+}
+
+:root[data-theme="dark"] .tournament-section:hover,
+:root[data-theme="dark"] .bracket-match:hover {
+    box-shadow: 0 8px 24px rgba(158, 240, 26, 0.2);
+}

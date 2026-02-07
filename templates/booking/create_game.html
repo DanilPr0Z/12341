@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Создание игры - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/game-creator.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="game-creator-container">
+    <div class="game-creator-card">
+        <!-- Header -->
+        <div class="game-creator-header">
+            <h1 class="game-creator-title">Создание игры</h1>
+            <p class="game-creator-subtitle">Настройте параметры вашей игры</p>
+        </div>
+
+        <!-- Верхние карточки: Локация и Дата/Время -->
+        <div class="game-top-cards">
+            <!-- Локация -->
+            <div class="game-top-card" data-action="location">
+                <div class="game-top-card-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="game-top-card-content">
+                    <p class="game-top-card-label">Локация</p>
+                    <p class="game-top-card-value" data-display="location-value">г. Ижевск, Воткинское шоссе 170 В1<br><small>Лувр спорта</small></p>
+                </div>
+                <i class="fas fa-chevron-right" style="color: #ccc;"></i>
+            </div>
+
+            <!-- Дата и время -->
+            <div class="game-top-card" data-action="datetime">
+                <div class="game-top-card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="game-top-card-content">
+                    <p class="game-top-card-label">Дата и время</p>
+                    <p class="game-top-card-value" data-display="datetime-value">Сегодня, 21:00 - 22:30</p>
+                </div>
+                <i class="fas fa-chevron-right" style="color: #ccc;"></i>
+            </div>
+        </div>
+
+        <!-- Toggle настройки -->
+        <div class="game-section">
+            <!-- Приватная игра -->
+            <div class="game-setting-row">
+                <div class="game-setting-left">
+                    <div class="game-setting-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="game-setting-content">
+                        <p class="game-setting-label">
+                            Приватная игра
+                            <i class="fas fa-info-circle game-setting-info-icon" title="Игру смогут найти только приглашенные"></i>
+                        </p>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" data-setting="isPrivate">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Я забронировал корт -->
+            <div class="game-setting-row">
+                <div class="game-setting-left">
+                    <div class="game-setting-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div class="game-setting-content">
+                        <p class="game-setting-label">Я забронировал корт</p>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" data-setting="hasCourtBooked">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Детали игры -->
+        <div class="game-section">
+            <h3 class="game-section-title">Детали игры</h3>
+
+            <!-- Тип игры -->
+            <div class="game-setting-row" data-action="type">
+                <div class="game-setting-left">
+                    <div class="game-setting-icon">
+                        <i class="fas fa-tennis-ball"></i>
+                    </div>
+                    <div class="game-setting-content">
+                        <p class="game-setting-label">Тип игры</p>
+                    </div>
+                </div>
+                <div class="game-setting-value">
+                    <span data-display="type-value">Игра</span>
+                    <i class="fas fa-chevron-right game-setting-arrow"></i>
+                </div>
+            </div>
+
+            <!-- Количество игроков -->
+            <div class="game-setting-row" data-action="players">
+                <div class="game-setting-left">
+                    <div class="game-setting-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="game-setting-content">
+                        <p class="game-setting-label">Количество игроков</p>
+                    </div>
+                </div>
+                <div class="game-setting-value">
+                    <span data-display="players-value">4</span>
+                    <i class="fas fa-chevron-right game-setting-arrow"></i>
+                </div>
+            </div>
+
+            <!-- Рейтинг игроков -->
+            <div class="game-setting-row" data-action="rating">
+                <div class="game-setting-left">
+                    <div class="game-setting-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="game-setting-content">
+                        <p class="game-setting-label">Рейтинг игроков</p>
+                    </div>
+                </div>
+                <div class="game-setting-value">
+                    <span data-display="rating-value">D...D+</span>
+                    <i class="fas fa-chevron-right game-setting-arrow"></i>
+                </div>
+            </div>
+
+            <!-- Я буду игроком в игре -->
+            <div class="game-setting-row">
+                <div class="game-setting-left">
+                    <div class="game-setting-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="game-setting-content">
+                        <p class="game-setting-label">Я буду игроком в игре</p>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked data-setting="isPlayer">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Рейтинговая игра -->
+            <div class="game-setting-row">
+                <div class="game-setting-left">
+                    <div class="game-setting-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="game-setting-content">
+                        <p class="game-setting-label">Рейтинговая игра</p>
+                    </div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked data-setting="isRated">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Управление игрой -->
+        <div class="game-section">
+            <h3 class="game-section-title">Управление игрой</h3>
+
+            <!-- Приглашать могут все участники -->
+            <div class="game-setting-row">
+                <div class="game-setting-content">
+                    <p class="game-setting-label" style="margin-left: 0;">Приглашать могут все участники</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" data-setting="anyoneCanInvite">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Выставить результаты может любой игрок -->
+            <div class="game-setting-row">
+                <div class="game-setting-content">
+                    <p class="game-setting-label" style="margin-left: 0;">Выставить результаты может любой игрок</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" data-setting="anyoneCanSubmitScore">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Вход без подтверждения -->
+            <div class="game-setting-row">
+                <div class="game-setting-content">
+                    <p class="game-setting-label" style="margin-left: 0;">Вход без подтверждения</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" data-setting="noConfirmation">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Комментарий -->
+        <div class="game-comment-field">
+            <div class="game-comment-icon">
+                <i class="fas fa-comment"></i>
+            </div>
+            <div class="game-comment-content">
+                <p class="game-comment-label">Комментарий</p>
+                <p class="game-comment-placeholder">Добавьте комментарий к игре</p>
+            </div>
+            <i class="fas fa-plus game-comment-add-icon"></i>
+        </div>
+
+        <!-- Кнопка создания -->
+        <button class="game-create-button">
+            Создать игру
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/game-creator.js' %}"></script>
+{% endblock %}

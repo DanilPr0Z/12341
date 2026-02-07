@@ -1,0 +1,851 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ booking.get_game_mode_display }} - Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<style>
+    .game-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .game-header {
+        background: linear-gradient(135deg, #1a2332 0%, #2d3a4e 100%);
+        padding: 30px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .game-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .game-title h1 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .game-mode-badge {
+        padding: 8px 18px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .mode-americano {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+    }
+
+    .mode-mexicano {
+        background: linear-gradient(135deg, #4ecdc4 0%, #6ee7df 100%);
+    }
+
+    .game-status-badge {
+        padding: 6px 16px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-ready {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-in-progress {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-completed {
+        background: #9ef01a;
+        color: #1a1a1a;
+    }
+
+    .game-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .info-card {
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .info-card i {
+        font-size: 24px;
+        color: #9ef01a;
+    }
+
+    .info-content {
+        flex: 1;
+    }
+
+    .info-label {
+        font-size: 12px;
+        opacity: 0.7;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .section-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--secondary-color);
+        margin: 0 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: var(--primary-color);
+    }
+
+    .players-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .player-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        background: linear-gradient(135deg, rgba(158,240,26,0.1) 0%, rgba(158,240,26,0.05) 100%);
+        border-radius: 12px;
+        border: 2px solid rgba(158,240,26,0.2);
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+    .player-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary-color);
+        box-shadow: 0 8px 20px rgba(158,240,26,0.2);
+    }
+
+    .player-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        font-size: 24px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 12px rgba(158,240,26,0.3);
+    }
+
+    .player-name {
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--secondary-color);
+        margin-bottom: 8px;
+    }
+
+    .player-stats {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .stat-badge {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .rating-badge {
+        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
+        color: white;
+    }
+
+    .points-badge {
+        background: #f0f0f0;
+        color: #666;
+    }
+
+    .round-card {
+        background: var(--card-bg);
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+    }
+
+    .round-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(158,240,26,0.15);
+    }
+
+    .round-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .round-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--secondary-color);
+    }
+
+    .round-status {
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .round-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .round-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .teams-grid {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .team {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .team-player {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: rgba(158,240,26,0.05);
+        border-radius: 8px;
+    }
+
+    .team-player-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        font-size: 14px;
+    }
+
+    .team-player-name {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .score-display {
+        text-align: center;
+    }
+
+    .score {
+        font-size: 48px;
+        font-weight: 700;
+        color: var(--primary-color);
+        line-height: 1;
+    }
+
+    .vs-text {
+        font-size: 14px;
+        color: #999;
+        margin: 10px 0;
+    }
+
+    .score-form {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px dashed #e0e0e0;
+    }
+
+    .score-input-group {
+        flex: 1;
+        text-align: center;
+    }
+
+    .score-input-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .score-input-group input {
+        width: 100%;
+        padding: 12px;
+        font-size: 24px;
+        font-weight: 700;
+        text-align: center;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+    .score-input-group input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(158,240,26,0.1);
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(158,240,26,0.3);
+    }
+
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #666;
+    }
+
+    .btn-block {
+        width: 100%;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+    }
+
+    .leaderboard-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: var(--card-bg);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border: 2px solid transparent;
+        transition: all 0.3s;
+    }
+
+    .leaderboard-item:hover {
+        border-color: var(--primary-color);
+    }
+
+    .leaderboard-item.winner {
+        background: linear-gradient(135deg, rgba(158,240,26,0.15) 0%, rgba(158,240,26,0.05) 100%);
+        border-color: var(--primary-color);
+    }
+
+    .position-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        color: #666;
+    }
+
+    .position-badge.first {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        color: #1a1a1a;
+    }
+
+    .position-badge.second {
+        background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+        color: #1a1a1a;
+    }
+
+    .position-badge.third {
+        background: linear-gradient(135deg, #cd7f32 0%, #e59866 100%);
+        color: white;
+    }
+
+    .player-info-inline {
+        flex: 1;
+    }
+
+    .player-name-inline {
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--secondary-color);
+        margin-bottom: 4px;
+    }
+
+    .player-points {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .rating-change {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .rating-up {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .rating-down {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    @media (max-width: 968px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .players-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .teams-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .score-display {
+            order: -1;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .players-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-detail-container">
+    <!-- Заголовок игры -->
+    <div class="game-header">
+        <div class="game-title">
+            <h1>
+                <i class="fas fa-gamepad"></i>
+                {{ booking.get_game_mode_display }}
+            </h1>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="game-mode-badge mode-{{ booking.game_mode }}">
+                    {{ booking.get_game_mode_display }}
+                </span>
+                <span class="game-status-badge status-{{ booking.game_status }}">
+                    {{ booking.get_game_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <div class="game-info-grid">
+            <div class="info-card">
+                <i class="fas fa-calendar"></i>
+                <div class="info-content">
+                    <div class="info-label">Дата</div>
+                    <div class="info-value">{{ booking.date|date:"d.m.Y" }}</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-clock"></i>
+                <div class="info-content">
+                    <div class="info-label">Время</div>
+                    <div class="info-value">{{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="info-content">
+                    <div class="info-label">Корт</div>
+                    <div class="info-value">{{ booking.court.name }}</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-flag"></i>
+                <div class="info-content">
+                    <div class="info-label">Раунды</div>
+                    <div class="info-value">{{ booking.current_round }}/{{ booking.rounds_count }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <!-- Основной контент -->
+        <div class="main-content">
+            <!-- Раунды -->
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-list-ol"></i>
+                    Раунды
+                </h2>
+
+                {% if rounds %}
+                    {% for round in rounds %}
+                    <div class="round-card">
+                        <div class="round-header">
+                            <span class="round-title">Раунд {{ round.round_number }}</span>
+                            <span class="round-status {% if round.is_completed %}round-completed{% else %}round-pending{% endif %}">
+                                {% if round.is_completed %}Завершен{% else %}В ожидании{% endif %}
+                            </span>
+                        </div>
+
+                        <div class="teams-grid">
+                            <!-- Команда 1 -->
+                            <div class="team">
+                                <div class="team-player">
+                                    <div class="team-player-avatar">
+                                        {{ round.team1_player1.first_name.0|default:"?" }}{{ round.team1_player1.last_name.0|default:"" }}
+                                    </div>
+                                    <span class="team-player-name">{{ round.team1_player1.get_full_name|default:round.team1_player1.username }}</span>
+                                </div>
+                                <div class="team-player">
+                                    <div class="team-player-avatar">
+                                        {{ round.team1_player2.first_name.0|default:"?" }}{{ round.team1_player2.last_name.0|default:"" }}
+                                    </div>
+                                    <span class="team-player-name">{{ round.team1_player2.get_full_name|default:round.team1_player2.username }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Счет -->
+                            <div class="score-display">
+                                {% if round.is_completed %}
+                                    <div class="score">{{ round.team1_score }} : {{ round.team2_score }}</div>
+                                {% else %}
+                                    <div class="vs-text">VS</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Команда 2 -->
+                            <div class="team">
+                                <div class="team-player">
+                                    <div class="team-player-avatar">
+                                        {{ round.team2_player1.first_name.0|default:"?" }}{{ round.team2_player1.last_name.0|default:"" }}
+                                    </div>
+                                    <span class="team-player-name">{{ round.team2_player1.get_full_name|default:round.team2_player1.username }}</span>
+                                </div>
+                                <div class="team-player">
+                                    <div class="team-player-avatar">
+                                        {{ round.team2_player2.first_name.0|default:"?" }}{{ round.team2_player2.last_name.0|default:"" }}
+                                    </div>
+                                    <span class="team-player-name">{{ round.team2_player2.get_full_name|default:round.team2_player2.username }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Форма ввода счета (только для незавершенных раундов и участников) -->
+                        {% if not round.is_completed and is_participant and booking.game_status == 'in_progress' and booking.current_round == round.round_number %}
+                        <div class="score-form">
+                            <div class="score-input-group">
+                                <label>Команда 1</label>
+                                <input type="number" min="0" max="{{ booking.points_per_round }}" id="team1-score-{{ round.round_number }}" value="0">
+                            </div>
+                            <div class="score-input-group">
+                                <label>Команда 2</label>
+                                <input type="number" min="0" max="{{ booking.points_per_round }}" id="team2-score-{{ round.round_number }}" value="{{ booking.points_per_round }}">
+                            </div>
+                            <button class="btn btn-primary" onclick="submitScore({{ round.round_number }})" style="align-self: flex-end;">
+                                <i class="fas fa-check"></i> Сохранить счет
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="text-align: center; color: #999; padding: 40px;">Раунды еще не сгенерированы</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Сайдбар -->
+        <div class="sidebar">
+            <!-- Участники -->
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-users"></i>
+                    Участники
+                </h2>
+                <div class="players-grid">
+                    {% for participant in participants %}
+                    <div class="player-card">
+                        <div class="player-avatar">
+                            {{ participant.user.first_name.0|default:"?" }}{{ participant.user.last_name.0|default:"" }}
+                        </div>
+                        <div class="player-name">{{ participant.user.get_full_name|default:participant.user.username }}</div>
+                        <div class="player-stats">
+                            {% if participant.user.rating %}
+                            <span class="stat-badge rating-badge">{{ participant.user.rating.level }}</span>
+                            {% endif %}
+                            {% if booking.game_status == 'in_progress' or booking.game_status == 'completed' %}
+                            <span class="stat-badge points-badge">{{ participant.total_points }} очков</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Таблица лидеров (только для завершенных игр) -->
+            {% if booking.game_status == 'completed' %}
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-trophy"></i>
+                    Результаты
+                </h2>
+                {% for participant in participants %}
+                <div class="leaderboard-item {% if forloop.counter == 1 %}winner{% endif %}">
+                    <div class="position-badge {% if forloop.counter == 1 %}first{% elif forloop.counter == 2 %}second{% elif forloop.counter == 3 %}third{% endif %}">
+                        {{ forloop.counter }}
+                    </div>
+                    <div class="player-info-inline">
+                        <div class="player-name-inline">{{ participant.user.get_full_name|default:participant.user.username }}</div>
+                        <div class="player-points">{{ participant.total_points }} очков</div>
+                    </div>
+                    {% if participant.rating_change != 0 %}
+                    <div class="rating-change {% if participant.rating_change > 0 %}rating-up{% else %}rating-down{% endif %}">
+                        {% if participant.rating_change > 0 %}+{% endif %}{{ participant.rating_change }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Действия -->
+            {% if is_creator and booking.game_status == 'ready' %}
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-play"></i>
+                    Управление
+                </h2>
+                <div class="action-buttons">
+                    <button class="btn btn-primary btn-block" onclick="startGame()">
+                        <i class="fas fa-play-circle"></i> Начать игру
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function startGame() {
+        if (!confirm('Начать игру? После начала нельзя добавить новых участников.')) {
+            return;
+        }
+
+        fetch(`/booking/games/{{ booking.id }}/start/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showMessage('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', 'Ошибка при начале игры');
+        });
+    }
+
+    function submitScore(roundNumber) {
+        const team1Score = parseInt(document.getElementById(`team1-score-${roundNumber}`).value);
+        const team2Score = parseInt(document.getElementById(`team2-score-${roundNumber}`).value);
+
+        // Валидация
+        if (team1Score < 0 || team2Score < 0) {
+            showMessage('error', 'Счет не может быть отрицательным');
+            return;
+        }
+
+        const totalPoints = {{ booking.points_per_round }};
+        if (team1Score + team2Score !== totalPoints) {
+            showMessage('error', `Сумма очков должна быть ${totalPoints}`);
+            return;
+        }
+
+        // Отправка счета
+        const formData = new FormData();
+        formData.append('team1_score', team1Score);
+        formData.append('team2_score', team2Score);
+
+        fetch(`/booking/games/{{ booking.id }}/round/${roundNumber}/score/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showMessage('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', 'Ошибка при сохранении счета');
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function showMessage(type, message) {
+        if (typeof window.showMessage !== 'undefined') {
+            window.showMessage(type, message);
+        } else {
+            alert(message);
+        }
+    }
+
+    // Автоматический расчет второго поля
+    document.querySelectorAll('[id^="team1-score-"]').forEach(input => {
+        input.addEventListener('input', function() {
+            const roundNum = this.id.split('-')[2];
+            const team1 = parseInt(this.value) || 0;
+            const totalPoints = {{ booking.points_per_round }};
+            const team2Input = document.getElementById(`team2-score-${roundNum}`);
+            team2Input.value = Math.max(0, totalPoints - team1);
+        });
+    });
+
+    document.querySelectorAll('[id^="team2-score-"]').forEach(input => {
+        input.addEventListener('input', function() {
+            const roundNum = this.id.split('-')[2];
+            const team2 = parseInt(this.value) || 0;
+            const totalPoints = {{ booking.points_per_round }};
+            const team1Input = document.getElementById(`team1-score-${roundNum}`);
+            team1Input.value = Math.max(0, totalPoints - team2);
+        });
+    });
+</script>
+{% endblock %}

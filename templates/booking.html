@@ -769,6 +769,31 @@
     <div class="section-card">
         <h3><i class="fas fa-clock"></i> Доступное время</h3>
 
+        <!-- Фильтры времени -->
+        <div class="time-filter-section">
+            <div class="time-filter-buttons">
+                <button class="time-filter-btn active" data-time-filter="all">
+                    <i class="fas fa-infinity"></i>
+                    <span>Всё время</span>
+                </button>
+                <button class="time-filter-btn" data-time-filter="morning">
+                    <i class="fas fa-sunrise"></i>
+                    <span>Утро</span>
+                    <small>08:00 - 12:00</small>
+                </button>
+                <button class="time-filter-btn" data-time-filter="day">
+                    <i class="fas fa-sun"></i>
+                    <span>День</span>
+                    <small>12:00 - 17:00</small>
+                </button>
+                <button class="time-filter-btn" data-time-filter="evening">
+                    <i class="fas fa-moon"></i>
+                    <span>Вечер</span>
+                    <small>17:00 - 22:00</small>
+                </button>
+            </div>
+        </div>
+
         <div id="time-slots-sections" class="time-slots-sections">
             <!-- УТРО -->
             <div class="time-section morning-section">
@@ -1302,6 +1327,69 @@
         margin-bottom: 30px;
     }
 
+    /* Фильтры времени */
+    .time-filter-section {
+        margin-bottom: 24px;
+    }
+
+    .time-filter-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+    }
+
+    .time-filter-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 16px 12px;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .time-filter-btn i {
+        font-size: 24px;
+        color: #999;
+        margin-bottom: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .time-filter-btn span {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .time-filter-btn small {
+        font-size: 11px;
+        color: #999;
+    }
+
+    .time-filter-btn:hover {
+        border-color: #9ef01a;
+        background: #f9fef4;
+    }
+
+    .time-filter-btn:hover i {
+        color: #9ef01a;
+    }
+
+    .time-filter-btn.active {
+        border-color: #9ef01a;
+        background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    }
+
+    .time-filter-btn.active i,
+    .time-filter-btn.active span,
+    .time-filter-btn.active small {
+        color: white;
+    }
+
     .time-slots-sections {
         display: flex;
         flex-direction: column;
@@ -1555,6 +1643,10 @@
             grid-template-columns: 1fr;
         }
 
+        .time-filter-buttons {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
         .time-slots-grid {
             grid-template-columns: repeat(2, 1fr);
         }
@@ -1577,6 +1669,27 @@
     }
 
     @media (max-width: 480px) {
+        .time-filter-buttons {
+            grid-template-columns: 1fr;
+        }
+
+        .time-filter-btn {
+            flex-direction: row;
+            justify-content: flex-start;
+            padding: 12px 16px;
+            gap: 12px;
+        }
+
+        .time-filter-btn i {
+            font-size: 20px;
+            margin-bottom: 0;
+        }
+
+        .time-filter-btn span {
+            flex: 1;
+            text-align: left;
+        }
+
         .time-slots-grid {
             grid-template-columns: 1fr;
         }
@@ -1906,6 +2019,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Запускаем после загрузки страницы
     setTimeout(setupSectionHandlers, 100);
+
+    // ========== ФИЛЬТРЫ ВРЕМЕНИ ==========
+    function setupTimeFilters() {
+        const filterBtns = document.querySelectorAll('.time-filter-btn');
+        const timeSections = {
+            morning: document.querySelector('.morning-section'),
+            day: document.querySelector('.day-section'),
+            evening: document.querySelector('.evening-section')
+        };
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Убираем active у всех кнопок
+                filterBtns.forEach(b => b.classList.remove('active'));
+                // Добавляем active к нажатой
+                this.classList.add('active');
+
+                const filter = this.dataset.timeFilter;
+
+                // Показываем/скрываем секции
+                if (filter === 'all') {
+                    // Показываем все секции
+                    Object.values(timeSections).forEach(section => {
+                        if (section) section.style.display = 'block';
+                    });
+                } else {
+                    // Скрываем все секции
+                    Object.entries(timeSections).forEach(([key, section]) => {
+                        if (section) {
+                            section.style.display = (key === filter) ? 'block' : 'none';
+                        }
+                    });
+                }
+            });
+        });
+
+        console.log('✅ Time filters initialized');
+    }
+
+    // Запускаем фильтры времени
+    setTimeout(setupTimeFilters, 100);
 
     // ========== УПРАВЛЕНИЕ ТИПОМ БРОНИРОВАНИЯ ==========
     const typeOptions = document.querySelectorAll('.type-option');

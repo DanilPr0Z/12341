@@ -1,0 +1,452 @@
+/**
+ * ============================================
+ * АДАПТИВНЫЕ ТАБЛИЦЫ
+ * ============================================
+ *
+ * На десктопе - классические таблицы
+ * На мобильных - стильные карточки
+ */
+
+/* ==================== СТАНДАРТНЫЕ ТАБЛИЦЫ ==================== */
+.responsive-table {
+    width: 100%;
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin: 20px 0;
+}
+
+.responsive-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.responsive-table thead {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+}
+
+.responsive-table thead th {
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 14px;
+    color: #1a1a1a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: none;
+}
+
+.responsive-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.responsive-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.responsive-table tbody tr:hover {
+    background: rgba(158, 240, 26, 0.05);
+    transform: translateX(5px);
+}
+
+.responsive-table tbody td {
+    padding: 16px 20px;
+    font-size: 14px;
+    color: var(--text-color);
+    vertical-align: middle;
+}
+
+/* Кнопки в таблицах */
+.table-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.table-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.table-btn.primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: #1a1a1a;
+}
+
+.table-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(158, 240, 26, 0.3);
+}
+
+.table-btn.secondary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.table-btn.secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.table-btn.danger {
+    background: linear-gradient(135deg, #f44336, #c62828);
+    color: white;
+}
+
+.table-btn.danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(244, 67, 54, 0.3);
+}
+
+.table-btn.info {
+    background: linear-gradient(135deg, #2196f3, #1565c0);
+    color: white;
+}
+
+.table-btn.info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);
+}
+
+/* Иконки только для мобильных */
+.table-btn .mobile-icon {
+    display: none;
+}
+
+/* ==================== МОБИЛЬНАЯ ВЕРСИЯ (КАРТОЧКИ) ==================== */
+@media (max-width: 768px) {
+    .responsive-table {
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .responsive-table table {
+        display: block;
+    }
+
+    .responsive-table thead {
+        display: none; /* Скрываем заголовки */
+    }
+
+    .responsive-table tbody {
+        display: block;
+    }
+
+    .responsive-table tbody tr {
+        display: block;
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--card-border);
+        transition: all 0.3s;
+        animation: fadeInUp 0.4s ease-out backwards;
+    }
+
+    .responsive-table tbody tr:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+        background: var(--card-bg);
+    }
+
+    .responsive-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .responsive-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    /* Добавляем labels из data-label атрибута */
+    .responsive-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--secondary-color);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        flex-shrink: 0;
+        width: 40%;
+    }
+
+    .responsive-table tbody td > * {
+        flex: 1;
+        text-align: right;
+    }
+
+    /* Кнопки в карточках */
+    .table-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .table-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    /* Показываем иконки на мобильных */
+    .table-btn .desktop-text {
+        display: none;
+    }
+
+    .table-btn .mobile-icon {
+        display: inline;
+    }
+
+    /* Добавочные стили для улучшения */
+    .responsive-table tbody tr {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .responsive-table tbody tr::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--primary-color), var(--primary-dark));
+    }
+
+    /* Анимация появления карточек */
+    .responsive-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+    .responsive-table tbody tr:nth-child(2) { animation-delay: 0.15s; }
+    .responsive-table tbody tr:nth-child(3) { animation-delay: 0.2s; }
+    .responsive-table tbody tr:nth-child(4) { animation-delay: 0.25s; }
+    .responsive-table tbody tr:nth-child(5) { animation-delay: 0.3s; }
+}
+
+/* ==================== ПУСТЫЕ СОСТОЯНИЯ ==================== */
+.table-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--gray-color);
+}
+
+.table-empty i {
+    font-size: 64px;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.table-empty h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: var(--dark-color);
+}
+
+.table-empty p {
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+/* ==================== PAGINATION ==================== */
+.table-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    padding: 10px 16px;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+    color: var(--dark-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pagination-btn:hover {
+    border-color: var(--primary-color);
+    background: rgba(158, 240, 26, 0.1);
+    transform: translateY(-2px);
+}
+
+.pagination-btn.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    border-color: var(--primary-color);
+    color: #1a1a1a;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ==================== FILTERS & SEARCH ==================== */
+.table-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.table-search {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+}
+
+.table-search input {
+    width: 100%;
+    padding: 12px 16px 12px 45px;
+    border: 2px solid var(--card-border);
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s;
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.table-search input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(158, 240, 26, 0.1);
+}
+
+.table-search i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-color);
+    font-size: 16px;
+}
+
+.table-filter-select {
+    padding: 12px 16px;
+    border: 2px solid var(--card-border);
+    border-radius: 10px;
+    font-size: 14px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.table-filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    .table-filters {
+        flex-direction: column;
+    }
+
+    .table-search {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .table-filter-select {
+        width: 100%;
+    }
+}
+
+/* ==================== ТЕМНАЯ ТЕМА ==================== */
+:root[data-theme="dark"] .responsive-table tbody tr {
+    border-bottom-color: #2d2d2d;
+}
+
+:root[data-theme="dark"] .table-empty h3 {
+    color: var(--text-color);
+}
+
+:root[data-theme="dark"] .pagination-btn {
+    background: var(--card-bg);
+    border-color: #404040;
+    color: var(--text-color);
+}
+
+:root[data-theme="dark"] .table-search input,
+:root[data-theme="dark"] .table-filter-select {
+    background: #2a2a2a;
+    border-color: #404040;
+    color: var(--text-color);
+}
+
+/* ==================== СПЕЦИАЛЬНЫЕ КОЛОНКИ ==================== */
+
+/* Статус колонка */
+.table-status {
+    display: inline-block;
+}
+
+/* Аватар колонка */
+.table-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    .table-avatar {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* Рейтинг колонка */
+.table-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    padding: 6px 12px;
+    background: rgba(158, 240, 26, 0.1);
+    border-radius: 8px;
+    color: var(--secondary-color);
+}
+
+/* Цена колонка */
+.table-price {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--secondary-color);
+}
+
+/* Дата колонка */
+.table-date {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--gray-color);
+}

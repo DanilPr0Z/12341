@@ -1,0 +1,541 @@
+/**
+ * ============================================
+ * LEADERBOARD (TOP PLAYERS)
+ * ============================================
+ *
+ * Топ игроков с 4 вкладками: Рейтинг, Рост, Игры, Турниры
+ * Вдохновлено Lunda Padel
+ */
+
+/* ==================== CONTAINER ==================== */
+.leaderboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* ==================== HEADER ==================== */
+.leaderboard-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.leaderboard-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 8px;
+}
+
+.leaderboard-header p {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
+/* ==================== TABS ==================== */
+.leaderboard-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    background: white;
+    padding: 8px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    overflow-x: auto;
+}
+
+.leaderboard-tab {
+    flex: 1;
+    min-width: 120px;
+    background: transparent;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.leaderboard-tab:hover {
+    background: #f5f7fa;
+    color: #1a1a1a;
+}
+
+.leaderboard-tab.active {
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(158, 240, 26, 0.3);
+}
+
+.leaderboard-tab i {
+    font-size: 20px;
+}
+
+.leaderboard-tab-label {
+    font-size: 14px;
+}
+
+/* ==================== PLAYER CARD ==================== */
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.player-card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.player-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Топ-3 игрока */
+.player-card.rank-1 {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    border: 2px solid #ffd700;
+}
+
+.player-card.rank-2 {
+    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+    border: 2px solid #c0c0c0;
+}
+
+.player-card.rank-3 {
+    background: linear-gradient(135deg, #cd7f32 0%, #e9a872 100%);
+    border: 2px solid #cd7f32;
+}
+
+/* ==================== RANK BADGE ==================== */
+.player-rank {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Обычный ранг */
+.player-rank {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    color: #666;
+}
+
+/* Топ-3 ранги */
+.player-card.rank-1 .player-rank {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.player-card.rank-2 .player-rank {
+    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+    color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(192, 192, 192, 0.4);
+}
+
+.player-card.rank-3 .player-rank {
+    background: linear-gradient(135deg, #cd7f32 0%, #e9a872 100%);
+    color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(205, 127, 50, 0.4);
+}
+
+/* ==================== AVATAR ==================== */
+.player-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    flex-shrink: 0;
+}
+
+.player-avatar-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    border: 3px solid white;
+    flex-shrink: 0;
+}
+
+/* ==================== PLAYER INFO ==================== */
+.player-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.player-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.player-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #666;
+}
+
+.player-meta-item i {
+    font-size: 12px;
+    color: #999;
+}
+
+/* ==================== RATING BADGE ==================== */
+.player-rating-badge {
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    color: #1a1a1a;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.player-rating-level {
+    font-size: 16px;
+}
+
+.player-rating-numeric {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+/* ==================== STATS ==================== */
+.player-stats {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.player-stat {
+    text-align: center;
+}
+
+.player-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.player-stat-label {
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+}
+
+/* Специальные стили для вкладки "Рост" */
+.player-stat.growth-positive .player-stat-value {
+    color: #38b000;
+}
+
+.player-stat.growth-positive .player-stat-value::before {
+    content: '+';
+}
+
+/* ==================== EMPTY STATE ==================== */
+.leaderboard-empty {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.leaderboard-empty-icon {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 16px;
+}
+
+.leaderboard-empty-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 8px;
+}
+
+.leaderboard-empty-text {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 768px) {
+    .leaderboard-container {
+        padding: 16px;
+    }
+
+    .leaderboard-header h1 {
+        font-size: 28px;
+    }
+
+    .leaderboard-tabs {
+        gap: 8px;
+        padding: 6px;
+    }
+
+    .leaderboard-tab {
+        min-width: 100px;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .leaderboard-tab i {
+        font-size: 18px;
+    }
+
+    .player-card {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+    }
+
+    .player-rank {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .player-avatar,
+    .player-avatar-placeholder {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    .player-name {
+        font-size: 16px;
+    }
+
+    .player-stats {
+        width: 100%;
+        justify-content: space-around;
+        margin-top: 8px;
+    }
+
+    .player-stat-value {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .leaderboard-tabs {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+    }
+
+    .leaderboard-tab {
+        min-width: 90px;
+        padding: 8px 12px;
+    }
+
+    .player-card {
+        gap: 12px;
+    }
+
+    .player-info {
+        width: 100%;
+    }
+
+    .player-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .player-rating-badge {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.player-card {
+    animation: slideInLeft 0.4s ease-out backwards;
+}
+
+.player-card:nth-child(1) { animation-delay: 0.05s; }
+.player-card:nth-child(2) { animation-delay: 0.1s; }
+.player-card:nth-child(3) { animation-delay: 0.15s; }
+.player-card:nth-child(4) { animation-delay: 0.2s; }
+.player-card:nth-child(5) { animation-delay: 0.25s; }
+.player-card:nth-child(6) { animation-delay: 0.3s; }
+.player-card:nth-child(7) { animation-delay: 0.35s; }
+.player-card:nth-child(8) { animation-delay: 0.4s; }
+.player-card:nth-child(9) { animation-delay: 0.45s; }
+.player-card:nth-child(10) { animation-delay: 0.5s; }
+
+/* ==================== PODIUM (for top 3) ==================== */
+.leaderboard-podium {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding: 32px 16px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.podium-player {
+    text-align: center;
+    flex: 1;
+    max-width: 200px;
+}
+
+.podium-player.rank-2 {
+    padding-bottom: 30px;
+}
+
+.podium-player.rank-3 {
+    padding-bottom: 60px;
+}
+
+.podium-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    object-fit: cover;
+    border: 4px solid;
+}
+
+.podium-player.rank-1 .podium-avatar {
+    border-color: #ffd700;
+    width: 100px;
+    height: 100px;
+}
+
+.podium-player.rank-2 .podium-avatar {
+    border-color: #c0c0c0;
+}
+
+.podium-player.rank-3 .podium-avatar {
+    border-color: #cd7f32;
+}
+
+.podium-avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 32px;
+    margin: 0 auto 12px;
+    border: 4px solid;
+}
+
+.podium-player.rank-1 .podium-avatar-placeholder {
+    border-color: #ffd700;
+    width: 100px;
+    height: 100px;
+    font-size: 40px;
+}
+
+.podium-player.rank-2 .podium-avatar-placeholder {
+    border-color: #c0c0c0;
+}
+
+.podium-player.rank-3 .podium-avatar-placeholder {
+    border-color: #cd7f32;
+}
+
+.podium-rank {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.podium-player.rank-1 .podium-rank {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 64px;
+}
+
+.podium-player.rank-2 .podium-rank {
+    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.podium-player.rank-3 .podium-rank {
+    background: linear-gradient(135deg, #cd7f32 0%, #e9a872 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.podium-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.podium-rating {
+    font-size: 14px;
+    color: #666;
+}

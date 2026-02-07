@@ -6,8 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Paddle Booking{% endblock %}</title>
     {% load static %}
+    <!-- Core CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/buttons.css' %}">
     <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/modern-styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive-tables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/enhanced-profile.css' %}">
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
 </head>
@@ -32,20 +38,22 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        <div class="footer-content">
-            <p>© 2025 Paddle Booking. Все права защищены.</p>
-            <div class="footer-links">
-                <a href="#">Контакты</a>
-                <a href="#">Правила</a>
-                <a href="#">Политика конфиденциальности</a>
-            </div>
-        </div>
-    </footer>
+    <!-- FAB Menu (только для авторизованных и на мобильных) -->
+    {% if user.is_authenticated %}
+        {% include 'partials/fab_menu.html' %}
+    {% endif %}
+
+    <!-- Modern Footer -->
+    {% include 'partials/footer.html' %}
+
+    <!-- JavaScript утилиты (должны загружаться первыми) -->
+    <script src="{% static 'js/logger.js' %}" charset="UTF-8"></script>
+    <script src="{% static 'js/button-loading.js' %}" charset="UTF-8"></script>
 
     <!-- JavaScript для преобразования Django messages в красивые уведомления -->
     <script src="{% static 'js/components.js' %}" charset="UTF-8"></script>
     <script src="{% static 'js/main.js' %}" charset="UTF-8"></script>
+    <script src="{% static 'js/lazy-load.js' %}" charset="UTF-8"></script>
 
     <!-- Автоматическое преобразование Django messages в Toast уведомления -->
     <script>
