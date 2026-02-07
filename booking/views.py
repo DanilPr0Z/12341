@@ -476,6 +476,7 @@ def create_booking(request):
         return redirect('booking')
 
 
+@login_required
 @require_POST
 def cancel_booking(request, booking_id):
     """Отмена бронирования"""
@@ -1064,6 +1065,7 @@ def player_statistics(request):
         return redirect('profile')
 
 
+@login_required
 @require_GET
 def get_coaches_list(request):
     """API endpoint для получения списка тренеров"""
@@ -1229,7 +1231,6 @@ def api_get_notifications(request):
         }, status=500)
 
 
-@login_required
 @login_required
 @require_POST
 def api_accept_invitation(request, invitation_id):
@@ -1766,3 +1767,9 @@ def game_detail(request, booking_id):
     }
 
     return render(request, 'booking/game_detail.html', context)
+
+
+@login_required
+def create_game_page(request):
+    """Страница создания игры с современным интерфейсом"""
+    return render(request, 'booking/create_game.html')

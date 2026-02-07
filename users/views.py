@@ -11,6 +11,7 @@ from django.db.models import Prefetch, Count, Q
 from datetime import datetime, timedelta
 from booking.models import Booking, Court
 from users.analytics import get_player_stats
+from users.form_utils import prepare_form_error_response
 import json
 import logging
 
@@ -32,24 +33,11 @@ def ajax_register(request):
                 'username': user.username
             })
 
-        # ИСПРАВЛЕНО: правильный формат ошибок для JavaScript
-        errors = {}
-        for field, error_list in form.errors.items():
-            # Преобразуем ошибки в простые строки
-            errors[field] = [str(error) for error in error_list]
-
-        # Получаем общее сообщение об ошибке (первая ошибка)
-        first_error = ''
-        if errors:
-            first_field = list(errors.keys())[0]
-            if errors[first_field]:
-                first_error = errors[first_field][0]
-
-        return JsonResponse({
-            'success': False,
-            'errors': errors,
-            'message': first_error or 'Пожалуйста, исправьте ошибки в форме'
-        })
+        # Используем утилиту для обработки ошибок формы
+        response = prepare_form_error_response(form)
+        if not response['message']:
+            response['message'] = 'Пожалуйста, исправьте ошибки в форме'
+        return JsonResponse(response)
 
     except Exception as e:
         # Логируем ошибку для отладки
@@ -92,21 +80,10 @@ def ajax_login(request):
                 })
 
         # Возвращаем ошибки формы
-        errors = {}
-        for field, error_list in form.errors.items():
-            errors[field] = [str(error) for error in error_list]
-
-        first_error = ''
-        if errors:
-            first_field = list(errors.keys())[0]
-            if errors[first_field]:
-                first_error = errors[first_field][0]
-
-        return JsonResponse({
-            'success': False,
-            'errors': errors,
-            'message': first_error or 'Пожалуйста, исправьте ошибки в форме'
-        })
+        response = prepare_form_error_response(form)
+        if not response['message']:
+            response['message'] = 'Пожалуйста, исправьте ошибки в форме'
+        return JsonResponse(response)
 
     except Exception as e:
         logger.error(f"Login error: {str(e)}")
@@ -187,21 +164,10 @@ def update_email(request):
             })
 
         # Возвращаем ошибки
-        errors = {}
-        for field, error_list in form.errors.items():
-            errors[field] = [str(error) for error in error_list]
-
-        first_error = ''
-        if errors:
-            first_field = list(errors.keys())[0]
-            if errors[first_field]:
-                first_error = errors[first_field][0]
-
-        return JsonResponse({
-            'success': False,
-            'errors': errors,
-            'message': first_error or 'Ошибка при обновлении email'
-        })
+        response = prepare_form_error_response(form)
+        if not response['message']:
+            response['message'] = 'Ошибка при обновлении email'
+        return JsonResponse(response)
 
     except Exception as e:
         logger.error(f"Email update error: {str(e)}")
@@ -700,18 +666,35 @@ def rating_detail(request):
 
 @login_required
 def coaches_list(request):
-    """Список всех тренеров"""
+    """Список всех тренеров - современная версия с фильтрами"""
     from .models import CoachProfile
 
     coaches = CoachProfile.objects.filter(
         is_active=True
     ).select_related('user').order_by('-coach_rating')
 
+    # Преобразуем данные для JavaScript
+    coaches_data = []
+    for coach in coaches:
+        coaches_data.append({
+            'id': coach.id,
+            'name': coach.user.get_full_name() or coach.user.username,
+            'rating': float(coach.coach_rating) if coach.coach_rating else 5.0,
+            'experience': coach.experience_years if hasattr(coach, 'experience_years') else 3,
+            'hourlyRate': int(coach.hourly_rate) if coach.hourly_rate else 2000,
+            'specialization': coach.specialization if hasattr(coach, 'specialization') else 'intermediate',
+            'spec': coach.get_specialization_display() if hasattr(coach, 'get_specialization_display') else 'Средний уровень',
+            'studentsCount': coach.students_count if hasattr(coach, 'students_count') else 10,
+            'avatar': coach.user.avatar.url if hasattr(coach.user, 'avatar') and coach.user.avatar else None,
+            'availableTimes': ['morning', 'day', 'evening']  # TODO: добавить реальное расписание
+        })
+
     context = {
-        'coaches': coaches
+        'coaches': coaches,
+        'coaches_json': json.dumps(coaches_data, ensure_ascii=False)
     }
 
-    return render(request, 'users/coaches_list.html', context)
+    return render(request, 'users/coaches_list_modern.html', context)
 
 
 @login_required
@@ -958,3 +941,204 @@ def get_rating_info(request):
             'success': False,
             'message': f'Ошибка: {str(e)}'
         }, status=500)
+
+@login_required
+def leaderboard(request):
+    """
+    Топ игроков с 4 вкладками:
+    - Рейтинг (по текущему рейтингу)
+    - Рост (по приросту рейтинга)
+    - Игры (по количеству игр)
+    - Турниры (по участию в турнирах)
+    """
+    from .models import PlayerRating
+    from django.contrib.auth.models import User
+    from django.db.models import Count, Max, Min, F, Q, Sum
+    from datetime import timedelta
+
+    # Получаем активную вкладку
+    tab = request.GET.get('tab', 'rating')
+
+    # Базовый queryset с оптимизацией
+    base_qs = User.objects.select_related('rating', 'profile').filter(
+        is_active=True
+    )
+
+    # ==================== ВКЛАДКА "РЕЙТИНГ" ====================
+    if tab == 'rating':
+        players = base_qs.filter(
+            rating__isnull=False
+        ).order_by('-rating__numeric_rating')[:100]
+
+        players_data = []
+        for idx, player in enumerate(players, 1):
+            rating = player.rating
+            players_data.append({
+                'rank': idx,
+                'user': player,
+                'rating': rating,
+                'stats': {
+                    'level': rating.level,
+                    'numeric_rating': float(rating.numeric_rating),
+                    'games_count': Booking.objects.filter(
+                        Q(user=player) | Q(partners=player),
+                        status='confirmed'
+                    ).count()
+                }
+            })
+
+    # ==================== ВКЛАДКА "РОСТ" ====================
+    elif tab == 'growth':
+        # Игроки с историей изменений рейтинга
+        players_with_growth = []
+
+        for player in base_qs.filter(rating__isnull=False):
+            rating = player.rating
+            history = rating.rating_history or []
+
+            # Рассчитываем прирост за последний месяц
+            if len(history) > 0:
+                # Берем самое раннее и самое позднее изменение
+                oldest_entry = history[0] if history else None
+                latest_entry = history[-1] if history else None
+
+                if oldest_entry and latest_entry:
+                    old_rating = float(oldest_entry.get('old_rating', rating.numeric_rating))
+                    new_rating = float(latest_entry.get('new_rating', rating.numeric_rating))
+                    growth = new_rating - old_rating
+                else:
+                    growth = 0.0
+            else:
+                growth = 0.0
+
+            if growth > 0:  # Показываем только тех, кто растет
+                players_with_growth.append({
+                    'user': player,
+                    'rating': rating,
+                    'growth': growth,
+                    'stats': {
+                        'level': rating.level,
+                        'numeric_rating': float(rating.numeric_rating),
+                        'growth': growth
+                    }
+                })
+
+        # Сортируем по росту
+        players_with_growth.sort(key=lambda x: x['growth'], reverse=True)
+
+        # Добавляем ранги
+        players_data = []
+        for idx, player_data in enumerate(players_with_growth[:100], 1):
+            player_data['rank'] = idx
+            players_data.append(player_data)
+
+    # ==================== ВКЛАДКА "ИГРЫ" ====================
+    elif tab == 'games':
+        # Подсчитываем игры для каждого пользователя
+        from django.db.models import Prefetch
+
+        # Оптимизированный запрос
+        players_with_games = []
+
+        for player in base_qs.filter(rating__isnull=False):
+            games_count = Booking.objects.filter(
+                Q(user=player) | Q(partners=player),
+                status='confirmed'
+            ).count()
+
+            if games_count > 0:
+                rating = player.rating if hasattr(player, 'rating') else None
+
+                players_with_games.append({
+                    'user': player,
+                    'rating': rating,
+                    'games_count': games_count,
+                    'stats': {
+                        'level': rating.level if rating else 'D',
+                        'numeric_rating': float(rating.numeric_rating) if rating else 1.0,
+                        'games_count': games_count
+                    }
+                })
+
+        # Сортируем по количеству игр
+        players_with_games.sort(key=lambda x: x['games_count'], reverse=True)
+
+        # Добавляем ранги
+        players_data = []
+        for idx, player_data in enumerate(players_with_games[:100], 1):
+            player_data['rank'] = idx
+            players_data.append(player_data)
+
+    # ==================== ВКЛАДКА "ТУРНИРЫ" ====================
+    elif tab == 'tournaments':
+        try:
+            from tournament.models import TournamentParticipant
+
+            # Подсчитываем участие в турнирах
+            players_with_tournaments = []
+
+            for player in base_qs.filter(rating__isnull=False):
+                tournaments_count = TournamentParticipant.objects.filter(
+                    user=player
+                ).count()
+
+                tournaments_won = TournamentParticipant.objects.filter(
+                    user=player,
+                    placement=1
+                ).count()
+
+                if tournaments_count > 0:
+                    rating = player.rating if hasattr(player, 'rating') else None
+
+                    players_with_tournaments.append({
+                        'user': player,
+                        'rating': rating,
+                        'tournaments_count': tournaments_count,
+                        'tournaments_won': tournaments_won,
+                        'stats': {
+                            'level': rating.level if rating else 'D',
+                            'numeric_rating': float(rating.numeric_rating) if rating else 1.0,
+                            'tournaments_count': tournaments_count,
+                            'tournaments_won': tournaments_won
+                        }
+                    })
+
+            # Сортируем по количеству турниров
+            players_with_tournaments.sort(key=lambda x: (x['tournaments_won'], x['tournaments_count']), reverse=True)
+
+            # Добавляем ранги
+            players_data = []
+            for idx, player_data in enumerate(players_with_tournaments[:100], 1):
+                player_data['rank'] = idx
+                players_data.append(player_data)
+
+        except ImportError:
+            # Если модуль турниров не установлен
+            players_data = []
+
+    else:
+        # Дефолт - рейтинг
+        players = base_qs.filter(
+            rating__isnull=False
+        ).order_by('-rating__numeric_rating')[:100]
+
+        players_data = []
+        for idx, player in enumerate(players, 1):
+            rating = player.rating
+            players_data.append({
+                'rank': idx,
+                'user': player,
+                'rating': rating,
+                'stats': {
+                    'level': rating.level,
+                    'numeric_rating': float(rating.numeric_rating),
+                }
+            })
+
+    context = {
+        'active_tab': tab,
+        'players_data': players_data,
+        'total_players': len(players_data)
+    }
+
+    return render(request, 'users/leaderboard.html', context)

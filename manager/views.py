@@ -1206,7 +1206,7 @@ def api_booking_create(request):
                     partner = User.objects.get(id=partner_id)
                     booking.partners.add(partner)
                 except User.DoesNotExist:
-                    pass
+                    logger.warning(f"Partner with ID {partner_id} not found when creating booking {booking.id}")
 
         return JsonResponse({
             'success': True,
@@ -1291,7 +1291,7 @@ def api_booking_update(request, booking_id):
                     partner = User.objects.get(id=partner_id)
                     booking.partners.add(partner)
                 except User.DoesNotExist:
-                    pass
+                    logger.warning(f"Partner with ID {partner_id} not found when creating booking {booking.id}")
 
         # total_price пересчитывается автоматически как property
         booking.save()

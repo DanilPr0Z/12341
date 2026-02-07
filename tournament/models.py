@@ -645,7 +645,8 @@ class TournamentMatch(models.Model):
 
                 participant.save()
             except TournamentParticipant.DoesNotExist:
-                pass
+                # Игрок не является участником турнира - пропускаем
+                logger.warning(f"Player {player.username} is not a participant of tournament {self.tournament.id}")
 
         # Пара 2: оба игрока получают одинаковые очки
         for player in self.team2.players:
@@ -664,7 +665,8 @@ class TournamentMatch(models.Model):
 
                 participant.save()
             except TournamentParticipant.DoesNotExist:
-                pass
+                # Игрок не является участником турнира - пропускаем
+                logger.warning(f"Player {player.username} is not a participant of tournament {self.tournament.id}")
 
     def _advance_winner_to_next_round(self):
         """Продвинуть победителя в следующий раунд (для Bracket)"""
