@@ -17,19 +17,6 @@
 
         <div class="nav-auth">
             {% if user.is_authenticated %}
-                <!-- Кнопка уведомлений -->
-                <div class="notifications-container">
-                    <a href="{% url 'profile' %}#notifications" class="notifications-btn" title="Уведомления">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
-                    </a>
-                </div>
-
-                <!-- Переключатель темы -->
-                <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
-                    <i class="fas fa-moon" id="theme-icon"></i>
-                </button>
-
                 <div class="user-dropdown">
                     <button class="user-btn">
                         {% if user.profile.avatar %}
@@ -38,9 +25,27 @@
                             <img src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=9ef01a&color=1a1a1a&bold=true" alt="Avatar" class="user-avatar">
                         {% endif %}
                         <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+                        <span class="notification-badge-mini" id="notificationBadge" style="display: none;">0</span>
                     </button>
                     <div class="dropdown-content">
                         <a href="{% url 'profile' %}" id="profile-link"><i class="fas fa-user"></i> Профиль</a>
+
+                        <div class="dropdown-divider"></div>
+
+                        <a href="{% url 'profile' %}#notifications" id="notifications-link">
+                            <i class="fas fa-bell"></i> Уведомления
+                            <span class="notification-badge-dropdown" id="notificationBadgeDropdown" style="display: none;">0</span>
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+
+                        <a href="#" onclick="toggleTheme(); return false;" id="theme-toggle-link">
+                            <i class="fas fa-moon" id="theme-icon"></i>
+                            <span id="theme-text">Темная тема</span>
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+
                         <a href="#" id="openLogoutModal"><i class="fas fa-sign-out-alt"></i> Выйти</a>
                     </div>
                 </div>
@@ -222,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ========== УПРАВЛЕНИЕ УВЕДОМЛЕНИЯМИ ==========
     const notificationBadge = document.getElementById('notificationBadge');
+    const notificationBadgeDropdown = document.getElementById('notificationBadgeDropdown');
 
     // Функция загрузки уведомлений
     function loadNotifications() {
@@ -231,15 +237,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('📬 Уведомления загружены:', data);
 
                 if (data.success && data.notifications && data.notifications.length > 0) {
-                    // Обновляем счетчик
+                    // Обновляем счетчик на кнопке пользователя
                     if (notificationBadge) {
                         notificationBadge.textContent = data.count;
                         notificationBadge.style.display = 'flex';
+                    }
+                    // Обновляем счетчик в dropdown
+                    if (notificationBadgeDropdown) {
+                        notificationBadgeDropdown.textContent = data.count;
+                        notificationBadgeDropdown.style.display = 'inline-flex';
                     }
                 } else {
                     // Нет уведомлений
                     if (notificationBadge) {
                         notificationBadge.style.display = 'none';
+                    }
+                    if (notificationBadgeDropdown) {
+                        notificationBadgeDropdown.style.display = 'none';
                     }
                 }
             })
@@ -281,6 +295,48 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: 600;
 }
 
+/* Badge на кнопке пользователя */
+.notification-badge-mini {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+    z-index: 10;
+}
+
+/* Divider в dropdown */
+.dropdown-divider {
+    height: 1px;
+    background: #e9ecef;
+    margin: 8px 0;
+}
+
+/* Badge в dropdown */
+.notification-badge-dropdown {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    margin-left: auto;
+}
 
 /* Адаптив для мобильных */
 @media (max-width: 768px) {
@@ -300,6 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function toggleTheme() {
     const html = document.documentElement;
     const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
     const currentTheme = html.getAttribute('data-theme');
 
     if (currentTheme === 'dark') {
@@ -309,12 +366,18 @@ function toggleTheme() {
             themeIcon.classList.remove('fa-sun');
             themeIcon.classList.add('fa-moon');
         }
+        if (themeText) {
+            themeText.textContent = 'Темная тема';
+        }
     } else {
         html.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
         if (themeIcon) {
             themeIcon.classList.remove('fa-moon');
             themeIcon.classList.add('fa-sun');
+        }
+        if (themeText) {
+            themeText.textContent = 'Светлая тема';
         }
     }
 }
@@ -328,13 +391,19 @@ function toggleTheme() {
         html.setAttribute('data-theme', 'dark');
     }
 
-    // Обновляем иконку после загрузки DOM
+    // Обновляем иконку и текст после загрузки DOM
     document.addEventListener('DOMContentLoaded', function() {
         const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
 
-        if (savedTheme === 'dark' && themeIcon) {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
+        if (savedTheme === 'dark') {
+            if (themeIcon) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+            if (themeText) {
+                themeText.textContent = 'Светлая тема';
+            }
         }
     });
 })();
