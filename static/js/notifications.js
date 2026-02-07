@@ -1,356 +1,258 @@
 /**
- * ============================================
- * NOTIFICATIONS SYSTEM
- * ============================================
- *
- * Управление уведомлениями с фильтрацией и AJAX-операциями
+ * Notifications Management System
+ * Handles loading, displaying, and interacting with user notifications
  */
 
-class NotificationsManager {
-    constructor() {
-        this.currentFilter = 'all';
-        this.init();
-    }
+// Load notifications for profile page
+function loadProfileNotifications() {
+    const container = document.getElementById('notificationsListProfile');
+    const tabBadge = document.getElementById('tabNotificationBadge');
 
-    init() {
-        this.setupFilterButtons();
-        this.setupMarkAllReadButton();
-        this.setupNotificationClicks();
-        console.log('✅ Notifications Manager инициализирован');
-    }
+    if (!container) return;
 
-    // ==================== ФИЛЬТРЫ ====================
+    fetch('/booking/api/notifications/')
+        .then(response => response.json())
+        .then(data => {
+            console.log('📬 Уведомления загружены для профиля:', data);
 
-    setupFilterButtons() {
-        const filterButtons = document.querySelectorAll('.filter-chip');
+            if (data.success && data.notifications && data.notifications.length > 0) {
+                // Обновляем badge на вкладке
+                if (tabBadge) {
+                    tabBadge.textContent = data.count;
+                    tabBadge.style.display = 'inline-flex';
+                }
 
-        filterButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const filter = button.dataset.filter;
-                this.applyFilter(filter);
+                // Рендерим уведомления
+                container.innerHTML = data.notifications.map(notification => `
+                    <div class="notification-card invitation" data-invitation-id="${notification.id}">
+                        <div class="notification-card-header">
+                            <div class="notification-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="notification-time">
+                                <i class="fas fa-clock"></i>
+                                Только что
+                            </div>
+                        </div>
 
-                // Обновляем активное состояние кнопок
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
+                        <div class="notification-content">
+                            <h3 class="notification-title">${notification.title}</h3>
+                            <p class="notification-text">${notification.message}</p>
 
-                this.currentFilter = filter;
-            });
-        });
-    }
+                            ${notification.details ? `
+                                <div class="notification-details">
+                                    ${notification.details.map(detail => `
+                                        <div class="notification-detail-item">
+                                            <i class="${detail.icon}"></i>
+                                            <span>${detail.text}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
 
-    applyFilter(filter) {
-        const allCards = document.querySelectorAll('.notification-card');
-        const sections = document.querySelectorAll('.notifications-section');
+                            <div class="notification-actions">
+                                <button class="btn-accept" data-invitation-id="${notification.id}">
+                                    <i class="fas fa-check"></i>
+                                    Принять
+                                </button>
+                                <button class="btn-decline" data-invitation-id="${notification.id}">
+                                    <i class="fas fa-times"></i>
+                                    Отклонить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
 
-        allCards.forEach(card => {
-            const cardType = card.dataset.notificationType;
-            const isRead = card.dataset.isRead === 'true';
-            let shouldShow = false;
-
-            // Применяем фильтр
-            switch (filter) {
-                case 'all':
-                    shouldShow = true;
-                    break;
-                case 'unread':
-                    shouldShow = !isRead;
-                    break;
-                case 'read':
-                    shouldShow = isRead;
-                    break;
-                case 'booking':
-                    shouldShow = cardType.includes('booking');
-                    break;
-                case 'payment':
-                    shouldShow = cardType.includes('payment');
-                    break;
-                case 'invitation':
-                    shouldShow = cardType.includes('invitation') || cardType.includes('partner');
-                    break;
-                case 'rating':
-                    shouldShow = cardType.includes('rating');
-                    break;
-                default:
-                    shouldShow = true;
-            }
-
-            // Показываем/скрываем карточку
-            if (shouldShow) {
-                card.style.display = '';
-                card.style.animation = 'slideIn 0.3s ease-out';
+                // Добавляем обработчики
+                attachNotificationHandlers();
             } else {
-                card.style.display = 'none';
+                // Нет уведомлений
+                if (tabBadge) {
+                    tabBadge.style.display = 'none';
+                }
+
+                container.innerHTML = `
+                    <div class="notifications-empty">
+                        <div class="notifications-empty-icon">
+                            <i class="fas fa-bell-slash"></i>
+                        </div>
+                        <h3>Нет новых уведомлений</h3>
+                        <p>Когда появятся новые приглашения в игры, они отобразятся здесь</p>
+                    </div>
+                `;
             }
+        })
+        .catch(error => {
+            console.error('❌ Ошибка загрузки уведомлений:', error);
+            container.innerHTML = `
+                <div class="notifications-empty">
+                    <div class="notifications-empty-icon" style="color: #ef4444;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Ошибка загрузки</h3>
+                    <p>Не удалось загрузить уведомления. Попробуйте обновить страницу.</p>
+                </div>
+            `;
         });
+}
 
-        // Скрываем пустые секции
-        sections.forEach(section => {
-            const visibleCards = section.querySelectorAll('.notification-card[style=""], .notification-card:not([style*="display: none"])');
-            if (visibleCards.length === 0) {
-                section.style.display = 'none';
-            } else {
-                section.style.display = '';
-            }
+// Attach event handlers to notification buttons
+function attachNotificationHandlers() {
+    // Accept invitation buttons
+    document.querySelectorAll('.btn-accept').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const invitationId = this.dataset.invitationId;
+            acceptInvitation(invitationId);
         });
+    });
 
-        // Проверяем, есть ли видимые уведомления
-        const hasVisibleCards = Array.from(allCards).some(card => card.style.display !== 'none');
-        const emptyState = document.querySelector('.notifications-empty');
-        const notificationsList = document.getElementById('notificationsList');
+    // Decline invitation buttons
+    document.querySelectorAll('.btn-decline').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const invitationId = this.dataset.invitationId;
+            declineInvitation(invitationId);
+        });
+    });
+}
 
-        if (!hasVisibleCards && emptyState) {
-            emptyState.style.display = 'block';
-        } else if (emptyState) {
-            emptyState.style.display = 'none';
+// Accept invitation
+function acceptInvitation(invitationId) {
+    const button = document.querySelector(`.btn-accept[data-invitation-id="${invitationId}"]`);
+
+    if (button) {
+        button.classList.add('loading');
+        button.textContent = 'Принимаю...';
+    }
+
+    fetch(`/booking/api/invitation/${invitationId}/accept/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
         }
-    }
-
-    // ==================== ОТМЕТИТЬ ВСЕ КАК ПРОЧИТАННЫЕ ====================
-
-    setupMarkAllReadButton() {
-        const markAllBtn = document.getElementById('markAllReadBtn');
-
-        if (markAllBtn) {
-            markAllBtn.addEventListener('click', () => {
-                this.markAllAsRead();
-            });
-        }
-    }
-
-    async markAllAsRead() {
-        const markAllBtn = document.getElementById('markAllReadBtn');
-        const originalText = markAllBtn.innerHTML;
-
-        try {
-            // Показываем загрузку
-            markAllBtn.disabled = true;
-            markAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отмечаем...';
-
-            // Получаем CSRF токен
-            const csrfToken = this.getCSRFToken();
-
-            // Отправляем запрос
-            const response = await fetch('/users/ajax/notifications/mark-all-read/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // Обновляем все непрочитанные карточки
-                const unreadCards = document.querySelectorAll('.notification-card.unread');
-                unreadCards.forEach(card => {
-                    card.classList.remove('unread');
-                    card.dataset.isRead = 'true';
-                });
-
-                // Перемещаем карточки из секции "Новые" в "Ранее"
-                const unreadSection = document.querySelector('.notifications-section[data-section="unread"]');
-                const readSection = document.querySelector('.notifications-section[data-section="read"]');
-
-                if (unreadSection && readSection) {
-                    const unreadList = unreadSection.querySelector('.notifications-list');
-                    const readList = readSection.querySelector('.notifications-list');
-
-                    // Перемещаем все карточки
-                    while (unreadList.firstChild) {
-                        readList.insertBefore(unreadList.firstChild, readList.firstChild);
-                    }
-
-                    // Скрываем пустую секцию "Новые"
-                    unreadSection.style.display = 'none';
-                }
-
-                // Обновляем счетчик
-                const unreadBadge = document.querySelector('.unread-count-badge');
-                if (unreadBadge) {
-                    unreadBadge.remove();
-                }
-
-                // Обновляем счетчики в фильтрах
-                this.updateFilterCounts();
-
-                // Показываем уведомление
-                if (window.toast) {
-                    toast.success(`Отмечено как прочитанные: ${data.marked_count}`);
-                }
-
-                // Отключаем кнопку
-                markAllBtn.disabled = true;
-                markAllBtn.innerHTML = '<i class="fas fa-check-double"></i> Все прочитано';
-            } else {
-                throw new Error(data.message || 'Ошибка при отметке уведомлений');
-            }
-
-        } catch (error) {
-            console.error('Error marking all as read:', error);
-
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
             if (window.toast) {
-                toast.error('Ошибка при отметке уведомлений');
+                window.toast.success(data.message || 'Приглашение принято!');
             }
-
-            // Восстанавливаем кнопку
-            markAllBtn.disabled = false;
-            markAllBtn.innerHTML = originalText;
-        }
-    }
-
-    // ==================== ОТМЕТИТЬ ОДНО КАК ПРОЧИТАННОЕ ====================
-
-    setupNotificationClicks() {
-        const cards = document.querySelectorAll('.notification-card');
-
-        cards.forEach(card => {
-            card.addEventListener('click', (e) => {
-                // Если клик по кнопке действия - не отмечаем как прочитанное
-                if (e.target.closest('.notification-action-btn')) {
-                    return;
+            // Перезагружаем уведомления
+            setTimeout(() => {
+                loadProfileNotifications();
+                // Обновляем badge в navbar
+                if (window.loadNotifications) {
+                    window.loadNotifications();
                 }
+            }, 500);
+        } else {
+            if (window.toast) {
+                window.toast.error(data.message || 'Ошибка при принятии приглашения');
+            }
+            if (button) {
+                button.classList.remove('loading');
+                button.innerHTML = '<i class="fas fa-check"></i> Принять';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('❌ Ошибка принятия приглашения:', error);
+        if (window.toast) {
+            window.toast.error('Ошибка при принятии приглашения');
+        }
+        if (button) {
+            button.classList.remove('loading');
+            button.innerHTML = '<i class="fas fa-check"></i> Принять';
+        }
+    });
+}
 
-                const notificationId = card.dataset.notificationId;
-                const isRead = card.dataset.isRead === 'true';
+// Decline invitation
+function declineInvitation(invitationId) {
+    const button = document.querySelector(`.btn-decline[data-invitation-id="${invitationId}"]`);
 
-                // Если уже прочитано - ничего не делаем
-                if (isRead) {
-                    return;
+    if (button) {
+        button.classList.add('loading');
+        button.textContent = 'Отклоняю...';
+    }
+
+    fetch(`/booking/api/invitation/${invitationId}/decline/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (window.toast) {
+                window.toast.info(data.message || 'Приглашение отклонено');
+            }
+            // Перезагружаем уведомления
+            setTimeout(() => {
+                loadProfileNotifications();
+                // Обновляем badge в navbar
+                if (window.loadNotifications) {
+                    window.loadNotifications();
                 }
+            }, 500);
+        } else {
+            if (window.toast) {
+                window.toast.error(data.message || 'Ошибка при отклонении приглашения');
+            }
+            if (button) {
+                button.classList.remove('loading');
+                button.innerHTML = '<i class="fas fa-times"></i> Отклонить';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('❌ Ошибка отклонения приглашения:', error);
+        if (window.toast) {
+            window.toast.error('Ошибка при отклонении приглашения');
+        }
+        if (button) {
+            button.classList.remove('loading');
+            button.innerHTML = '<i class="fas fa-times"></i> Отклонить';
+        }
+    });
+}
 
-                // Отмечаем как прочитанное
-                this.markAsRead(notificationId, card);
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Initialize notifications on profile page
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're on profile page
+    if (document.getElementById('notificationsListProfile')) {
+        loadProfileNotifications();
+
+        // Reload notifications when tab becomes active
+        const notificationsTab = document.querySelector('[data-tab="notifications"]');
+        if (notificationsTab) {
+            notificationsTab.addEventListener('click', function() {
+                loadProfileNotifications();
             });
-        });
-    }
-
-    async markAsRead(notificationId, card) {
-        try {
-            // Получаем CSRF токен
-            const csrfToken = this.getCSRFToken();
-
-            // Визуально отмечаем как прочитанное сразу
-            card.classList.add('marking-read');
-
-            // Отправляем запрос
-            const response = await fetch('/users/ajax/notifications/mark-read/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken
-                },
-                body: `notification_id=${notificationId}`
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // Обновляем состояние карточки
-                setTimeout(() => {
-                    card.classList.remove('unread', 'marking-read');
-                    card.dataset.isRead = 'true';
-
-                    // Обновляем счетчики
-                    this.updateFilterCounts();
-
-                    // Проверяем, нужно ли отключить кнопку "Отметить все"
-                    const unreadCards = document.querySelectorAll('.notification-card.unread');
-                    const markAllBtn = document.getElementById('markAllReadBtn');
-                    if (unreadCards.length === 0 && markAllBtn) {
-                        markAllBtn.disabled = true;
-                    }
-
-                    // Обновляем badge в header
-                    const unreadBadge = document.querySelector('.unread-count-badge');
-                    if (unreadBadge) {
-                        const currentCount = parseInt(unreadBadge.textContent);
-                        if (currentCount <= 1) {
-                            unreadBadge.remove();
-                        } else {
-                            unreadBadge.textContent = currentCount - 1;
-                        }
-                    }
-                }, 300);
-            } else {
-                // Если ошибка - возвращаем состояние
-                card.classList.remove('marking-read');
-                console.error('Error marking as read:', data.message);
-            }
-
-        } catch (error) {
-            console.error('Error marking notification as read:', error);
-            card.classList.remove('marking-read');
-        }
-    }
-
-    // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-
-    getCSRFToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
-               document.querySelector('meta[name="csrf-token"]')?.content ||
-               '';
-    }
-
-    updateFilterCounts() {
-        const allCards = document.querySelectorAll('.notification-card');
-        const unreadCards = document.querySelectorAll('.notification-card[data-is-read="false"]');
-        const readCards = document.querySelectorAll('.notification-card[data-is-read="true"]');
-
-        // Обновляем счетчик "Все"
-        const allFilterCount = document.querySelector('.filter-chip[data-filter="all"] .filter-chip-count');
-        if (allFilterCount) {
-            allFilterCount.textContent = allCards.length;
         }
 
-        // Обновляем счетчик "Непрочитанные"
-        const unreadFilter = document.querySelector('.filter-chip[data-filter="unread"]');
-        if (unreadFilter) {
-            const unreadFilterCount = unreadFilter.querySelector('.filter-chip-count');
-            if (unreadFilterCount) {
-                unreadFilterCount.textContent = unreadCards.length;
-            }
-
-            // Скрываем фильтр если нет непрочитанных
-            if (unreadCards.length === 0) {
-                unreadFilter.style.display = 'none';
-            }
-        }
-
-        // Обновляем счетчик "Прочитанные"
-        const readFilterCount = document.querySelector('.filter-chip[data-filter="read"] .filter-chip-count');
-        if (readFilterCount) {
-            readFilterCount.textContent = readCards.length;
-        }
+        // Auto-refresh every 30 seconds
+        setInterval(loadProfileNotifications, 30000);
     }
-}
-
-// ==================== ОБРАБОТЧИКИ ДЕЙСТВИЙ ====================
-
-function handleInvitationAccept(invitationId) {
-    console.log('Accepting invitation:', invitationId);
-    // TODO: Реализовать принятие приглашения
-    if (window.toast) {
-        toast.info('Функция принятия приглашения в разработке');
-    }
-}
-
-function handleInvitationDecline(invitationId) {
-    console.log('Declining invitation:', invitationId);
-    // TODO: Реализовать отклонение приглашения
-    if (window.toast) {
-        toast.info('Функция отклонения приглашения в разработке');
-    }
-}
-
-// ==================== ИНИЦИАЛИЗАЦИЯ ====================
-
-let notificationsManager;
-
-document.addEventListener('DOMContentLoaded', () => {
-    notificationsManager = new NotificationsManager();
 });
-
-// Экспорт для использования
-window.NotificationsManager = NotificationsManager;
-window.notificationsManager = notificationsManager;

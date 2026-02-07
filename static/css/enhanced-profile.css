@@ -614,3 +614,13 @@
     font-weight: 500;
     margin: 0;
 }
+
+/* ==================== BOOKING SPECIFIC STYLES ==================== */
+.price-per-person {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.looking-for-partner {
+    color: #ff6b6b;
+}

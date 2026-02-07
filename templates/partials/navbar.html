@@ -6,45 +6,29 @@
         </div>
 
         <div class="nav-menu">
-            <a href="{% url 'news' %}" class="nav-item {% if request.path == '/news/' %}active{% endif %}">Новости</a>
             <a href="{% url 'booking' %}" class="nav-item {% if request.path == '/booking/' %}active{% endif %}">Бронирование</a>
             <a href="{% url 'coaches_list' %}" class="nav-item {% if '/users/coaches/' in request.path %}active{% endif %}">Тренеры</a>
             <a href="{% url 'tournament:public_tournaments_list' %}" class="nav-item {% if '/tournament/' in request.path %}active{% endif %}">Турниры</a>
-            <a href="{% url 'leaderboard' %}" class="nav-item {% if '/users/leaderboard/' in request.path %}active{% endif %}">Топ игроков</a>
+            <a href="{% url 'leaderboard' %}" class="nav-item {% if '/users/leaderboard/' in request.path %}active{% endif %}">Рейтинг</a>
             {% if user.is_authenticated %}
             <a href="{% url 'games_list' %}" class="nav-item {% if '/booking/games/' in request.path %}active{% endif %}">Игры</a>
             {% endif %}
         </div>
 
         <div class="nav-auth">
-            <!-- Переключатель темной темы -->
-            <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
-                <i class="fas fa-moon"></i>
-            </button>
-
             {% if user.is_authenticated %}
-                <!-- Уведомления -->
+                <!-- Кнопка уведомлений -->
                 <div class="notifications-container">
-                    <div class="notifications-btn" id="notificationsBtn" title="Уведомления">
+                    <a href="{% url 'profile' %}#notifications" class="notifications-btn" title="Уведомления">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationBadge">3</span>
-                    </div>
-
-                    <!-- Dropdown с уведомлениями -->
-                    <div class="notifications-dropdown" id="notificationsDropdown">
-                        <div class="notifications-header">
-                            <h3>Приглашения в игры</h3>
-                        </div>
-
-                        <div class="notifications-list" id="notificationsList">
-                            <!-- Загружается через JavaScript -->
-                            <div class="notification-loading" style="text-align: center; padding: 40px; color: #999;">
-                                <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
-                                <p>Загрузка...</p>
-                            </div>
-                        </div>
-                    </div>
+                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                    </a>
                 </div>
+
+                <!-- Переключатель темы -->
+                <button class="theme-toggle" onclick="toggleTheme()" title="Переключить тему">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
 
                 <div class="user-dropdown">
                     <button class="user-btn">
@@ -57,10 +41,6 @@
                     </button>
                     <div class="dropdown-content">
                         <a href="{% url 'profile' %}" id="profile-link"><i class="fas fa-user"></i> Профиль</a>
-                        <a href="{% url 'profile' %}#bookings" id="bookings-link"><i class="fas fa-calendar"></i> Мои записи</a>
-                        <a href="{% url 'profile' %}#statistics" id="statistics-link"><i class="fas fa-chart-bar"></i> Моя статистика</a>
-                        <a href="{% url 'training_sessions' %}"><i class="fas fa-dumbbell"></i> Мои тренировки</a>
-                        <a href="{% url 'profile' %}#rating" id="rating-link"><i class="fas fa-chart-line"></i> Мой рейтинг</a>
                         <a href="#" id="openLogoutModal"><i class="fas fa-sign-out-alt"></i> Выйти</a>
                     </div>
                 </div>
@@ -241,15 +221,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Обработчики определены в main.js, здесь ничего делать не нужно
 
     // ========== УПРАВЛЕНИЕ УВЕДОМЛЕНИЯМИ ==========
-    const notificationsBtn = document.getElementById('notificationsBtn');
-    const notificationsDropdown = document.getElementById('notificationsDropdown');
-    const notificationsList = document.getElementById('notificationsList');
     const notificationBadge = document.getElementById('notificationBadge');
 
     // Функция загрузки уведомлений
     function loadNotifications() {
-        if (!notificationsList) return;
-
         fetch('/booking/api/notifications/')
             .then(response => response.json())
             .then(data => {
@@ -259,189 +234,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Обновляем счетчик
                     if (notificationBadge) {
                         notificationBadge.textContent = data.count;
-                        notificationBadge.style.display = data.count > 0 ? 'flex' : 'none';
+                        notificationBadge.style.display = 'flex';
                     }
-
-                    // Рендерим уведомления
-                    notificationsList.innerHTML = data.notifications.map(notification => `
-                        <div class="notification-item invitation-item" data-invitation-id="${notification.id}">
-                            <div class="notification-icon invitation-icon">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <div class="notification-content">
-                                <p class="notification-title">${notification.title}</p>
-                                <p class="notification-text">${notification.message}</p>
-                                <div class="notification-actions" style="display: flex; gap: 8px; margin-top: 10px;">
-                                    <button class="btn-accept-invitation" data-invitation-id="${notification.id}"
-                                            style="flex: 1; padding: 8px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px;">
-                                        <i class="fas fa-check"></i> Принять
-                                    </button>
-                                    <button class="btn-decline-invitation" data-invitation-id="${notification.id}"
-                                            style="flex: 1; padding: 8px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px;">
-                                        <i class="fas fa-times"></i> Отклонить
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
-
-                    // Добавляем обработчики для кнопок
-                    document.querySelectorAll('.btn-accept-invitation').forEach(btn => {
-                        btn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const invitationId = this.dataset.invitationId;
-                            acceptInvitation(invitationId);
-                        });
-                    });
-
-                    document.querySelectorAll('.btn-decline-invitation').forEach(btn => {
-                        btn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const invitationId = this.dataset.invitationId;
-                            declineInvitation(invitationId);
-                        });
-                    });
                 } else {
                     // Нет уведомлений
                     if (notificationBadge) {
                         notificationBadge.style.display = 'none';
                     }
-                    notificationsList.innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: #999;">
-                            <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
-                            <p style="margin: 0; font-size: 15px;">Нет новых приглашений</p>
-                        </div>
-                    `;
                 }
             })
             .catch(error => {
                 console.error('❌ Ошибка загрузки уведомлений:', error);
-                notificationsList.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #ef4444;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
-                        <p>Ошибка загрузки уведомлений</p>
-                    </div>
-                `;
             });
     }
 
-    // Функция принятия приглашения
-    function acceptInvitation(invitationId) {
-        fetch(`/booking/api/invitation/${invitationId}/accept/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (window.toast) {
-                    window.toast.success(data.message);
-                } else {
-                    alert(data.message);
-                }
-                loadNotifications(); // Перезагружаем уведомления
-            } else {
-                if (window.toast) {
-                    window.toast.error(data.message);
-                } else {
-                    alert(data.message);
-                }
-            }
-        })
-        .catch(error => {
-            console.error('❌ Ошибка принятия приглашения:', error);
-            if (window.toast) {
-                window.toast.error('Ошибка при принятии приглашения');
-            }
-        });
-    }
 
-    // Функция отклонения приглашения
-    function declineInvitation(invitationId) {
-        fetch(`/booking/api/invitation/${invitationId}/decline/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (window.toast) {
-                    window.toast.info(data.message);
-                } else {
-                    alert(data.message);
-                }
-                loadNotifications(); // Перезагружаем уведомления
-            } else {
-                if (window.toast) {
-                    window.toast.error(data.message);
-                } else {
-                    alert(data.message);
-                }
-            }
-        })
-        .catch(error => {
-            console.error('❌ Ошибка отклонения приглашения:', error);
-            if (window.toast) {
-                window.toast.error('Ошибка при отклонении приглашения');
-            }
-        });
-    }
-
-    // Функция получения CSRF токена
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    if (notificationsBtn && notificationsDropdown) {
-        // Загружаем уведомления при загрузке страницы
+    // Загружаем уведомления при загрузке страницы
+    if (notificationBadge) {
         loadNotifications();
-
         // Обновляем каждые 30 секунд
         setInterval(loadNotifications, 30000);
-
-        // Открытие/закрытие уведомлений по клику на кнопку
-        notificationsBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const isOpen = notificationsDropdown.classList.contains('show');
-
-            // Закрываем выпадающее меню пользователя если открыто
-            if (dropdownContent && dropdownContent.classList.contains('show')) {
-                closeDropdown();
-            }
-
-            if (isOpen) {
-                notificationsDropdown.classList.remove('show');
-            } else {
-                notificationsDropdown.classList.add('show');
-                // Перезагружаем при открытии
-                loadNotifications();
-            }
-        });
-
-        // Закрытие при клике вне уведомлений
-        document.addEventListener('click', function(e) {
-            const notificationsContainer = document.querySelector('.notifications-container');
-            if (notificationsContainer && !notificationsContainer.contains(e.target)) {
-                notificationsDropdown.classList.remove('show');
-            }
-        });
     }
 });
 </script>
@@ -462,11 +274,13 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
 }
 
 .user-name {
     font-weight: 600;
 }
+
 
 /* Адаптив для мобильных */
 @media (max-width: 768px) {
@@ -485,22 +299,22 @@ document.addEventListener('DOMContentLoaded', function() {
 // Функция переключения темы - глобальная
 function toggleTheme() {
     const html = document.documentElement;
-    const themeToggle = document.querySelector('.theme-toggle i');
+    const themeIcon = document.getElementById('theme-icon');
     const currentTheme = html.getAttribute('data-theme');
 
     if (currentTheme === 'dark') {
         html.setAttribute('data-theme', 'light');
         localStorage.setItem('theme', 'light');
-        if (themeToggle) {
-            themeToggle.classList.remove('fa-sun');
-            themeToggle.classList.add('fa-moon');
+        if (themeIcon) {
+            themeIcon.classList.remove('fa-sun');
+            themeIcon.classList.add('fa-moon');
         }
     } else {
         html.setAttribute('data-theme', 'dark');
         localStorage.setItem('theme', 'dark');
-        if (themeToggle) {
-            themeToggle.classList.remove('fa-moon');
-            themeToggle.classList.add('fa-sun');
+        if (themeIcon) {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
         }
     }
 }
@@ -516,10 +330,11 @@ function toggleTheme() {
 
     // Обновляем иконку после загрузки DOM
     document.addEventListener('DOMContentLoaded', function() {
-        const themeToggle = document.querySelector('.theme-toggle i');
-        if (themeToggle && savedTheme === 'dark') {
-            themeToggle.classList.remove('fa-moon');
-            themeToggle.classList.add('fa-sun');
+        const themeIcon = document.getElementById('theme-icon');
+
+        if (savedTheme === 'dark' && themeIcon) {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
         }
     });
 })();

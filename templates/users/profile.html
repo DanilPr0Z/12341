@@ -43,42 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 {% block content %}
-<!-- Сообщения Django -->
-{% if messages %}
-<div class="messages-container" style="
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    max-width: 400px;
-">
-    {% for message in messages %}
-    <div class="message alert alert-{{ message.tags }}" style="
-        background: {% if message.tags == 'success' %}#28a745{% else %}#dc3545{% endif %};
-        color: white;
-        padding: 15px 20px;
-        margin-bottom: 10px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        animation: slideInRight 0.3s ease;
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-    ">
-        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
-        <div>{{ message|safe }}</div>
-        <button class="close-message" style="
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            margin-left: auto;
-            font-size: 18px;
-        ">&times;</button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+<!-- Django messages обрабатываются в base.html через toast систему -->
 
 <div class="profile-container">
     <div class="profile-sidebar">
@@ -137,16 +102,20 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- Навигация по вкладкам -->
         <div class="profile-tabs">
             <button class="tab-btn active" data-tab="profile">
-                <i class="fas fa-user"></i> Данные профиля
+                <i class="fas fa-user"></i> Профиль
             </button>
             <button class="tab-btn" data-tab="bookings">
-                <i class="fas fa-calendar"></i> Мои записи
+                <i class="fas fa-calendar"></i> Записи
+            </button>
+            <button class="tab-btn" data-tab="notifications">
+                <i class="fas fa-bell"></i> Уведомления
+                <span class="tab-badge" id="tabNotificationBadge" style="display: none;">0</span>
             </button>
             <button class="tab-btn" data-tab="statistics">
-                <i class="fas fa-chart-bar"></i> Моя статистика
+                <i class="fas fa-chart-bar"></i> Статистика
             </button>
             <button class="tab-btn" data-tab="rating">
-                <i class="fas fa-chart-line"></i> Мой рейтинг
+                <i class="fas fa-trophy"></i> Рейтинг
             </button>
         </div>
     </div>
@@ -325,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="fas fa-money-bill-wave"></i>
                                     <span>{{ booking.total_price }} ₽</span>
                                     {% if booking.price_per_person %}
-                                    <span style="font-size: 0.9em; color: #666;"> ({{ booking.price_per_person }} ₽/чел.)</span>
+                                    <span class="price-per-person"> ({{ booking.price_per_person }} ₽/чел.)</span>
                                     {% endif %}
                                 </div>
                                 {% if booking.coach %}
@@ -347,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 {% if booking.looking_for_partner %}
                                 <div class="booking-detail">
                                     <i class="fas fa-search"></i>
-                                    <span style="color: #ff6b6b;">Ищет партнёра</span>
+                                    <span class="looking-for-partner">Ищет партнёра</span>
                                 </div>
                                 {% endif %}
                                 {% if booking.status == 'pending' %}
@@ -395,6 +364,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         <a href="{% url 'booking' %}" class="btn-primary">Перейти к бронированию</a>
                     </div>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- Вкладка "Уведомления" -->
+        <div id="notifications-tab" class="tab-content">
+            <div class="notifications-header">
+                <h2><i class="fas fa-bell"></i> Мои уведомления</h2>
+                <p class="section-subtitle">Приглашения в игры и важные обновления</p>
+            </div>
+
+            <div class="notifications-list-profile" id="notificationsListProfile">
+                <!-- Загружается через JavaScript -->
+                <div class="notification-loading" style="text-align: center; padding: 60px 20px; color: #999;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 16px;"></i>
+                    <p>Загрузка уведомлений...</p>
+                </div>
             </div>
         </div>
 
@@ -4396,4 +4381,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+
+<!-- Notifications JavaScript -->
+<script src="{% static 'js/notifications.js' %}" charset="UTF-8"></script>
 {% endblock %}
