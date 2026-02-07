@@ -25,3 +25,23 @@ def booking_page(request):
 
 def tournaments(request):
     return render(request, 'tournaments.html')
+
+
+def about(request):
+    """Страница О нас"""
+    return render(request, 'pages/about.html')
+
+
+def rules(request):
+    """Страница Правила"""
+    return render(request, 'pages/rules.html')
+
+
+def privacy_policy(request):
+    """Страница Политика конфиденциальности"""
+    return render(request, 'pages/privacy.html')
+
+
+def terms_of_service(request):
+    """Страница Пользовательское соглашение"""
+    return render(request, 'pages/terms.html')

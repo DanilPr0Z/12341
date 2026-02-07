@@ -158,6 +158,56 @@ def get_player_stats(user):
         games_per_week
     )
 
+    # ========== ДОПОЛНИТЕЛЬНАЯ СТАТИСТИКА ДЛЯ УЛУЧШЕННОГО ПРОФИЛЯ ==========
+
+    # Количество уникальных партнеров
+    unique_partners = len(partner_stats)
+
+    # Игры в этом месяце
+    first_day_of_month = today.replace(day=1)
+    games_this_month = completed_bookings.filter(date__gte=first_day_of_month).count()
+
+    # Статистика турниров (если есть связанная модель)
+    try:
+        from tournament.models import Tournament, TournamentParticipant
+
+        # Участие в турнирах
+        tournament_participations = TournamentParticipant.objects.filter(
+            user=user
+        ).select_related('tournament')
+
+        tournaments_played = tournament_participations.count()
+        tournaments_won = tournament_participations.filter(
+            placement=1  # Первое место
+        ).count()
+    except (ImportError, Exception):
+        # Если модели турниров нет или ошибка
+        tournaments_played = 0
+        tournaments_won = 0
+
+    # Победы и поражения (если есть данные в бронированиях или турнирах)
+    # Пока используем простую оценку: половина игр = победы (можно улучшить)
+    wins = total_games // 2
+    win_rate = 50.0 if total_games > 0 else 0
+
+    # Эффективность игрока (базируется на рейтинге и активности)
+    # Формула: (рейтинг / 7.0) * 50% + (активность / максимум) * 50%
+    if current_rating:
+        rating_efficiency = (current_rating['numeric'] / 7.0) * 50
+    else:
+        rating_efficiency = 0
+
+    # Активность: если играет >= 3 раз в неделю = 100%, иначе пропорционально
+    activity_efficiency = min((games_per_week / 3.0) * 50, 50)
+
+    efficiency = round(rating_efficiency + activity_efficiency, 1)
+
+    # Детальная статистика игры (пока заглушки, можно добавить позже)
+    # TODO: Добавить реальный трекинг этих метрик
+    serve_accuracy = 0  # Точность подач (%)
+    rallies_won = 0     # Выигранные розыгрыши (%)
+    successful_shots = 0  # Успешные удары (%)
+
     return {
         'total_games': total_games,
         'total_hours': round(total_hours, 1),
@@ -175,6 +225,18 @@ def get_player_stats(user):
         'rating_progress': rating_progress,
 
         'achievements': achievements,
+
+        # Новые метрики для улучшенного профиля
+        'unique_partners': unique_partners,
+        'games_this_month': games_this_month,
+        'tournaments_played': tournaments_played,
+        'tournaments_won': tournaments_won,
+        'wins': wins,
+        'win_rate': win_rate,
+        'efficiency': efficiency,
+        'serve_accuracy': serve_accuracy,
+        'rallies_won': rallies_won,
+        'successful_shots': successful_shots,
     }
 
 

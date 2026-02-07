@@ -2,3 +2,4 @@ Django
 Pillow
 python-dotenv
 django-ratelimit
+reportlab>=4.0.0

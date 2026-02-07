@@ -30,6 +30,7 @@ urlpatterns = [
 
     # Социальные игры (Americano/Mexicano)
     path('games/', views.games_list, name='games_list'),
+    path('games/create/', views.create_game_page, name='create_game_page'),
     path('games/<int:booking_id>/', views.game_detail, name='game_detail'),
     path('games/<int:booking_id>/invite/', views.invite_to_game, name='invite_to_game'),
     path('games/<int:booking_id>/start/', views.start_game, name='start_game'),

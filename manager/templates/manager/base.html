@@ -32,50 +32,127 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="{% url 'manager:dashboard' %}" class="nav-item {% if current_page == 'dashboard' %}active{% endif %}" title="Dashboard">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </a>
+            <!-- Обзор -->
+            <div class="nav-section">
+                <div class="nav-section-title nav-section-collapsible" onclick="toggleNavSection(this)">
+                    <i class="fas fa-home" style="margin-right: 8px;"></i>
+                    Обзор
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="nav-items">
+                    <a href="{% url 'manager:dashboard' %}" class="nav-item {% if current_page == 'dashboard' %}active{% endif %}" title="Главная">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Главная</span>
+                    </a>
+                </div>
+            </div>
 
-            <a href="{% url 'manager:schedule' %}" class="nav-item {% if current_page == 'schedule' %}active{% endif %}" title="Расписание">
-                <i class="fas fa-calendar"></i>
-                <span>Расписание</span>
-            </a>
+            <!-- Бронирования -->
+            <div class="nav-section">
+                <div class="nav-section-title nav-section-collapsible" onclick="toggleNavSection(this)">
+                    <i class="fas fa-calendar-alt" style="margin-right: 8px;"></i>
+                    Бронирования
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="nav-items">
+                    <a href="{% url 'manager:schedule' %}" class="nav-item {% if current_page == 'schedule' %}active{% endif %}" title="Расписание">
+                        <i class="fas fa-calendar"></i>
+                        <span>Расписание</span>
+                    </a>
+                    <a href="{% url 'manager:bookings' %}" class="nav-item {% if current_page == 'bookings' %}active{% endif %}" title="Список бронирований">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Список</span>
+                    </a>
+                </div>
+            </div>
 
-            <a href="{% url 'manager:bookings' %}" class="nav-item {% if current_page == 'bookings' %}active{% endif %}" title="Бронирования">
-                <i class="fas fa-clipboard-list"></i>
-                <span>Бронирования</span>
-            </a>
+            <!-- Аналитика и финансы -->
+            <div class="nav-section">
+                <div class="nav-section-title nav-section-collapsible" onclick="toggleNavSection(this)">
+                    <i class="fas fa-chart-line" style="margin-right: 8px;"></i>
+                    Аналитика
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="nav-items">
+                    <a href="{% url 'manager:analytics' %}" class="nav-item {% if current_page == 'analytics' %}active{% endif %}" title="Статистика">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Статистика</span>
+                    </a>
+                    <a href="{% url 'manager:payments' %}" class="nav-item {% if current_page == 'payments' %}active{% endif %}" title="Платежи">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Платежи</span>
+                    </a>
+                </div>
+            </div>
 
-            <a href="{% url 'manager:analytics' %}" class="nav-item {% if current_page == 'analytics' %}active{% endif %}" title="Аналитика">
-                <i class="fas fa-chart-line"></i>
-                <span>Аналитика</span>
-            </a>
+            <!-- Пользователи -->
+            <div class="nav-section">
+                <div class="nav-section-title nav-section-collapsible" onclick="toggleNavSection(this)">
+                    <i class="fas fa-users" style="margin-right: 8px;"></i>
+                    Пользователи
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="nav-items">
+                    <a href="{% url 'manager:users' %}" class="nav-item {% if current_page == 'users' %}active{% endif %}" title="Все пользователи">
+                        <i class="fas fa-user"></i>
+                        <span>Все пользователи</span>
+                    </a>
+                    <a href="{% url 'manager:trainers' %}" class="nav-item {% if current_page == 'trainers' %}active{% endif %}" title="Тренеры">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Тренеры</span>
+                    </a>
+                </div>
+            </div>
 
-            <a href="{% url 'manager:users' %}" class="nav-item {% if current_page == 'users' %}active{% endif %}" title="Пользователи">
-                <i class="fas fa-users"></i>
-                <span>Пользователи</span>
-            </a>
+            <!-- Турниры -->
+            <div class="nav-section">
+                <a href="{% url 'tournament:tournaments_list' %}" class="nav-item {% if current_page == 'tournaments' %}active{% endif %}" title="Турниры">
+                    <i class="fas fa-trophy"></i>
+                    <span>Турниры</span>
+                </a>
+            </div>
 
-            <a href="{% url 'manager:courts' %}" class="nav-item {% if current_page == 'courts' %}active{% endif %}" title="Корты">
-                <i class="fas fa-table-tennis"></i>
-                <span>Корты</span>
-            </a>
+            <!-- Настройки -->
+            <div class="nav-section">
+                <div class="nav-section-title nav-section-collapsible" onclick="toggleNavSection(this)">
+                    <i class="fas fa-cog" style="margin-right: 8px;"></i>
+                    Настройки
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="nav-items">
+                    <a href="{% url 'manager:courts' %}" class="nav-item {% if current_page == 'courts' %}active{% endif %}" title="Корты">
+                        <i class="fas fa-table-tennis"></i>
+                        <span>Корты</span>
+                    </a>
+                </div>
+            </div>
 
-            <a href="{% url 'manager:trainers' %}" class="nav-item {% if current_page == 'trainers' %}active{% endif %}" title="Тренеры">
-                <i class="fas fa-user-tie"></i>
-                <span>Тренеры</span>
-            </a>
+            <div class="nav-divider"></div>
 
-            <a href="{% url 'manager:payments' %}" class="nav-item {% if current_page == 'payments' %}active{% endif %}" title="Платежи">
-                <i class="fas fa-credit-card"></i>
-                <span>Платежи</span>
-            </a>
-
-            <a href="{% url 'tournament:tournaments_list' %}" class="nav-item {% if current_page == 'tournaments' %}active{% endif %}" title="Турниры">
-                <i class="fas fa-trophy"></i>
-                <span>Турниры</span>
-            </a>
+            <!-- Календарь виджет -->
+            <div class="calendar-widget" id="sidebarCalendar">
+                <div class="calendar-header">
+                    <button class="calendar-nav-btn" onclick="prevMonth()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="calendarMonth">Февраль 2026</span>
+                    <button class="calendar-nav-btn" onclick="nextMonth()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="calendar-grid">
+                    <!-- Day headers -->
+                    <div class="calendar-day-header">Пн</div>
+                    <div class="calendar-day-header">Вт</div>
+                    <div class="calendar-day-header">Ср</div>
+                    <div class="calendar-day-header">Чт</div>
+                    <div class="calendar-day-header">Пт</div>
+                    <div class="calendar-day-header">Сб</div>
+                    <div class="calendar-day-header">Вс</div>
+                    <!-- Days will be populated by JavaScript -->
+                    <div id="calendarDays"></div>
+                </div>
+            </div>
 
             <div class="nav-divider"></div>
 
@@ -156,6 +233,104 @@
             document.body.classList.toggle('sidebar-mobile-open');
         }
 
+        // Toggle navigation section (collapsible)
+        function toggleNavSection(element) {
+            const section = element.closest('.nav-section');
+            section.classList.toggle('collapsed');
+
+            // Save collapsed state
+            const sectionIndex = Array.from(document.querySelectorAll('.nav-section')).indexOf(section);
+            const collapsedSections = JSON.parse(localStorage.getItem('collapsedNavSections') || '[]');
+            const index = collapsedSections.indexOf(sectionIndex);
+
+            if (section.classList.contains('collapsed')) {
+                if (index === -1) collapsedSections.push(sectionIndex);
+            } else {
+                if (index > -1) collapsedSections.splice(index, 1);
+            }
+
+            localStorage.setItem('collapsedNavSections', JSON.stringify(collapsedSections));
+        }
+
+        // Calendar Widget
+        let currentCalendarDate = new Date();
+
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+
+            // Update month label
+            const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+            document.getElementById('calendarMonth').textContent = `${months[month]} ${year}`;
+
+            // Get first day of month (0 = Sunday, 1 = Monday, etc.)
+            const firstDay = new Date(year, month, 1).getDay();
+            // Adjust to Monday start (0 = Monday, 6 = Sunday)
+            const firstDayAdjusted = firstDay === 0 ? 6 : firstDay - 1;
+
+            // Get number of days in month
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Get today's date
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+            const todayDate = today.getDate();
+
+            // Get days from previous month
+            const prevMonthDays = new Date(year, month, 0).getDate();
+
+            // Render calendar days
+            const calendarDaysEl = document.getElementById('calendarDays');
+            calendarDaysEl.innerHTML = '';
+
+            // Previous month days
+            for (let i = firstDayAdjusted - 1; i >= 0; i--) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day other-month';
+                dayDiv.textContent = prevMonthDays - i;
+                calendarDaysEl.appendChild(dayDiv);
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day';
+                dayDiv.textContent = day;
+
+                if (isCurrentMonth && day === todayDate) {
+                    dayDiv.classList.add('today');
+                }
+
+                // Add click handler to navigate to schedule
+                dayDiv.onclick = function() {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    window.location.href = "{% url 'manager:schedule' %}?date=" + dateStr;
+                };
+
+                calendarDaysEl.appendChild(dayDiv);
+            }
+
+            // Next month days
+            const totalCells = firstDayAdjusted + daysInMonth;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day other-month';
+                dayDiv.textContent = day;
+                calendarDaysEl.appendChild(dayDiv);
+            }
+        }
+
+        function prevMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            renderCalendar();
+        }
+
         // Restore sidebar state on page load
         document.addEventListener('DOMContentLoaded', function() {
             if (!isMobile()) {
@@ -165,6 +340,18 @@
                     document.querySelector('.main-content').classList.add('sidebar-collapsed');
                 }
             }
+
+            // Restore collapsed sections
+            const collapsedSections = JSON.parse(localStorage.getItem('collapsedNavSections') || '[]');
+            const sections = document.querySelectorAll('.nav-section');
+            collapsedSections.forEach(index => {
+                if (sections[index]) {
+                    sections[index].classList.add('collapsed');
+                }
+            });
+
+            // Initialize calendar
+            renderCalendar();
         });
 
         // Handle resize

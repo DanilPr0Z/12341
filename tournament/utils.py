@@ -242,20 +242,42 @@ def validate_match_schedule(tournament, scheduled_date, scheduled_time, court):
 def generate_tournament_bracket_pdf(tournament):
     """
     Генерация PDF с турнирной сеткой
-    TODO: Интеграция с библиотекой для генерации PDF (ReportLab, WeasyPrint)
+
+    Args:
+        tournament: Объект Tournament
+
+    Returns:
+        BytesIO buffer с PDF или None при ошибке
     """
-    pass
+    try:
+        from .pdf_generator import generate_tournament_bracket_pdf as generate_pdf
+        return generate_pdf(tournament)
+    except ImportError:
+        print("⚠️  ReportLab не установлен. Установите: pip install reportlab")
+        return None
+    except Exception as e:
+        print(f"Ошибка генерации PDF: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
 
 
 def update_player_ratings_after_tournament(tournament):
     """
     Обновление рейтингов игроков после завершения турнира
-    Можно использовать систему Elo или другую
+    Использует систему Elo с учетом силы соперников
+
+    Args:
+        tournament: объект Tournament
+
+    Returns:
+        tuple: (success: bool, message: str)
     """
-    if tournament.status != 'completed':
-        return False, "Турнир не завершен"
-
-    # TODO: Реализовать алгоритм обновления рейтингов
-    # Например, на основе системы Elo или по итоговым местам
-
-    return True, "Рейтинги обновлены"
+    try:
+        from .rating_system import update_player_ratings_after_tournament as update_ratings
+        return update_ratings(tournament)
+    except Exception as e:
+        print(f"Ошибка обновления рейтингов: {e}")
+        import traceback
+        traceback.print_exc()
+        return False, f"Ошибка: {str(e)}"

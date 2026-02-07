@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',  # Для красивого отображения времени
     'booking',
     'users',
     'manager',  # Современная кастомная админ-панель
@@ -65,6 +66,45 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.db',
     }
 }
+
+# ============================================
+# КЕШИРОВАНИЕ ДЛЯ ОПТИМИЗАЦИИ ПРОИЗВОДИТЕЛЬНОСТИ
+# ============================================
+
+# Используем локальное кеширование в памяти (без Redis)
+# Для production рекомендуется настроить Redis
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'paddle-booking-cache',
+        'TIMEOUT': 300,  # 5 минут по умолчанию
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,  # Максимальное количество записей в кеше
+        }
+    },
+    # Кеш для статических данных (корты, тренеры)
+    'static_data': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'static-data-cache',
+        'TIMEOUT': 3600,  # 1 час
+        'OPTIONS': {
+            'MAX_ENTRIES': 500,
+        }
+    },
+    # Кеш для сессий пользователей
+    'sessions': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'sessions-cache',
+        'TIMEOUT': 1800,  # 30 минут
+        'OPTIONS': {
+            'MAX_ENTRIES': 5000,
+        }
+    },
+}
+
+# Использовать кеш для сессий (опционально, можно оставить БД)
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# SESSION_CACHE_ALIAS = 'sessions'
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

@@ -73,8 +73,59 @@ body {
 
 .sidebar-nav {
     flex: 1;
-    padding: 20px 16px;
+    padding: 20px 0;
     overflow-y: auto;
+}
+
+/* Nav Sections */
+.nav-section {
+    margin-bottom: 12px;
+}
+
+.nav-section-title {
+    padding: 10px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-section-collapsible {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.nav-section-collapsible:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.nav-section-collapsible .chevron {
+    transition: transform 0.2s ease;
+    font-size: 10px;
+}
+
+.nav-section.collapsed .chevron {
+    transform: rotate(-90deg);
+}
+
+.nav-section .nav-items {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.nav-section.collapsed .nav-items {
+    max-height: 0;
+}
+
+.nav-section .nav-item {
+    margin: 0 12px 2px 12px;
+    padding-left: 20px;
 }
 
 .nav-item {
@@ -1217,7 +1268,101 @@ body {
     background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
 }
 
-/* ========== CALENDAR ========== */
+/* ========== CALENDAR WIDGET (Sidebar) ========== */
+.calendar-widget {
+    margin: 16px 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.calendar-nav-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.calendar-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-day-header {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+    padding: 4px 0;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.calendar-day {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    padding: 6px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.calendar-day:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.calendar-day.today {
+    background: var(--primary);
+    color: var(--secondary);
+    font-weight: 700;
+}
+
+.calendar-day.has-events::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 50%;
+}
+
+.calendar-day.other-month {
+    color: rgba(255, 255, 255, 0.25);
+}
+
+/* Hide calendar widget when sidebar is collapsed */
+.sidebar.collapsed .calendar-widget {
+    display: none;
+}
+
+/* ========== CALENDAR (FullCalendar) ========== */
 #trainerCalendar {
     padding: 20px;
 }
