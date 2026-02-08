@@ -6,7 +6,7 @@
 // Load notifications for profile page
 function loadProfileNotifications() {
     const container = document.getElementById('notificationsListProfile');
-    const tabBadge = document.getElementById('tabNotificationBadge');
+    const accordionBadge = document.getElementById('accordionNotificationBadge');
 
     if (!container) return;
 
@@ -16,10 +16,10 @@ function loadProfileNotifications() {
             console.log('📬 Уведомления загружены для профиля:', data);
 
             if (data.success && data.notifications && data.notifications.length > 0) {
-                // Обновляем badge на вкладке
-                if (tabBadge) {
-                    tabBadge.textContent = data.count;
-                    tabBadge.style.display = 'inline-flex';
+                // Обновляем badge в аккордеоне
+                if (accordionBadge) {
+                    accordionBadge.textContent = data.count;
+                    accordionBadge.style.display = 'inline-flex';
                 }
 
                 // Рендерим уведомления
@@ -68,8 +68,8 @@ function loadProfileNotifications() {
                 attachNotificationHandlers();
             } else {
                 // Нет уведомлений
-                if (tabBadge) {
-                    tabBadge.style.display = 'none';
+                if (accordionBadge) {
+                    accordionBadge.style.display = 'none';
                 }
 
                 container.innerHTML = `
@@ -243,14 +243,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if we're on profile page
     if (document.getElementById('notificationsListProfile')) {
         loadProfileNotifications();
-
-        // Reload notifications when tab becomes active
-        const notificationsTab = document.querySelector('[data-tab="notifications"]');
-        if (notificationsTab) {
-            notificationsTab.addEventListener('click', function() {
-                loadProfileNotifications();
-            });
-        }
 
         // Auto-refresh every 30 seconds
         setInterval(loadProfileNotifications, 30000);

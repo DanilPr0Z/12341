@@ -239,122 +239,6 @@
     font-size: 10px;
 }
 
-/* ==================== CIRCULAR EFFICIENCY DIAGRAM ==================== */
-.efficiency-diagram-container {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.efficiency-diagram-header {
-    margin-bottom: 20px;
-}
-
-.efficiency-diagram-header h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #1a1a1a;
-}
-
-.efficiency-diagram-content {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-}
-
-.circular-progress {
-    position: relative;
-    width: 180px;
-    height: 180px;
-}
-
-.circular-progress svg {
-    transform: rotate(-90deg);
-}
-
-.circular-progress-bg {
-    fill: none;
-    stroke: #f0f0f0;
-    stroke-width: 12;
-}
-
-.circular-progress-fill {
-    fill: none;
-    stroke: url(#efficiency-gradient);
-    stroke-width: 12;
-    stroke-linecap: round;
-    stroke-dasharray: 502.4; /* 2 * π * 80 */
-    stroke-dashoffset: 502.4;
-    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.circular-progress-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-}
-
-.efficiency-percentage {
-    font-size: 42px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0;
-}
-
-.efficiency-label {
-    font-size: 14px;
-    color: #666;
-    margin: 0;
-}
-
-.efficiency-stats {
-    flex: 1;
-}
-
-.efficiency-stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.efficiency-stat-row:last-child {
-    border-bottom: none;
-}
-
-.efficiency-stat-label {
-    font-size: 14px;
-    color: #666;
-}
-
-.efficiency-stat-value {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1a1a1a;
-}
-
-.efficiency-stat-bar {
-    width: 100%;
-    height: 6px;
-    background: #f0f0f0;
-    border-radius: 3px;
-    margin-top: 6px;
-    overflow: hidden;
-}
-
-.efficiency-stat-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #9ef01a 0%, #38b000 100%);
-    border-radius: 3px;
-    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 /* ==================== WARNING BANNER ==================== */
 .rating-verification-banner {
     background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
@@ -369,21 +253,14 @@
 }
 
 .rating-verification-banner i {
-    font-size: 24px;
+    font-size: 20px;
     color: #f39c12;
 }
 
-.rating-verification-banner-content h4 {
-    margin: 0 0 4px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #856404;
-}
-
-.rating-verification-banner-content p {
-    margin: 0;
+.rating-verification-banner span {
     font-size: 14px;
     color: #856404;
+    font-weight: 500;
 }
 
 /* ==================== QUICK ACTION SECTIONS ==================== */
@@ -489,20 +366,6 @@
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .efficiency-diagram-content {
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .circular-progress {
-        width: 160px;
-        height: 160px;
-    }
-
-    .efficiency-percentage {
-        font-size: 36px;
-    }
-
     .profile-quick-actions {
         grid-template-columns: 1fr;
     }
@@ -530,15 +393,6 @@
     .stat-card-value {
         font-size: 28px;
     }
-
-    .circular-progress {
-        width: 140px;
-        height: 140px;
-    }
-
-    .efficiency-percentage {
-        font-size: 32px;
-    }
 }
 
 /* ==================== ANIMATIONS ==================== */
@@ -555,7 +409,6 @@
 
 .rating-progress-bar-container,
 .profile-stat-card,
-.efficiency-diagram-container,
 .quick-action-card {
     animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
@@ -566,55 +419,6 @@
 .profile-stat-card:nth-child(4) { animation-delay: 0.4s; }
 
 /* ==================== USER INFO METADATA ==================== */
-.user-metadata {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.metadata-row {
-    display: flex;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.metadata-row:last-child {
-    border-bottom: none;
-}
-
-.metadata-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    color: #666;
-    font-size: 18px;
-}
-
-.metadata-content {
-    flex: 1;
-}
-
-.metadata-label {
-    font-size: 12px;
-    color: #999;
-    margin: 0 0 2px;
-}
-
-.metadata-value {
-    font-size: 14px;
-    color: #1a1a1a;
-    font-weight: 500;
-    margin: 0;
-}
-
 /* ==================== BOOKING SPECIFIC STYLES ==================== */
 .price-per-person {
     font-size: 0.9em;

@@ -1,0 +1,241 @@
+/* ==================== PROFILE ACCORDION SYSTEM ==================== */
+
+/* Убираем старую систему табов */
+.profile-tabs {
+    display: none;
+}
+
+/* Новая структура профиля */
+.profile-main-content {
+    width: 100%;
+}
+
+/* Аккордеон контейнер */
+.profile-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+/* Элемент аккордеона */
+.accordion-item {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accordion-item:hover {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Заголовок аккордеона */
+.accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.accordion-header:hover {
+    background: linear-gradient(135deg, #f0f0f0 0%, #f8f9fa 100%);
+}
+
+.accordion-item.open .accordion-header {
+    border-bottom-color: #9ef01a;
+    background: linear-gradient(135deg, #9ef01a 0%, #70c904 100%);
+}
+
+.accordion-header-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.accordion-header-content i {
+    font-size: 20px;
+    color: #495057;
+    width: 24px;
+    text-align: center;
+}
+
+.accordion-item.open .accordion-header-content i {
+    color: #1a1a1a;
+}
+
+.accordion-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.accordion-item.open .accordion-header h3 {
+    color: #1a1a1a;
+}
+
+.accordion-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 12px;
+    margin-left: 8px;
+}
+
+.accordion-item.open .accordion-badge {
+    background: #1a1a1a;
+}
+
+/* Иконка-индикатор */
+.accordion-icon {
+    font-size: 20px;
+    color: #6c757d;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accordion-item.open .accordion-icon {
+    transform: rotate(180deg);
+    color: #1a1a1a;
+}
+
+/* Контент аккордеона */
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accordion-item.open .accordion-content {
+    max-height: 10000px; /* Достаточно большое значение */
+}
+
+.accordion-content-inner {
+    padding: 24px;
+}
+
+/* Секция "Всегда видна" (для личных данных) */
+.accordion-item.always-visible {
+    box-shadow: 0 6px 24px rgba(158, 240, 26, 0.15);
+    border: 2px solid #9ef01a;
+}
+
+.accordion-item.always-visible .accordion-header {
+    cursor: default;
+    background: linear-gradient(135deg, #9ef01a 0%, #70c904 100%);
+    border-bottom-color: transparent;
+}
+
+.accordion-item.always-visible .accordion-header:hover {
+    background: linear-gradient(135deg, #9ef01a 0%, #70c904 100%);
+}
+
+.accordion-item.always-visible .accordion-header h3,
+.accordion-item.always-visible .accordion-header-content i {
+    color: #1a1a1a;
+}
+
+.accordion-item.always-visible .accordion-icon {
+    display: none;
+}
+
+.accordion-item.always-visible .accordion-content {
+    max-height: none;
+    overflow: visible;
+}
+
+/* Анимация появления */
+@keyframes accordionSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.accordion-item {
+    animation: accordionSlideIn 0.4s ease-out backwards;
+}
+
+.accordion-item:nth-child(1) { animation-delay: 0s; }
+.accordion-item:nth-child(2) { animation-delay: 0.05s; }
+.accordion-item:nth-child(3) { animation-delay: 0.1s; }
+.accordion-item:nth-child(4) { animation-delay: 0.15s; }
+.accordion-item:nth-child(5) { animation-delay: 0.2s; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .accordion-header {
+        padding: 16px 20px;
+    }
+
+    .accordion-header h3 {
+        font-size: 16px;
+    }
+
+    .accordion-content-inner {
+        padding: 20px;
+    }
+
+    .accordion-header-content i {
+        font-size: 18px;
+    }
+}
+
+/* Dark Theme */
+:root[data-theme="dark"] .accordion-item {
+    background: #1e1e1e;
+}
+
+:root[data-theme="dark"] .accordion-header {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+}
+
+:root[data-theme="dark"] .accordion-header:hover {
+    background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
+}
+
+:root[data-theme="dark"] .accordion-item.open .accordion-header {
+    background: linear-gradient(135deg, #9ef01a 0%, #70c904 100%);
+}
+
+:root[data-theme="dark"] .accordion-header h3 {
+    color: #f8f9fa;
+}
+
+:root[data-theme="dark"] .accordion-item.open .accordion-header h3 {
+    color: #1a1a1a;
+}
+
+:root[data-theme="dark"] .accordion-header-content i {
+    color: #adb5bd;
+}
+
+:root[data-theme="dark"] .accordion-item.open .accordion-header-content i {
+    color: #1a1a1a;
+}
+
+:root[data-theme="dark"] .accordion-icon {
+    color: #adb5bd;
+}
+
+:root[data-theme="dark"] .accordion-item.open .accordion-icon {
+    color: #1a1a1a;
+}
