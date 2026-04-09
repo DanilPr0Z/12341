@@ -100,6 +100,21 @@ dmypy.json
 .idea/
 *.iml
 
+# Claude Code
+.claude/
+
+# Internal docs
+docs/
+BUGS_AND_ISSUES.md
+IMPROVEMENTS.md
+PROJECT_STATUS.md
+ПРОЕКТНАЯ_РАБОТА.md
+manager/OPTIMIZATION_SUMMARY.md
+manager/PERFORMANCE.md
+
+# Project documents
+*.docx
+
 # VS Code
 .vscode/
 !.vscode/settings.json
