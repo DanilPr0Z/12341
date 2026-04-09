@@ -12,12 +12,12 @@
     }
 
     .page-header {
-        background: linear-gradient(135deg, #1a2332 0%, #2d3a4e 100%);
+        background: linear-gradient(135deg, var(--primary-color, #9ef01a) 0%, var(--primary-light, #bff167) 100%);
         padding: 30px;
         border-radius: 16px;
         margin-bottom: 30px;
         color: white;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 20px rgba(158, 240, 26, 0.3);
     }
 
     .page-header h1 {
@@ -183,6 +183,7 @@
 
     .players-section {
         margin: 20px 0;
+        overflow: hidden;
     }
 
     .players-title {
@@ -198,17 +199,20 @@
     .players-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        gap: 8px;
+        overflow: hidden;
     }
 
     .player-slot {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px;
+        gap: 8px;
+        padding: 8px;
         background: rgba(158, 240, 26, 0.05);
         border-radius: 12px;
         border: 2px solid rgba(158, 240, 26, 0.2);
+        min-width: 0;
+        overflow: hidden;
     }
 
     .player-slot.empty {
@@ -219,8 +223,8 @@
     }
 
     .player-avatar {
-        width: 40px;
-        height: 40px;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
         background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
         display: flex;
@@ -228,18 +232,19 @@
         justify-content: center;
         font-weight: 700;
         color: white;
-        font-size: 16px;
+        font-size: 14px;
         flex-shrink: 0;
     }
 
     .player-info {
         flex: 1;
         min-width: 0;
+        overflow: hidden;
     }
 
     .player-name {
         font-weight: 600;
-        font-size: 14px;
+        font-size: 13px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -432,7 +437,7 @@
 
     <!-- Мои игры -->
     <div id="my-games-tab" class="tab-content">
-        {% if my_games %}
+        {% if my_games or my_bookings %}
         <div class="games-grid">
             {% for participation in my_games %}
             {% with game=participation.booking %}
@@ -491,6 +496,61 @@
             </div>
             {% endwith %}
             {% endfor %}
+
+            {% for booking in my_bookings %}
+            <div class="game-card" onclick="window.location.href='{% url 'game_detail' booking.id %}'">
+                <div class="game-header">
+                    <span class="game-mode-badge" style="background:linear-gradient(135deg,#9ef01a 0%,#38b000 100%);color:white;">
+                        Стандарт
+                    </span>
+                    <span class="game-status-badge status-{{ booking.status }}">
+                        {% if booking.status == 'confirmed' %}Подтверждено{% elif booking.status == 'pending' %}Ожидает{% endif %}
+                    </span>
+                </div>
+
+                <div class="game-info">
+                    <div class="info-row">
+                        <i class="fas fa-calendar"></i>
+                        <span><strong>{{ booking.date|date:"d.m.Y" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-clock"></i>
+                        <span><strong>{{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span><strong>{{ booking.court.name }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-ruble-sign"></i>
+                        <span><strong>{{ booking.total_price }} &#8381;</strong>{% if booking.partners.count > 0 %} ({{ booking.price_per_person }} &#8381;/чел.){% endif %}</span>
+                    </div>
+                </div>
+
+                <div class="players-section">
+                    <div class="players-title">
+                        <i class="fas fa-users"></i>
+                        Участники ({{ booking.partners.count|add:1 }}{% if booking.max_players %}/{{ booking.max_players }}{% endif %})
+                    </div>
+                    <div class="players-grid">
+                        <div class="player-slot">
+                            <div class="player-avatar">{{ booking.user.first_name.0|default:"?" }}</div>
+                            <div class="player-info">
+                                <div class="player-name">{{ booking.user.get_full_name|default:booking.user.username }}</div>
+                            </div>
+                        </div>
+                        {% for partner in booking.partners.all %}
+                        <div class="player-slot">
+                            <div class="player-avatar">{{ partner.first_name.0|default:"?" }}</div>
+                            <div class="player-info">
+                                <div class="player-name">{{ partner.get_full_name|default:partner.username }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
         {% else %}
         <div class="empty-state">
@@ -503,7 +563,7 @@
 
     <!-- Публичные игры -->
     <div id="public-games-tab" class="tab-content">
-        {% if public_games %}
+        {% if public_games or public_bookings %}
         <div class="games-grid">
             {% for game in public_games %}
             <div class="game-card">
@@ -554,14 +614,6 @@
                             </div>
                         </div>
                         {% endfor %}
-                        {% for i in "x"|rjust:game.game_participants.count|slice:"1:" %}
-                        {% if forloop.counter0 < 3 %}
-                        <div class="player-slot empty">
-                            <i class="fas fa-user-plus"></i>
-                            <span>Свободно</span>
-                        </div>
-                        {% endif %}
-                        {% endfor %}
                     </div>
                 </div>
 
@@ -569,6 +621,71 @@
                     <button class="btn btn-primary" onclick="window.location.href='{% url 'game_detail' game.id %}'">
                         <i class="fas fa-eye"></i> Подробнее
                     </button>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for booking in public_bookings %}
+            <div class="game-card">
+                <div class="game-header">
+                    <span class="game-mode-badge" style="background:linear-gradient(135deg,#9ef01a 0%,#38b000 100%);color:white;">
+                        Ищут игроков
+                    </span>
+                    <span class="game-status-badge status-{{ booking.status }}">
+                        {% if booking.status == 'confirmed' %}Подтверждено{% elif booking.status == 'pending' %}Ожидает{% endif %}
+                    </span>
+                </div>
+
+                <div class="game-info">
+                    <div class="info-row">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Организатор: <strong>{{ booking.user.get_full_name|default:booking.user.username }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-calendar"></i>
+                        <span><strong>{{ booking.date|date:"d.m.Y" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-clock"></i>
+                        <span><strong>{{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span><strong>{{ booking.court.name }}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-ruble-sign"></i>
+                        <span><strong>{{ booking.price_per_person }} &#8381;/чел.</strong></span>
+                    </div>
+                </div>
+
+                <div class="players-section">
+                    <div class="players-title">
+                        <i class="fas fa-users"></i>
+                        Участники ({{ booking.partners.count|add:1 }}{% if booking.max_players %}/{{ booking.max_players }}{% endif %})
+                    </div>
+                    <div class="players-grid">
+                        <div class="player-slot">
+                            <div class="player-avatar">{{ booking.user.first_name.0|default:"?" }}</div>
+                            <div class="player-info">
+                                <div class="player-name">{{ booking.user.get_full_name|default:booking.user.username }}</div>
+                            </div>
+                        </div>
+                        {% for partner in booking.partners.all %}
+                        <div class="player-slot">
+                            <div class="player-avatar">{{ partner.first_name.0|default:"?" }}</div>
+                            <div class="player-info">
+                                <div class="player-name">{{ partner.get_full_name|default:partner.username }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="game-actions">
+                    <a href="{% url 'game_detail' booking.id %}" class="btn btn-primary">
+                        <i class="fas fa-eye"></i> Подробнее
+                    </a>
                 </div>
             </div>
             {% endfor %}

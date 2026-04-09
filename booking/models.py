@@ -92,10 +92,10 @@ class Booking(models.Model):
         help_text='Список буквенных рейтингов для поиска партнёров (например: ["C+", "B-", "B"])'
     )
 
-    # Социальные игры (Americano/Mexicano)
+    # Round-robin игры (все с каждым, пары меняются)
     GAME_MODE_CHOICES = [
         ('regular', 'Обычная игра'),
-        ('americano', 'Americano - Меняющиеся пары'),
+        ('americano', 'Americano - Каждый с каждым, пары меняются'),
         ('mexicano', 'Mexicano - Пары по рейтингу'),
         ('training', 'Тренировка'),
     ]
@@ -194,7 +194,13 @@ class Booking(models.Model):
     def price_per_person(self):
         """Рассчитывает стоимость на одного человека"""
         total = self.total_price
-        # Количество участников = создатель + партнёры (без тренера)
+        # Для Americano/Mexicano считаем по GameParticipant
+        if self.game_mode in ('americano', 'mexicano'):
+            participants_count = self.game_participants.filter(status='accepted').count()
+            if participants_count > 0:
+                return round(total / participants_count, 2)
+            return total
+        # Для обычных игр: создатель + партнёры (без тренера)
         participants_count = 1 + self.partners.count()
         if participants_count > 1:
             return round(total / participants_count, 2)
@@ -310,6 +316,11 @@ class Booking(models.Model):
             self.status = 'confirmed'
             self.confirmed_at = timezone.now()
             self.save()
+            try:
+                from users.services import NotificationService
+                NotificationService.notify_booking_confirmed(self)
+            except Exception:
+                pass
             return True
         return False
 
@@ -419,11 +430,14 @@ class Payment(models.Model):
         self.save()
 
     def refund(self):
-        """Вернуть платеж"""
+        """Вернуть платеж и отменить бронирование"""
         if self.status == 'paid':
             self.status = 'refunded'
             self.refunded_at = timezone.now()
             self.save()
+            if self.booking.status == 'confirmed':
+                self.booking.status = 'cancelled'
+                self.booking.save()
             return True
         return False
 
@@ -694,6 +708,11 @@ class GameRound(models.Model):
         verbose_name='Номер раунда',
         help_text='Номер раунда (1, 2, 3, ...)'
     )
+    match_number = models.IntegerField(
+        default=1,
+        verbose_name='Номер матча в раунде',
+        help_text='Порядковый номер матча внутри раунда (для Mexicano с несколькими кортами)'
+    )
     team1_player1 = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -740,7 +759,7 @@ class GameRound(models.Model):
         verbose_name = 'Раунд игры'
         verbose_name_plural = 'Раунды игр'
         ordering = ['round_number']
-        unique_together = [('booking', 'round_number')]
+        unique_together = [('booking', 'round_number', 'match_number')]
         indexes = [
             models.Index(fields=['booking', 'round_number']),
             models.Index(fields=['booking', 'is_completed']),
@@ -756,6 +775,202 @@ class GameRound(models.Model):
         elif user in [self.team2_player1, self.team2_player2]:
             return self.team2_score
         return 0
+
+
+class WaitingList(models.Model):
+    """Лист ожидания для присоединения к игре"""
+
+    STATUS_CHOICES = [
+        ('pending', 'Ожидает рассмотрения'),
+        ('approved', 'Одобрено'),
+        ('rejected', 'Отклонено'),
+        ('cancelled', 'Отменено'),
+    ]
+
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='waiting_list',
+        verbose_name='Бронирование'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='waiting_list_entries',
+        verbose_name='Пользователь'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        db_index=True,
+        verbose_name='Статус'
+    )
+    message = models.TextField(
+        blank=True,
+        verbose_name='Сообщение',
+        help_text='Сообщение от игрока при запросе на присоединение'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата запроса'
+    )
+    responded_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Дата ответа'
+    )
+    responded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='waiting_list_responses',
+        verbose_name='Кто ответил'
+    )
+
+    class Meta:
+        verbose_name = 'Запрос на присоединение'
+        verbose_name_plural = 'Запросы на присоединение'
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['booking', 'status']),
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['created_at']),
+        ]
+        # Один пользователь не может подать запрос дважды на одно бронирование
+        unique_together = [('booking', 'user')]
+
+    def __str__(self):
+        user_name = f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
+        return f"{user_name} → {self.booking} ({self.get_status_display()})"
+
+    def approve(self, approved_by=None):
+        """Одобрить запрос и добавить пользователя в игру"""
+        if self.status != 'pending':
+            return False, "Запрос уже обработан"
+
+        booking = self.booking
+
+        # Для социальных игр используем GameParticipant
+        if booking.game_mode in ['americano', 'mexicano']:
+            current_accepted = booking.game_participants.filter(status='accepted').count()
+            if current_accepted >= 4:
+                return False, "Нет свободных мест (максимум 4 участника)"
+
+            # Проверяем, не является ли пользователь уже участником
+            if booking.game_participants.filter(user=self.user).exists():
+                return False, "Пользователь уже является участником"
+
+            try:
+                rating_before = self.user.rating.numeric_rating
+            except Exception:
+                rating_before = 1.00
+
+            GameParticipant.objects.create(
+                booking=booking,
+                user=self.user,
+                position=current_accepted + 1,
+                status='accepted',
+                rating_before=rating_before
+            )
+
+            # Проверяем, не пора ли менять статус игры
+            if current_accepted + 1 >= 4:
+                booking.game_status = 'ready'
+                booking.save()
+        else:
+            # Для обычных игр используем старую систему партнёров
+            if self.booking.is_full:
+                return False, "Нет свободных мест"
+            self.booking.partners.add(self.user)
+
+        # Обновляем статус запроса
+        self.status = 'approved'
+        self.responded_at = timezone.now()
+        self.responded_by = approved_by
+        self.save()
+
+        return True, "Запрос одобрен, игрок добавлен в игру"
+
+    def reject(self, rejected_by=None, reason=''):
+        """Отклонить запрос"""
+        if self.status != 'pending':
+            return False, "Запрос уже обработан"
+
+        self.status = 'rejected'
+        self.responded_at = timezone.now()
+        self.responded_by = rejected_by
+        if reason:
+            self.message = f"{self.message}\n[Причина отклонения: {reason}]" if self.message else f"[Причина отклонения: {reason}]"
+        self.save()
+
+        return True, "Запрос отклонён"
+
+
+class GameChat(models.Model):
+    """Чат для игры"""
+
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='chat_messages',
+        verbose_name='Бронирование'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='game_messages',
+        verbose_name='Пользователь'
+    )
+    message = models.TextField(
+        verbose_name='Сообщение'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата отправки',
+        db_index=True
+    )
+    is_system_message = models.BooleanField(
+        default=False,
+        verbose_name='Системное сообщение',
+        help_text='Автоматическое сообщение от системы (например, "Игрок присоединился")'
+    )
+    is_read = models.BooleanField(
+        default=False,
+        verbose_name='Прочитано',
+        help_text='Помечено как прочитанное всеми участниками'
+    )
+
+    class Meta:
+        verbose_name = 'Сообщение в чате'
+        verbose_name_plural = 'Сообщения в чате'
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['booking', 'created_at']),
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['booking', 'is_read']),
+        ]
+
+    def __str__(self):
+        user_name = f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
+        return f"{user_name}: {self.message[:50]}..."
+
+    @classmethod
+    def send_system_message(cls, booking, message):
+        """Отправить системное сообщение в чат игры"""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        # Используем первого пользователя (админа) или создателя бронирования
+        system_user = booking.user
+
+        return cls.objects.create(
+            booking=booking,
+            user=system_user,
+            message=message,
+            is_system_message=True
+        )
 
 
 @receiver(pre_save, sender=BookingInvitation)

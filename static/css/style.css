@@ -15,7 +15,7 @@
     --dark-color: #1a1a1a;
     --light-color: #f8f9fa;
     --gray-color: #6c757d;
-    --gray-light: #999;
+    --gray-light: #767676;
     --gray-lighter: #ccc;
     --gray-lightest: #e0e0e0;
     --gray-border: #ddd;
@@ -28,8 +28,8 @@
 
     /* Text Colors */
     --text-color: #1a1a1a;
-    --text-muted: #666;
-    --text-light: #999;
+    --text-muted: #555;
+    --text-light: #767676;
 
     /* Card & Container */
     --card-bg: white;
@@ -86,23 +86,6 @@
 }
 
 /* ========== ТЕМНАЯ ТЕМА ========== */
-:root[data-theme="dark"] {
-    --primary-color: #9ef01a;
-    --primary-dark: #7cc00f;
-    --primary-light: #bff167;
-    --secondary-color: #38b000;
-    --dark-color: #e0e0e0;
-    --light-color: #1a1a1a;
-    --gray-color: #b0b0b0;
-    --success-color: #4caf50;
-    --danger-color: #f44336;
-    --bg-color: #121212;
-    --text-color: #e0e0e0;
-    --card-bg: #1e1e1e;
-    --card-border: #2d2d2d;
-    --navbar-bg: #1a1a1a;
-    --shadow-color: rgba(0, 0, 0, 0.5);
-}
 
 * {
     margin: 0;
@@ -148,6 +131,29 @@ body {
     font-size: 1.5rem;
     font-weight: bold;
     color: var(--secondary-color);
+}
+
+.nav-brand a {
+    text-decoration: none;
+    font-weight: 700;
+    background: linear-gradient(90deg, #38b000, #9ef01a, #bff167, #9ef01a, #38b000);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.3s ease;
+}
+
+.nav-brand a:hover {
+    text-decoration: none;
+    animation: brandShimmer 2s ease infinite;
+    filter: brightness(1.1);
+}
+
+@keyframes brandShimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .nav-brand i {
@@ -212,24 +218,24 @@ body {
 }
 
 .user-btn {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     border: none;
     cursor: pointer;
     padding: 10px 20px;
     border-radius: 25px;
-    color: white;
+    color: #1a1a1a;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 10px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(158, 240, 26, 0.3);
     font-size: 15px;
 }
 
 .user-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(158, 240, 26, 0.4);
 }
 
 .user-btn i {
@@ -321,13 +327,13 @@ body {
 /* Анимация пульсации для активного состояния */
 @keyframes pulse {
     0% {
-        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+        box-shadow: 0 2px 8px rgba(158, 240, 26, 0.3);
     }
     50% {
-        box-shadow: 0 4px 16px rgba(0, 123, 255, 0.5);
+        box-shadow: 0 4px 16px rgba(158, 240, 26, 0.5);
     }
     100% {
-        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+        box-shadow: 0 2px 8px rgba(158, 240, 26, 0.3);
     }
 }
 
@@ -337,7 +343,7 @@ body {
 
 /* Эффект для выбранного пункта меню */
 .dropdown-content a.current-page {
-    background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);
+    background: linear-gradient(90deg, rgba(158, 240, 26, 0.12) 0%, rgba(191, 241, 103, 0.08) 100%);
     border-left: 4px solid var(--primary-color);
     padding-left: 14px;
     font-weight: 600;
@@ -722,21 +728,89 @@ footer {
     background-color: rgba(0,0,0,0.6);
     overflow: auto;
     backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
 }
 
 .modal-content {
     background-color: white;
-    margin: 8% auto;
+    margin: auto;
     padding: 0;
     border-radius: 16px;
     width: 90%;
     max-width: 450px;
-    max-height: calc(100vh - 100px); /* Ограничение по высоте */
+    max-height: calc(100vh - 100px);
     position: relative;
     box-shadow: 0 10px 40px rgba(0,0,0,0.25);
     animation: modalSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow-y: auto; /* ИСПРАВЛЕНО: Разрешаем вертикальный скролл */
-    overflow-x: hidden; /* Запрещаем горизонтальный скролл */
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: var(--dark-color);
+}
+
+.modal-body {
+    padding: 20px 24px;
+}
+
+.modal-body p {
+    margin: 0 0 16px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.modal-body .form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 14px;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+
+.modal-body .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid #e9ecef;
+    justify-content: flex-end;
 }
 
 @keyframes modalSlide {
@@ -2245,8 +2319,6 @@ footer {
     }
 }
 
-
-
 /* Добавь в style.css */
 .custom-message button {
     background: none;
@@ -2488,16 +2560,6 @@ footer {
 }
 
 /* Темная тема */
-:root[data-theme="dark"] .theme-toggle {
-    background: linear-gradient(135deg, rgba(158, 240, 26, 0.15) 0%, rgba(191, 241, 103, 0.15) 100%);
-    border-color: rgba(158, 240, 26, 0.4);
-    color: var(--primary-color);
-}
-
-:root[data-theme="dark"] .theme-toggle:hover {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: var(--secondary-color);
-}
 
 /* ========== КНОПКА УВЕДОМЛЕНИЙ ========== */
 .notifications-btn {
@@ -2556,21 +2618,6 @@ footer {
     font-weight: 700;
     border: 2px solid white;
     box-shadow: 0 2px 8px rgba(255, 68, 68, 0.4);
-}
-
-:root[data-theme="dark"] .notifications-btn {
-    background: linear-gradient(135deg, rgba(158, 240, 26, 0.15) 0%, rgba(191, 241, 103, 0.15) 100%);
-    border-color: rgba(158, 240, 26, 0.4);
-    color: var(--primary-color);
-}
-
-:root[data-theme="dark"] .notifications-btn:hover {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: var(--secondary-color);
-}
-
-:root[data-theme="dark"] .notification-badge {
-    border-color: var(--card-bg);
 }
 
 /* ========== ВЫПАДАЮЩЕЕ МЕНЮ УВЕДОМЛЕНИЙ ========== */
@@ -2744,19 +2791,6 @@ footer {
 }
 
 /* Темная тема для уведомлений */
-:root[data-theme="dark"] .notifications-dropdown {
-    background: var(--card-bg);
-    border-color: var(--card-border);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-}
-
-:root[data-theme="dark"] .notification-item:hover {
-    background: rgba(158, 240, 26, 0.08);
-}
-
-:root[data-theme="dark"] .notification-item.unread {
-    background: rgba(158, 240, 26, 0.12);
-}
 
 /* Адаптивность */
 @media (max-width: 768px) {
@@ -2802,114 +2836,4 @@ footer {
 }
 
 /* Адаптация цветов для темной темы */
-:root[data-theme="dark"] .nav-item {
-    color: var(--text-color);
-}
 
-:root[data-theme="dark"] .dropdown-content a {
-    color: var(--text-color);
-}
-
-:root[data-theme="dark"] .dropdown-content a:hover {
-    background: rgba(158, 240, 26, 0.2);
-}
-
-:root[data-theme="dark"] .section-card,
-:root[data-theme="dark"] .court-item,
-:root[data-theme="dark"] .calendar-container {
-    background: var(--card-bg);
-    border-color: var(--card-border);
-}
-
-:root[data-theme="dark"] .modal-content {
-    background: var(--card-bg);
-    color: var(--text-color);
-}
-
-:root[data-theme="dark"] .close-modal {
-    color: var(--gray-color);
-}
-
-:root[data-theme="dark"] .close-modal:hover {
-    color: var(--text-color);
-}
-
-:root[data-theme="dark"] footer {
-    background-color: #0a0a0a;
-}
-
-:root[data-theme="dark"] .time-slot {
-    background: var(--card-bg);
-    border-color: var(--card-border);
-}
-
-:root[data-theme="dark"] .time-slot.available {
-    background: linear-gradient(135deg, #1a2a1a 0%, #1f3a1f 100%);
-    border-color: #2a4a2a;
-}
-
-:root[data-theme="dark"] .time-slot.unavailable {
-    background: linear-gradient(135deg, #2a1a1a 0%, #3a1f1f 100%);
-    border-color: #4a2a2a;
-}
-
-:root[data-theme="dark"] .booking-card {
-    background: var(--card-bg);
-    border-color: var(--card-border);
-}
-
-:root[data-theme="dark"] input,
-:root[data-theme="dark"] select,
-:root[data-theme="dark"] textarea {
-    background: var(--card-bg);
-    color: var(--text-color);
-    border-color: var(--card-border);
-}
-
-:root[data-theme="dark"] .form-group input:focus {
-    border-color: var(--primary-color);
-    background: #252525;
-}
-
-:root[data-theme="dark"] .week-day {
-    background: var(--card-bg);
-    border-color: var(--card-border);
-}
-
-:root[data-theme="dark"] .week-arrow {
-    background: var(--card-bg);
-    border-color: var(--card-border);
-    color: var(--secondary-color);
-}
-
-:root[data-theme="dark"] .page-header h1 {
-    color: var(--text-color);
-}
-
-:root[data-theme="dark"] .page-header p {
-    color: var(--gray-color);
-}
-
-:root[data-theme="dark"] .court-item h4 {
-    color: var(--text-color);
-}
-
-:root[data-theme="dark"] .court-item p {
-    color: var(--gray-color);
-}
-
-:root[data-theme="dark"] .price {
-    color: var(--primary-color);
-}
-
-:root[data-theme="dark"] .section-header {
-    color: var(--text-color);
-}
-
-:root[data-theme="dark"] button {
-    transition: all 0.3s ease;
-}
-
-:root[data-theme="dark"] label {
-    color: var(--text-color);
-}

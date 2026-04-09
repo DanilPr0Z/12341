@@ -18,7 +18,7 @@
 .tournament-detail-header {
     position: relative;
     height: 300px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #38b000 0%, #1a6b00 100%);
     background-size: cover;
     background-position: center;
     display: flex;
@@ -423,7 +423,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #38b000 0%, #1a6b00 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -543,33 +543,87 @@
     }
 }
 
-/* ==================== DARK THEME SUPPORT ==================== */
-:root[data-theme="dark"] .tournament-section,
-:root[data-theme="dark"] .info-grid,
-:root[data-theme="dark"] .participants-card,
-:root[data-theme="dark"] .bracket-match {
-    background: var(--card-bg);
-    box-shadow: var(--shadow-xl);
+/* ==================== LEADERBOARD TABLE ==================== */
+.leaderboard-responsive-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
 }
 
-:root[data-theme="dark"] .tournament-title,
-:root[data-theme="dark"] .tournament-section-title,
-:root[data-theme="dark"] .info-label {
-    color: var(--text-color);
+.leaderboard-responsive-table th,
+.leaderboard-responsive-table td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
 }
 
-:root[data-theme="dark"] .tournament-description,
-:root[data-theme="dark"] .info-value,
-:root[data-theme="dark"] .participant-name {
-    color: var(--text-muted);
-}
-
-:root[data-theme="dark"] .tournament-status-badge {
+.leaderboard-responsive-table th {
     background: rgba(158, 240, 26, 0.1);
-    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
 }
 
-:root[data-theme="dark"] .tournament-section:hover,
-:root[data-theme="dark"] .bracket-match:hover {
-    box-shadow: 0 8px 24px rgba(158, 240, 26, 0.2);
+.leaderboard-responsive-table tbody tr:hover {
+    background: rgba(158, 240, 26, 0.05);
 }
+
+.leaderboard-responsive-table .rank-1 {
+    background: rgba(255, 215, 0, 0.08);
+}
+
+.leaderboard-responsive-table .rank-2 {
+    background: rgba(192, 192, 192, 0.08);
+}
+
+.leaderboard-responsive-table .rank-3 {
+    background: rgba(205, 127, 50, 0.08);
+}
+
+.rank-medal {
+    font-size: 20px;
+}
+
+.rank-cell {
+    font-weight: 700;
+    color: #666;
+    text-align: center;
+    width: 50px;
+}
+
+.participant-avatar-small {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.participant-avatar-small img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+@media (max-width: 576px) {
+    .leaderboard-responsive-table {
+        font-size: 12px;
+    }
+
+    .leaderboard-responsive-table th,
+    .leaderboard-responsive-table td {
+        padding: 8px 6px;
+    }
+}
+
+/* ==================== DARK THEME SUPPORT ==================== */
+

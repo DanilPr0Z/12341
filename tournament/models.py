@@ -10,24 +10,17 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from booking.models import Court
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Tournament(models.Model):
     """Турнир по паддлу"""
 
     FORMAT_CHOICES = [
-        # Americano форматы (индивидуальный зачет, ротация партнеров)
-        ('americano', 'Americano - Индивидуальный зачет, ротация партнеров'),
-        ('mexicano', 'Mexicano - Индивидуальный зачет, пары по рейтингу'),
-        ('mixed_americano', 'Mixed Americano - Обязательно мужчина+женщина'),
-
-        # Team форматы (постоянные пары)
-        ('team_americano', 'Team Americano - Постоянные пары, все со всеми'),
-        ('team_mexicano', 'Team Mexicano - Постоянные пары, пары по рейтингу'),
-
-        # Bracket форматы (постоянные пары, playoff)
-        ('doubles_elimination', 'Doubles Elimination - Олимпийская система (пары)'),
-        ('doubles_round_robin', 'Doubles Round Robin - Круговая система (пары)'),
+        # Round-robin формат (индивидуальный зачет, пары меняются)
+        ('americano', 'Round-Robin - Каждый с каждым, пары постоянно меняются'),
     ]
 
     STATUS_CHOICES = [

@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Бронирование #{{ booking.id }} — {{ booking.court.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-detail-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+    .booking-card {
+        background: var(--card-bg, #1e2836);
+        border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 24px;
+    }
+    .booking-card h2 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 18px;
+        color: var(--text-primary, #e8eaf0);
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.06));
+        color: var(--text-secondary, #9aa3b2);
+        font-size: 0.95rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row strong { color: var(--text-primary, #e8eaf0); }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .status-pending  { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .status-confirmed { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .status-cancelled { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .partner-list { list-style: none; padding: 0; margin: 0; }
+    .partner-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.06));
+    }
+    .partner-item:last-child { border-bottom: none; }
+    .partner-avatar {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: var(--accent, #3b82f6);
+    }
+    .partner-name { color: var(--text-primary, #e8eaf0); font-weight: 500; }
+    .invitation-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.06));
+    }
+    .invitation-item:last-child { border-bottom: none; }
+    .inv-status-pending  { color: #f59e0b; font-size: 0.85rem; }
+    .inv-status-accepted { color: #22c55e; font-size: 0.85rem; }
+    .inv-status-declined { color: #ef4444; font-size: 0.85rem; }
+    .btn-cancel-inv {
+        background: rgba(239,68,68,0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 8px;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-cancel-inv:hover { background: rgba(239,68,68,0.2); }
+    .invite-form-wrap {
+        margin-top: 16px;
+    }
+    .invite-form-wrap input, .invite-form-wrap select {
+        width: 100%;
+        background: var(--input-bg, rgba(255,255,255,0.05));
+        border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+        color: var(--text-primary, #e8eaf0);
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+    .btn-primary {
+        background: var(--accent, #3b82f6);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-secondary, #9aa3b2);
+        text-decoration: none;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+    }
+    .back-link:hover { color: var(--text-primary, #e8eaf0); }
+    .empty-state {
+        text-align: center;
+        padding: 20px;
+        color: var(--text-secondary, #9aa3b2);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="booking-detail-container">
+    <a href="{% url 'profile' %}" class="back-link">← Назад к профилю</a>
+
+    {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }}" style="margin-bottom:16px; padding:12px 16px; border-radius:8px;
+             background:{% if msg.tags == 'success' %}rgba(34,197,94,0.12){% else %}rgba(239,68,68,0.12){% endif %};
+             color:{% if msg.tags == 'success' %}#22c55e{% else %}#ef4444{% endif %};">
+            {{ msg }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Основная информация -->
+    <div class="booking-card">
+        <h2>Бронирование #{{ booking.id }}</h2>
+
+        <div class="info-row">
+            <span>Корт</span>
+            <strong>{{ booking.court.name }}</strong>
+        </div>
+        <div class="info-row">
+            <span>Дата</span>
+            <strong>{{ booking.date|date:"d E Y" }}</strong>
+        </div>
+        <div class="info-row">
+            <span>Время</span>
+            <strong>{{ booking.start_time|time:"H:i" }} — {{ booking.end_time|time:"H:i" }}</strong>
+        </div>
+        <div class="info-row">
+            <span>Режим</span>
+            <strong>{{ booking.get_game_mode_display }}</strong>
+        </div>
+        <div class="info-row">
+            <span>Статус</span>
+            <span class="status-badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+        </div>
+        <div class="info-row">
+            <span>Стоимость</span>
+            <strong>{{ booking.total_price }} ₽</strong>
+        </div>
+        {% if booking.price_per_person %}
+        <div class="info-row">
+            <span>На человека</span>
+            <strong>{{ booking.price_per_person }} ₽</strong>
+        </div>
+        {% endif %}
+        {% if is_creator %}
+        <div class="info-row">
+            <span>Вы</span>
+            <strong>Организатор</strong>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Участники -->
+    <div class="booking-card">
+        <h2>Участники ({{ booking.partners.count|add:1 }} / {{ booking.max_players }})</h2>
+        <ul class="partner-list">
+            <!-- Создатель -->
+            <li class="partner-item">
+                {% if booking.user.profile.get_avatar_url %}
+                <img src="{{ booking.user.profile.get_avatar_url }}" alt="" class="partner-avatar">
+                {% else %}
+                <div class="partner-avatar" style="display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">
+                    {{ booking.user.first_name|first|upper }}{{ booking.user.last_name|first|upper }}
+                </div>
+                {% endif %}
+                <div>
+                    <div class="partner-name">{{ booking.user.get_full_name|default:booking.user.username }}</div>
+                    <small style="color:#9aa3b2;">Организатор</small>
+                </div>
+            </li>
+            <!-- Партнёры -->
+            {% for partner in booking.partners.all %}
+            <li class="partner-item">
+                {% if partner.profile.get_avatar_url %}
+                <img src="{{ partner.profile.get_avatar_url }}" alt="" class="partner-avatar">
+                {% else %}
+                <div class="partner-avatar" style="display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">
+                    {{ partner.first_name|first|upper }}{{ partner.last_name|first|upper }}
+                </div>
+                {% endif %}
+                <div class="partner-name">{{ partner.get_full_name|default:partner.username }}</div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Приглашения -->
+    {% if invitations %}
+    <div class="booking-card">
+        <h2>Приглашения</h2>
+        {% for inv in invitations %}
+        <div class="invitation-item">
+            <div>
+                <span style="color:var(--text-primary,#e8eaf0);">
+                    {% if inv.invitee %}{{ inv.invitee.get_full_name|default:inv.invitee.username }}{% else %}{{ inv.invitee_email|default:"—" }}{% endif %}
+                </span>
+                <div class="inv-status-{{ inv.status }}">{{ inv.get_status_display }}</div>
+            </div>
+            {% if is_creator and inv.status == 'pending' %}
+            <button class="btn-cancel-inv" onclick="cancelInvitation({{ inv.id }})">Отменить</button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Форма приглашения -->
+    {% if is_creator and invite_form and not booking.is_full %}
+    <div class="booking-card">
+        <h2>Пригласить игрока</h2>
+        <div class="invite-form-wrap">
+            <form method="post" action="{% url 'send_invitation' booking.id %}">
+                {% csrf_token %}
+                {% for field in invite_form %}
+                    <label style="color:var(--text-secondary,#9aa3b2);font-size:0.85rem;margin-bottom:4px;display:block;">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        {% for err in field.errors %}
+                        <div style="color:#ef4444;font-size:0.8rem;margin-top:-8px;margin-bottom:8px;">{{ err }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" class="btn-primary">Отправить приглашение</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function cancelInvitation(invId) {
+    if (!confirm('Отменить приглашение?')) return;
+    fetch(`/booking/invitation/${invId}/cancel/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) location.reload();
+        else alert(data.message || 'Ошибка');
+    })
+    .catch(() => alert('Ошибка сети'));
+}
+</script>
+{% endblock %}

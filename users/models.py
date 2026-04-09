@@ -76,6 +76,19 @@ class UserProfile(models.Model):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name='Аватар')
     preferences = models.JSONField(default=dict, blank=True, verbose_name='Предпочтения')
 
+    # Предпочтительная сторона игры
+    SIDE_CHOICES = [
+        ('left', 'Левая'),
+        ('right', 'Правая'),
+    ]
+    preferred_side = models.CharField(
+        max_length=10,
+        choices=SIDE_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name='Предпочтительная сторона'
+    )
+
     objects = UserProfileManager()
 
     class Meta:
@@ -152,7 +165,7 @@ class UserProfile(models.Model):
         import random
         self.verification_code = f"{random.randint(100000, 999999)}"
         self.save()
-        logger.info(f"Generated verification code for user {self.user.username}, phone {self.phone}: {self.verification_code}")
+        logger.info(f"Generated phone verification code for user {self.user.username}")
         return self.verification_code
 
     def verify_phone(self, code):
@@ -174,7 +187,7 @@ class UserProfile(models.Model):
         import random
         self.email_verification_code = f"{random.randint(100000, 999999)}"
         self.save()
-        logger.info(f"Generated email verification code for user {self.user.username}, email {self.user.email}: {self.email_verification_code}")
+        logger.info(f"Generated email verification code for user {self.user.username}")
         return self.email_verification_code
 
     def verify_email(self, code):
@@ -414,23 +427,23 @@ class PlayerRating(models.Model):
 
         if 1.00 <= rating_value <= 1.50:
             return 'D'
-        elif 1.60 <= rating_value <= 2.50:
+        elif 1.51 <= rating_value <= 2.50:
             return 'D+'
-        elif 2.60 <= rating_value <= 3.00:
+        elif 2.51 <= rating_value <= 3.00:
             return 'C-'
-        elif 3.10 <= rating_value <= 3.50:
+        elif 3.01 <= rating_value <= 3.50:
             return 'C'
-        elif 3.60 <= rating_value <= 4.00:
+        elif 3.51 <= rating_value <= 4.00:
             return 'C+'
-        elif 4.10 <= rating_value <= 4.50:
+        elif 4.01 <= rating_value <= 4.50:
             return 'B-'
-        elif 4.60 <= rating_value <= 5.00:
+        elif 4.51 <= rating_value <= 5.00:
             return 'B'
-        elif 5.10 <= rating_value <= 5.50:
+        elif 5.01 <= rating_value <= 5.50:
             return 'B+'
-        elif 5.60 <= rating_value <= 6.50:
+        elif 5.51 <= rating_value <= 6.50:
             return 'A'
-        elif 6.60 <= rating_value <= 7.00:
+        elif 6.51 <= rating_value <= 7.00:
             return 'PRO'
         else:
             return 'D'  # По умолчанию
@@ -806,3 +819,64 @@ class PlayerCoachRelationship(models.Model):
         player_name = f"{self.player.first_name} {self.player.last_name}".strip() or self.player.username
         coach_name = f"{self.coach.first_name} {self.coach.last_name}".strip() or self.coach.username
         return f"{player_name} - {coach_name}"
+
+
+class PlayerAchievement(models.Model):
+    """Награды и достижения игрока"""
+
+    ACHIEVEMENT_TYPES = [
+        ('tournament_win', 'Победа в турнире'),
+        ('tournament_place', 'Призовое место в турнире'),
+        ('rating_milestone', 'Достижение рейтинга'),
+        ('games_milestone', 'Количество игр'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='achievements',
+        verbose_name='Игрок'
+    )
+    achievement_type = models.CharField(
+        max_length=30,
+        choices=ACHIEVEMENT_TYPES,
+        verbose_name='Тип достижения'
+    )
+    tournament = models.ForeignKey(
+        'tournament.Tournament',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name='Турнир'
+    )
+    position = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Место',
+        help_text='Позиция в турнире (1, 2, 3, и т.д.)'
+    )
+    date_achieved = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата получения'
+    )
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name='Метаданные',
+        help_text='Дополнительная информация: название турнира, рейтинг, и т.д.'
+    )
+
+    class Meta:
+        verbose_name = 'Достижение игрока'
+        verbose_name_plural = 'Достижения игроков'
+        ordering = ['-date_achieved']
+        indexes = [
+            models.Index(fields=['user', '-date_achieved']),
+            models.Index(fields=['achievement_type', 'date_achieved']),
+        ]
+
+    def __str__(self):
+        player_name = f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
+        if self.achievement_type == 'tournament_place' and self.position:
+            return f"{player_name} - {self.position} место"
+        return f"{player_name} - {self.get_achievement_type_display()}"

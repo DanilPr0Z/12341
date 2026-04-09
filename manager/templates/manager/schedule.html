@@ -329,6 +329,8 @@ let allCoaches = [];
 let allCourts = [];
 let allTrainers = [];
 
+const API_BASE = '{% url "manager:dashboard" %}api/';
+
 document.addEventListener('DOMContentLoaded', function() {
     // Загружаем данные для форм
     loadUsersForForm();
@@ -447,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadEvents(start, end, successCallback, failureCallback) {
-    let url = `/admin/api/schedule/events/?start=${start}&end=${end}`;
+    let url = `${API_BASE}schedule/events/?start=${start}&end=${end}`;
 
     if (currentCourtId) {
         url += `&court_id=${currentCourtId}`;
@@ -515,7 +517,7 @@ function selectTrainer(trainerId) {
 }
 
 function loadTrainers() {
-    fetch('/admin/api/trainers/')
+    fetch(`${API_BASE}trainers/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -548,7 +550,7 @@ function populateTrainerSelector() {
 }
 
 function showBookingDetails(bookingId) {
-    fetch(`/admin/api/bookings/${bookingId}/`)
+    fetch(`${API_BASE}bookings/${bookingId}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -620,7 +622,7 @@ function updateBookingTime(event) {
     const newStart = event.start.toISOString();
     const newEnd = event.end ? event.end.toISOString() : newStart;
 
-    fetch(`/admin/api/bookings/${bookingId}/update-time/`, {
+    fetch(`${API_BASE}bookings/${bookingId}/update-time/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -673,7 +675,7 @@ function createBooking(dateStr, courtId) {
 }
 
 function loadUsersForForm() {
-    fetch('/admin/api/users/')
+    fetch(`${API_BASE}users/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -686,7 +688,7 @@ function loadUsersForForm() {
 }
 
 function loadCourtsForForm() {
-    fetch('/admin/api/courts/')
+    fetch(`${API_BASE}courts/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -770,7 +772,7 @@ function submitCreateBooking(event) {
         required_rating_levels: selectedRatingLevels,
     };
 
-    fetch('/admin/api/bookings/create/', {
+    fetch(`${API_BASE}bookings/create/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -817,7 +819,7 @@ function toggleExpandSection(button) {
 function confirmBooking(id) {
     if (!confirm('Подтвердить это бронирование?')) return;
 
-    fetch(`/admin/api/bookings/${id}/confirm/`, {
+    fetch(`${API_BASE}bookings/${id}/confirm/`, {
         method: 'POST',
         headers: {'X-CSRFToken': getCookie('csrftoken')}
     })
@@ -836,7 +838,7 @@ function confirmBooking(id) {
 function cancelBooking(id) {
     if (!confirm('Отменить это бронирование?')) return;
 
-    fetch(`/admin/api/bookings/${id}/cancel/`, {
+    fetch(`${API_BASE}bookings/${id}/cancel/`, {
         method: 'POST',
         headers: {'X-CSRFToken': getCookie('csrftoken')}
     })

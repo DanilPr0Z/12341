@@ -14,9 +14,8 @@
     <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
     <link rel="stylesheet" href="{% static 'css/modern-styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/responsive-tables.css' %}">
-    <link rel="stylesheet" href="{% static 'css/enhanced-profile.css' %}">
-    <link rel="stylesheet" href="{% static 'css/profile-accordion.css' %}">
-    <link rel="stylesheet" href="{% static 'css/fab-menu.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <!-- FAB menu удалён -->
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
@@ -42,10 +41,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- FAB Menu (только для авторизованных и на мобильных) -->
-    {% if user.is_authenticated %}
-        {% include 'partials/fab_menu.html' %}
-    {% endif %}
+    <!-- FAB Menu удалён -->
 
     <!-- Modern Footer -->
     {% include 'partials/footer.html' %}

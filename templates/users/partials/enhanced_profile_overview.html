@@ -1,102 +1,154 @@
 {% load static %}
 
-<!-- Улучшенный обзор профиля игрока -->
 <div class="enhanced-profile-overview">
 
-    <!-- Предупреждение о неподтвержденном рейтинге -->
-    {% if not rating.updated_by or rating.numeric_rating == 1.00 %}
-    <div class="rating-verification-banner">
-        <i class="fas fa-exclamation-triangle"></i>
-        <span>Рейтинг будет подтвержден тренером после первой игры</span>
-    </div>
-    {% endif %}
+    <!-- ===== РЕЙТИНГОВАЯ КАРТОЧКА ===== -->
+    <div class="rating-card">
 
-    <!-- Визуальный прогресс-бар рейтинга -->
-    <div class="rating-progress-bar-container">
-        <div class="rating-progress-header">
-            <div class="current-rating-display">
-                <div class="current-rating-badge">
-                    {{ rating.level }}
-                </div>
-                <div class="current-rating-info">
-                    <h3>{{ rating.get_level_display_full }}</h3>
-                    <p>Рейтинг: <span class="rating-numeric-value">{{ rating.numeric_rating }}</span></p>
-                </div>
+        {% if not rating.updated_by or rating.numeric_rating == 1.00 %}
+        <div class="rating-verify-hint">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Рейтинг будет подтверждён тренером после первой игры</span>
+        </div>
+        {% endif %}
+
+        <!-- Заголовок: число и уровень -->
+        <div class="rating-card-header">
+            <div class="rating-number-row">
+                <span class="rating-label">Рейтинг:</span>
+                <span class="rating-number">{{ rating.numeric_rating }}</span>
+                <span class="rating-level-pill">{{ rating.level }}</span>
             </div>
-            <div class="rating-numeric-value">
-                Прогресс: {{ progress_percentage|floatformat:0 }}%
-            </div>
+            <span class="rating-level-desc">{{ rating.get_level_display_full }}</span>
         </div>
 
-        <!-- Горизонтальный прогресс-бар от D до PRO -->
-        <div class="horizontal-progress-bar">
-            <!-- Индикатор текущей позиции -->
-            <div class="progress-indicator" id="ratingIndicator">
-                <div class="progress-indicator-tooltip">
-                    {{ rating.level }}: {{ rating.numeric_rating }}
-                </div>
+        <!-- Сегментированный прогресс-бар -->
+        {% with lv=rating.level %}
+        <div class="rating-segments">
+
+            <!-- D -->
+            <div class="rseg-wrap">
+                <div class="rseg {% if lv == 'D' %}rseg-active{% else %}rseg-past{% endif %}"></div>
+                <span class="rseg-label {% if lv == 'D' %}rseg-label-active{% endif %}">D</span>
             </div>
-        </div>
 
-        <!-- Метки уровней -->
-        <div class="progress-labels">
-            <span class="progress-label {% if rating.level == 'D' %}active{% endif %}">D</span>
-            <span class="progress-label {% if rating.level == 'D+' %}active{% endif %}">D+</span>
-            <span class="progress-label {% if rating.level == 'C-' or rating.level == 'C' %}active{% endif %}">C</span>
-            <span class="progress-label {% if rating.level == 'C+' %}active{% endif %}">C+</span>
-            <span class="progress-label {% if rating.level == 'B-' or rating.level == 'B' %}active{% endif %}">B</span>
-            <span class="progress-label {% if rating.level == 'B+' %}active{% endif %}">B+</span>
-            <span class="progress-label {% if rating.level == 'A' %}active{% endif %}">A</span>
-            <span class="progress-label {% if rating.level == 'PRO' %}active{% endif %}">PRO</span>
-        </div>
-    </div>
+            <!-- D+ -->
+            <div class="rseg-wrap">
+                <div class="rseg
+                    {% if lv == 'D+' %}rseg-active
+                    {% elif lv == 'D' %}rseg-future
+                    {% else %}rseg-past{% endif %}
+                "></div>
+                <span class="rseg-label {% if lv == 'D+' %}rseg-label-active{% endif %}">D+</span>
+            </div>
 
-    <!-- Статистические карточки -->
+            <!-- C- -->
+            <div class="rseg-wrap">
+                <div class="rseg
+                    {% if lv == 'C-' %}rseg-active
+                    {% elif lv == 'D' or lv == 'D+' %}rseg-future
+                    {% else %}rseg-past{% endif %}
+                "></div>
+                <span class="rseg-label {% if lv == 'C-' %}rseg-label-active{% endif %}">C-</span>
+            </div>
+
+            <!-- C -->
+            <div class="rseg-wrap">
+                <div class="rseg
+                    {% if lv == 'C' %}rseg-active
+                    {% elif lv == 'D' or lv == 'D+' or lv == 'C-' %}rseg-future
+                    {% else %}rseg-past{% endif %}
+                "></div>
+                <span class="rseg-label {% if lv == 'C' %}rseg-label-active{% endif %}">C</span>
+            </div>
+
+            <!-- C+ -->
+            <div class="rseg-wrap">
+                <div class="rseg
+                    {% if lv == 'C+' %}rseg-active
+                    {% elif lv == 'B-' or lv == 'B' or lv == 'B+' or lv == 'A' or lv == 'PRO' %}rseg-past
+                    {% else %}rseg-future{% endif %}
+                "></div>
+                <span class="rseg-label {% if lv == 'C+' %}rseg-label-active{% endif %}">C+</span>
+            </div>
+
+            <!-- B- -->
+            <div class="rseg-wrap">
+                <div class="rseg
+                    {% if lv == 'B-' %}rseg-active
+                    {% elif lv == 'B' or lv == 'B+' or lv == 'A' or lv == 'PRO' %}rseg-past
+                    {% else %}rseg-future{% endif %}
+                "></div>
+                <span class="rseg-label {% if lv == 'B-' %}rseg-label-active{% endif %}">B-</span>
+            </div>
+
+            <!-- B -->
+            <div class="rseg-wrap">
+                <div class="rseg
+                    {% if lv == 'B' %}rseg-active
+                    {% elif lv == 'B+' or lv == 'A' or lv == 'PRO' %}rseg-past
+                    {% else %}rseg-future{% endif %}
+                "></div>
+                <span class="rseg-label {% if lv == 'B' %}rseg-label-active{% endif %}">B</span>
+            </div>
+
+            <!-- B+ -->
+            <div class="rseg-wrap">
+                <div class="rseg
+                    {% if lv == 'B+' %}rseg-active
+                    {% elif lv == 'A' or lv == 'PRO' %}rseg-past
+                    {% else %}rseg-future{% endif %}
+                "></div>
+                <span class="rseg-label {% if lv == 'B+' %}rseg-label-active{% endif %}">B+</span>
+            </div>
+
+            <!-- A -->
+            <div class="rseg-wrap">
+                <div class="rseg
+                    {% if lv == 'A' %}rseg-active
+                    {% elif lv == 'PRO' %}rseg-past
+                    {% else %}rseg-future{% endif %}
+                "></div>
+                <span class="rseg-label {% if lv == 'A' %}rseg-label-active{% endif %}">A</span>
+            </div>
+
+            <!-- PRO -->
+            <div class="rseg-wrap">
+                <div class="rseg
+                    {% if lv == 'PRO' %}rseg-active rseg-pro
+                    {% else %}rseg-future{% endif %}
+                "></div>
+                <span class="rseg-label {% if lv == 'PRO' %}rseg-label-active{% endif %}">PRO</span>
+            </div>
+
+        </div>
+        {% endwith %}
+
+    </div><!-- /rating-card -->
+
+    <!-- ===== СТАТИСТИЧЕСКИЕ КАРТОЧКИ ===== -->
     <div class="profile-stats-grid">
-        <!-- Турниры -->
+
         <div class="profile-stat-card" onclick="window.location.href='{% url 'tournament:tournaments_list' %}'">
-            <div class="stat-card-icon tournaments">
-                <i class="fas fa-trophy"></i>
-            </div>
+            <div class="stat-card-icon tournaments"><i class="fas fa-trophy"></i></div>
             <h2 class="stat-card-value">{{ stats.tournaments_played|default:0 }}</h2>
             <p class="stat-card-label">Турниры</p>
             {% if stats.tournaments_won %}
-            <div class="stat-card-trend positive">
-                <i class="fas fa-arrow-up"></i>
-                <span>{{ stats.tournaments_won }} побед</span>
-            </div>
+            <div class="stat-card-trend positive"><i class="fas fa-arrow-up"></i><span>{{ stats.tournaments_won }} побед</span></div>
             {% endif %}
         </div>
 
-        <!-- Игры -->
-        <div class="profile-stat-card" onclick="document.querySelector('.tab-btn[data-tab=&quot;bookings&quot;]').click()">
-            <div class="stat-card-icon games">
-                <i class="fas fa-tennis-ball"></i>
-            </div>
+        <div class="profile-stat-card" onclick="window.location.href='{% url 'my_bookings' %}'">
+            <div class="stat-card-icon games"><i class="fas fa-table-tennis-paddle-ball"></i></div>
             <h2 class="stat-card-value">{{ stats.total_games|default:0 }}</h2>
             <p class="stat-card-label">Игры</p>
             {% if stats.games_this_month %}
-            <div class="stat-card-trend positive">
-                <i class="fas fa-arrow-up"></i>
-                <span>{{ stats.games_this_month }} в этом месяце</span>
-            </div>
+            <div class="stat-card-trend positive"><i class="fas fa-arrow-up"></i><span>{{ stats.games_this_month }} в этом месяце</span></div>
             {% endif %}
         </div>
 
-        <!-- Партнеры -->
-        <div class="profile-stat-card" onclick="window.location.href='{% url 'find_partners' %}'">
-            <div class="stat-card-icon partners">
-                <i class="fas fa-users"></i>
-            </div>
-            <h2 class="stat-card-value">{{ stats.unique_partners|default:0 }}</h2>
-            <p class="stat-card-label">Партнеры</p>
-        </div>
-
-        <!-- Победы -->
-        <div class="profile-stat-card">
-            <div class="stat-card-icon wins">
-                <i class="fas fa-medal"></i>
-            </div>
+<div class="profile-stat-card">
+            <div class="stat-card-icon wins"><i class="fas fa-medal"></i></div>
             <h2 class="stat-card-value">{{ stats.wins|default:0 }}</h2>
             <p class="stat-card-label">Победы</p>
             {% if stats.win_rate %}
@@ -106,12 +158,13 @@
             </div>
             {% endif %}
         </div>
+
     </div>
 
-    <!-- Быстрые действия -->
+    <!-- ===== БЫСТРЫЕ ДЕЙСТВИЯ ===== -->
     <div class="profile-quick-actions">
-        <!-- Мои бронирования -->
-        <div class="quick-action-card" onclick="document.querySelector('.tab-btn[data-tab=&quot;bookings&quot;]').click()">
+
+        <div class="quick-action-card" onclick="window.location.href='{% url 'my_bookings' %}'">
             <div class="quick-action-header">
                 <h4>Мои бронирования</h4>
                 <i class="fas fa-chevron-right quick-action-arrow"></i>
@@ -125,66 +178,48 @@
             </div>
         </div>
 
-        <!-- Результаты -->
-        <div class="quick-action-card" onclick="document.querySelector('.tab-btn[data-tab=&quot;statistics&quot;]').click()">
+        <div class="quick-action-card" onclick="window.location.href='{% url 'notifications_list' %}'">
             <div class="quick-action-header">
-                <h4>Результаты</h4>
+                <h4><i class="fas fa-bell" style="margin-right:6px;color:var(--primary-color)"></i>Уведомления</h4>
                 <i class="fas fa-chevron-right quick-action-arrow"></i>
             </div>
             <div class="quick-action-content">
-                {% if stats.total_games > 0 %}
-                    <p>Всего игр: <strong>{{ stats.total_games }}</strong></p>
+                {% if unread_notifications_count %}
+                    <p>Непрочитанных: <strong style="color:#ef4444;">{{ unread_notifications_count }}</strong></p>
                 {% else %}
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <p class="empty-state-text">Еще нет результатов</p>
-                        <a href="{% url 'create_game_page' %}" class="empty-state-action">
-                            Создать игру
-                        </a>
-                    </div>
+                    <p style="color:#999;">Нет новых уведомлений</p>
                 {% endif %}
             </div>
         </div>
+
     </div>
+
 </div>
 
-<!-- JavaScript для анимации прогресс-бара и круговой диаграммы -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Анимация индикатора рейтинга
-    const ratingValue = parseFloat('{{ rating.numeric_rating }}');
-    const indicator = document.getElementById('ratingIndicator');
-
-    if (indicator) {
-        // Рассчитываем позицию индикатора (от 1.00 до 7.00)
-        // 1.00 = 0%, 7.00 = 100%
-        const minRating = 1.00;
-        const maxRating = 7.00;
-        const position = ((ratingValue - minRating) / (maxRating - minRating)) * 100;
-
-        // Устанавливаем позицию с задержкой для анимации
+    // Анимация сегментов при загрузке
+    const segs = document.querySelectorAll('.rseg');
+    segs.forEach((seg, i) => {
+        seg.style.opacity = '0';
+        seg.style.transform = 'scaleY(0.5)';
         setTimeout(() => {
-            indicator.style.left = position + '%';
-        }, 300);
-    }
+            seg.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            seg.style.opacity = '1';
+            seg.style.transform = 'scaleY(1)';
+        }, 80 + i * 40);
+    });
 
-    // Анимация счетчиков статистики
-    const statValues = document.querySelectorAll('.stat-card-value');
-    statValues.forEach((element) => {
-        const targetValue = parseInt(element.textContent);
-        if (!isNaN(targetValue)) {
-            let currentValue = 0;
-            const increment = targetValue / 50; // 50 шагов анимации
-            const timer = setInterval(() => {
-                currentValue += increment;
-                if (currentValue >= targetValue) {
-                    element.textContent = targetValue;
-                    clearInterval(timer);
-                } else {
-                    element.textContent = Math.floor(currentValue);
-                }
+    // Анимация счётчиков
+    document.querySelectorAll('.stat-card-value').forEach(el => {
+        const target = parseInt(el.textContent);
+        if (!isNaN(target) && target > 0) {
+            let cur = 0;
+            const inc = target / 40;
+            const t = setInterval(() => {
+                cur += inc;
+                if (cur >= target) { el.textContent = target; clearInterval(t); }
+                else { el.textContent = Math.floor(cur); }
             }, 20);
         }
     });

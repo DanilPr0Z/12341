@@ -12,8 +12,11 @@ from django.db.models import Q, Sum
 from django.views.decorators.http import require_POST
 import csv
 
+import logging
 from booking.models import Booking, Court
 from booking.analytics import get_financial_stats, get_occupancy_stats, get_clients_stats
+
+logger = logging.getLogger(__name__)
 
 
 # Custom decorator to replace staff_member_required
@@ -1710,17 +1713,18 @@ def api_payments_list(request):
         from booking.models import Payment
         from django.contrib.auth.models import User
 
-        payments = Payment.objects.select_related('booking', 'user').all().order_by('-created_at')
+        payments = Payment.objects.select_related('booking', 'booking__user').all().order_by('-created_at')
 
         # Формируем данные
         payments_data = []
         for payment in payments:
+            user = payment.booking.user
             payments_data.append({
                 'id': payment.id,
                 'booking_id': payment.booking.id,
-                'user_id': payment.user.id,
-                'user_name': payment.user.get_full_name() or payment.user.username,
-                'user_email': payment.user.email,
+                'user_id': user.id,
+                'user_name': user.get_full_name() or user.username,
+                'user_email': user.email,
                 'amount': float(payment.amount),
                 'status': payment.status,
                 'payment_method': payment.payment_method,
@@ -1732,8 +1736,8 @@ def api_payments_list(request):
         # Статистика
         from django.db.models import Sum
         stats = {
-            'total_revenue': float(payments.filter(status='completed').aggregate(Sum('amount'))['amount__sum'] or 0),
-            'paid_payments': payments.filter(status='completed').count(),
+            'total_revenue': float(payments.filter(status='paid').aggregate(Sum('amount'))['amount__sum'] or 0),
+            'paid_payments': payments.filter(status='paid').count(),
             'pending_payments': payments.filter(status='pending').count(),
             'failed_payments': payments.filter(status='failed').count(),
         }
@@ -1753,14 +1757,14 @@ def api_payment_detail(request, payment_id):
     try:
         from booking.models import Payment
 
-        payment = get_object_or_404(Payment.objects.select_related('booking', 'user'), id=payment_id)
+        payment = get_object_or_404(Payment.objects.select_related('booking', 'booking__user'), id=payment_id)
 
         payment_data = {
             'id': payment.id,
             'booking_id': payment.booking.id,
-            'user_id': payment.user.id,
-            'user_name': payment.user.get_full_name() or payment.user.username,
-            'user_email': payment.user.email,
+            'user_id': payment.booking.user.id,
+            'user_name': payment.booking.user.get_full_name() or payment.booking.user.username,
+            'user_email': payment.booking.user.email,
             'amount': float(payment.amount),
             'status': payment.status,
             'payment_method': payment.payment_method,
@@ -1786,10 +1790,10 @@ def api_payment_mark_paid(request, payment_id):
 
         payment = get_object_or_404(Payment, id=payment_id)
 
-        if payment.status == 'completed':
+        if payment.status == 'paid':
             return JsonResponse({'success': False, 'error': 'Платеж уже оплачен'}, status=400)
 
-        payment.status = 'completed'
+        payment.status = 'paid'
         payment.paid_at = timezone.now()
         payment.save()
 
@@ -1815,7 +1819,7 @@ def api_payment_refund(request, payment_id):
 
         payment = get_object_or_404(Payment, id=payment_id)
 
-        if payment.status != 'completed':
+        if payment.status != 'paid':
             return JsonResponse({'success': False, 'error': 'Можно вернуть только оплаченные платежи'}, status=400)
 
         payment.status = 'refunded'
@@ -1844,7 +1848,7 @@ def api_payments_export(request):
         date_to = request.GET.get('date_to')
         status = request.GET.get('status')
 
-        payments = Payment.objects.select_related('booking', 'user').all().order_by('-created_at')
+        payments = Payment.objects.select_related('booking', 'booking__user').all().order_by('-created_at')
 
         if date_from:
             payments = payments.filter(created_at__date__gte=date_from)
@@ -1865,8 +1869,8 @@ def api_payments_export(request):
             writer.writerow([
                 payment.id,
                 payment.created_at.strftime('%Y-%m-%d %H:%M'),
-                payment.user.get_full_name() or payment.user.username,
-                payment.user.email,
+                payment.booking.user.get_full_name() or payment.booking.user.username,
+                payment.booking.user.email,
                 f'#{payment.booking.id}',
                 float(payment.amount),
                 payment.payment_method or '-',

@@ -200,42 +200,4 @@
 }
 
 /* Dark Theme */
-:root[data-theme="dark"] .accordion-item {
-    background: #1e1e1e;
-}
 
-:root[data-theme="dark"] .accordion-header {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-}
-
-:root[data-theme="dark"] .accordion-header:hover {
-    background: linear-gradient(135deg, #333 0%, #2a2a2a 100%);
-}
-
-:root[data-theme="dark"] .accordion-item.open .accordion-header {
-    background: linear-gradient(135deg, #9ef01a 0%, #70c904 100%);
-}
-
-:root[data-theme="dark"] .accordion-header h3 {
-    color: #f8f9fa;
-}
-
-:root[data-theme="dark"] .accordion-item.open .accordion-header h3 {
-    color: #1a1a1a;
-}
-
-:root[data-theme="dark"] .accordion-header-content i {
-    color: #adb5bd;
-}
-
-:root[data-theme="dark"] .accordion-item.open .accordion-header-content i {
-    color: #1a1a1a;
-}
-
-:root[data-theme="dark"] .accordion-icon {
-    color: #adb5bd;
-}
-
-:root[data-theme="dark"] .accordion-item.open .accordion-icon {
-    color: #1a1a1a;
-}

@@ -8,43 +8,74 @@
 
 let selectedPartner = null;
 
-// Загрузка участников
-async function loadParticipants() {
+// Загрузка таблицы лидеров (публичный API)
+async function loadLeaderboard() {
+    const container = document.getElementById('leaderboardTable');
+    if (!container) return;
+
     try {
-        const response = await fetch(`/tournament/api/${TOURNAMENT_ID}/`);
+        const response = await fetch(`/tournaments/ajax/tournament/${TOURNAMENT_ID}/leaderboard/`);
         const data = await response.json();
 
         if (data.success) {
-            renderParticipants(data.tournament.participants);
+            renderLeaderboard(data.leaderboard);
+        } else {
+            container.innerHTML = '<p style="text-align:center;color:#999;">Не удалось загрузить таблицу лидеров</p>';
         }
     } catch (error) {
-        console.error('Error loading participants:', error);
+        console.error('Error loading leaderboard:', error);
+        container.innerHTML = '<p style="text-align:center;color:#999;">Ошибка загрузки таблицы лидеров</p>';
     }
 }
 
-function renderParticipants(participants) {
-    const container = document.getElementById('participantsList');
+function renderLeaderboard(leaderboard) {
+    const container = document.getElementById('leaderboardTable');
 
-    if (!participants || participants.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state-small">
-                <p>Пока нет участников</p>
-            </div>
-        `;
+    if (!leaderboard || leaderboard.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#999;">Нет данных для таблицы лидеров</p>';
         return;
     }
 
-    container.innerHTML = participants.map(p => `
-        <div class="participant-item">
-            <div class="participant-avatar">
-                ${p.avatar ? `<img src="${p.avatar}" alt="${p.name}">` : p.name[0].toUpperCase()}
-            </div>
-            <div class="participant-info">
-                <p class="participant-name">${p.name}${p.partner ? ` + ${p.partner_name}` : ''}</p>
-                <p class="participant-rating">${p.rating || 'Без рейтинга'}</p>
-            </div>
-        </div>
-    `).join('');
+    let html = `
+        <table class="leaderboard-responsive-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Игрок</th>
+                    <th>Очки</th>
+                    <th>Матчи</th>
+                    <th>Победы</th>
+                    <th>% побед</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    leaderboard.forEach(p => {
+        const rankClass = p.rank <= 3 ? `rank-${p.rank}` : '';
+        html += `
+            <tr class="${rankClass}">
+                <td class="rank-cell">
+                    ${p.rank <= 3 ? `<span class="rank-medal">${['', '&#129351;', '&#129352;', '&#129353;'][p.rank]}</span>` : p.rank}
+                </td>
+                <td class="player-cell">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div class="participant-avatar-small">
+                            ${p.avatar ? `<img src="${p.avatar}" alt="${p.name}">` : (p.name ? p.name[0].toUpperCase() : '?')}
+                        </div>
+                        <span>${p.name}</span>
+                    </div>
+                </td>
+                <td><strong>${p.total_points}</strong></td>
+                <td>${p.matches_played}</td>
+                <td>${p.matches_won}</td>
+                <td>${p.win_rate}%</td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
 }
 
 // Загрузка сетки турнира
@@ -53,7 +84,7 @@ async function loadBracket() {
     if (!bracketContainer) return;
 
     try {
-        const response = await fetch(`/tournament/api/${TOURNAMENT_ID}/bracket/`);
+        const response = await fetch(`/tournaments/api/${TOURNAMENT_ID}/bracket/`);
         const data = await response.json();
 
         if (data.success) {
@@ -67,14 +98,99 @@ async function loadBracket() {
 function renderBracket(bracket) {
     const container = document.getElementById('tournamentBracket');
 
-    // TODO: Реализовать визуализацию сетки турнира
-    // Пока просто показываем сообщение
-    container.innerHTML = `
-        <div class="bracket-info">
-            <i class="fas fa-info-circle"></i>
-            <p>Сетка турнира будет доступна после начала</p>
-        </div>
-    `;
+    if (!bracket || bracket.length === 0) {
+        container.innerHTML = `
+            <div class="bracket-info">
+                <i class="fas fa-info-circle"></i>
+                <p>Сетка турнира будет доступна после начала</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Создаём контейнер для сетки
+    let html = '<div class="tournament-bracket">';
+
+    // Проходимся по каждому раунду
+    bracket.forEach((round, roundIndex) => {
+        html += `
+            <div class="bracket-round" data-round="${round.round_number}">
+                <h3 class="round-title">${round.round_name || `Раунд ${round.round_number}`}</h3>
+                <div class="round-matches">
+        `;
+
+        // Отображаем матчи в раунде
+        round.matches.forEach(match => {
+            const team1Won = match.winning_team_id === match.team1.id;
+            const team2Won = match.winning_team_id === match.team2.id;
+            const isCompleted = match.status === 'completed';
+            const isInProgress = match.status === 'in_progress';
+
+            html += `
+                <div class="bracket-match ${isCompleted ? 'completed' : ''} ${isInProgress ? 'in-progress' : ''}" data-match-id="${match.id}">
+                    <!-- Команда 1 -->
+                    <div class="match-team ${team1Won ? 'winner' : ''} ${team2Won ? 'loser' : ''}">
+                        <div class="team-info">
+                            <div class="team-name">${match.team1.name}</div>
+                            ${match.team1.player1 ? `
+                                <div class="team-players">
+                                    ${match.team1.player1}
+                                    ${match.team1.player2 ? ` & ${match.team1.player2}` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        ${isCompleted || isInProgress ? `
+                            <div class="team-score ${team1Won ? 'winning-score' : ''}">${match.score_team1 || 0}</div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Разделитель -->
+                    <div class="match-divider">
+                        ${isInProgress ? '<i class="fas fa-circle pulse"></i>' : 'vs'}
+                    </div>
+
+                    <!-- Команда 2 -->
+                    <div class="match-team ${team2Won ? 'winner' : ''} ${team1Won ? 'loser' : ''}">
+                        <div class="team-info">
+                            <div class="team-name">${match.team2.name}</div>
+                            ${match.team2.player1 ? `
+                                <div class="team-players">
+                                    ${match.team2.player1}
+                                    ${match.team2.player2 ? ` & ${match.team2.player2}` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        ${isCompleted || isInProgress ? `
+                            <div class="team-score ${team2Won ? 'winning-score' : ''}">${match.score_team2 || 0}</div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Статус матча -->
+                    ${isCompleted ? `
+                        <div class="match-status completed">
+                            <i class="fas fa-check-circle"></i> Завершён
+                        </div>
+                    ` : isInProgress ? `
+                        <div class="match-status in-progress">
+                            <i class="fas fa-play-circle"></i> В процессе
+                        </div>
+                    ` : `
+                        <div class="match-status pending">
+                            <i class="fas fa-clock"></i> Ожидается
+                        </div>
+                    `}
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
 }
 
 // Поиск партнера
@@ -170,7 +286,7 @@ async function registerForTournament(tournamentId) {
             }
         }
 
-        const response = await fetch(`/tournament/public/${tournamentId}/register/`, {
+        const response = await fetch(`/tournaments/public/${tournamentId}/register/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -223,7 +339,7 @@ async function unregisterFromTournament(tournamentId) {
     }
 
     try {
-        const response = await fetch(`/tournament/public/${tournamentId}/unregister/`, {
+        const response = await fetch(`/tournaments/public/${tournamentId}/unregister/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -279,11 +395,11 @@ function getCookie(name) {
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
-    // Загружаем участников
-    loadParticipants();
-
-    // Загружаем сетку если турнир начался
     if (typeof TOURNAMENT_ID !== 'undefined') {
+        // Загружаем таблицу лидеров
+        loadLeaderboard();
+
+        // Загружаем сетку если турнир начался
         const bracketContainer = document.getElementById('tournamentBracket');
         if (bracketContainer) {
             loadBracket();

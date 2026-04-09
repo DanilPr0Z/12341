@@ -1,60 +1,21 @@
 """
 Утилиты для модуля бронирования
 """
-from django.utils.html import format_html
 from datetime import datetime, timedelta
 
 
 def create_error_message(title="Ошибка", message="Произошла ошибка"):
-    """
-    Создает красивое HTML сообщение об ошибке
-
-    Args:
-        title: Заголовок ошибки
-        message: Текст ошибки
-
-    Returns:
-        Отформатированная HTML строка
-    """
-    return format_html('''
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="fas fa-exclamation-circle" style="font-size: 24px; color: white;"></i>
-            <div>
-                <div style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 5px;">
-                    ❌ {}
-                </div>
-                <div style="font-size: 14px; color: rgba(255,255,255,0.9);">
-                    {}
-                </div>
-            </div>
-        </div>
-    ''', title, message)
+    """Создает текстовое сообщение об ошибке для toast-уведомления."""
+    if title and title != "Ошибка":
+        return f"{title}: {message}"
+    return message
 
 
 def create_success_message(title="Успешно", message="Операция выполнена успешно"):
-    """
-    Создает красивое HTML сообщение об успехе
-
-    Args:
-        title: Заголовок
-        message: Текст сообщения
-
-    Returns:
-        Отформатированная HTML строка
-    """
-    return format_html('''
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="fas fa-check-circle" style="font-size: 24px; color: white;"></i>
-            <div>
-                <div style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 5px;">
-                    ✅ {}
-                </div>
-                <div style="font-size: 14px; color: rgba(255,255,255,0.9);">
-                    {}
-                </div>
-            </div>
-        </div>
-    ''', title, message)
+    """Создает текстовое сообщение об успехе для toast-уведомления."""
+    if title and title != "Успешно":
+        return f"{title}: {message}"
+    return message
 
 
 def validate_booking_times(booking_date, start_time, end_time, today, current_time):
@@ -186,11 +147,20 @@ def pluralize_hours(hours):
     Returns:
         Строка с правильным склонением (например: "1 час", "2 часа", "5 часов")
     """
-    hours_int = int(hours)
+    try:
+        value = float(hours)
+    except (TypeError, ValueError):
+        value = 1.0
 
+    # Поддержка 0.5 шага (1.5, 2.5 и т.п.)
+    if abs(value - round(value)) > 1e-9:
+        # Для дробных значений в русском обычно говорят "1.5 часа", "2.5 часа"
+        formatted = f"{value:g}".replace('.', ',')
+        return f"{formatted} часа"
+
+    hours_int = int(round(value))
     if hours_int == 1:
         return "1 час"
-    elif 2 <= hours_int <= 4:
+    if 2 <= hours_int <= 4:
         return f"{hours_int} часа"
-    else:
-        return f"{hours_int} часов"
+    return f"{hours_int} часов"

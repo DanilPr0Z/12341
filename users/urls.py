@@ -7,6 +7,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('logout/', views.user_logout, name='logout'),
     path('profile/', views.profile, name='profile'),
+    path('my-bookings/', views.my_bookings, name='my_bookings'),
     path('rating/', views.rating_detail, name='rating_detail'),
     path('ajax/rating-info/', views.get_rating_info, name='ajax_rating_info'),
     path('ajax/update-rating/<int:user_id>/', views.update_player_rating, name='ajax_update_rating'),
@@ -35,4 +36,5 @@ urlpatterns = [
     path('ajax/upload-avatar/', views.upload_avatar, name='ajax_upload_avatar'),
     path('ajax/delete-avatar/', views.delete_avatar, name='ajax_delete_avatar'),
     path('ajax/update-profile/', views.update_profile, name='ajax_update_profile'),
+    path('ajax/update-preferred-side/', views.update_preferred_side, name='ajax_update_preferred_side'),
 ]

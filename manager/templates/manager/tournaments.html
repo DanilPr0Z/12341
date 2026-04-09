@@ -116,17 +116,7 @@
                 <div class="form-group">
                     <label>🎾 Формат турнира</label>
                     <select name="format" id="tournamentFormat" class="form-control" onchange="updateFormatDescription()">
-                        <optgroup label="Индивидуальный зачет (партнеры меняются)">
-                            <option value="americano" selected>Americano - Все играют со всеми</option>
-                            <option value="mexicano">Mexicano - Пары по рейтингу</option>
-                            <option value="mixed_americano">Mixed Americano - Мужчина + женщина</option>
-                        </optgroup>
-                        <optgroup label="Командный (постоянные пары)">
-                            <option value="team_americano">Team Americano - Постоянные пары, все со всеми</option>
-                            <option value="team_mexicano">Team Mexicano - Постоянные пары, по рейтингу</option>
-                            <option value="doubles_elimination">Doubles Elimination - Playoff (пары)</option>
-                            <option value="doubles_round_robin">Doubles Round Robin - Круговая (пары)</option>
-                        </optgroup>
+                        <option value="americano" selected>Americano - Все играют со всеми</option>
                     </select>
                     <small class="form-text" id="formatDescription" style="color: var(--text-secondary); margin-top: 8px; display: block;">
                         Каждый играет с каждым и против каждого. Партнеры меняются каждый раунд. Победитель определяется по сумме очков.
@@ -137,7 +127,7 @@
                     <div class="form-group">
                         <label>Макс. участников</label>
                         <input type="number" name="max_participants" id="maxParticipants" min="4" max="128" required class="form-control" value="8">
-                        <small class="form-text" style="color: var(--text-secondary);">Лучше кратно 4 для Americano/Mexicano</small>
+                        <small class="form-text" style="color: var(--text-secondary);">Лучше кратно 4 для Americano</small>
                     </div>
                     <div class="form-group">
                         <label>Очков за матч</label>
@@ -147,7 +137,7 @@
                             <option value="24" selected>24 очка (~10 мин)</option>
                             <option value="32">32 очка (~14 мин)</option>
                         </select>
-                        <small class="form-text" style="color: var(--text-secondary);">Для Americano/Mexicano</small>
+                        <small class="form-text" style="color: var(--text-secondary);">Для Americano</small>
                     </div>
                 </div>
 
@@ -323,16 +313,10 @@ function displayTournaments(tournaments) {
 
             <div class="tournament-meta">
                 <span><i class="fas fa-calendar"></i> ${new Date(tournament.start_date).toLocaleDateString('ru')}</span>
-                <span><i class="fas fa-users"></i> ${tournament.participants_count}/${tournament.max_participants} ${tournament.format && (tournament.format.includes('team') || tournament.format.includes('doubles')) ? 'пар' : 'игроков'}</span>
+                <span><i class="fas fa-users"></i> ${tournament.participants_count}/${tournament.max_participants} игроков</span>
                 <span><i class="fas fa-trophy"></i> ${tournament.prize_pool}₽</span>
                 <span title="${tournament.format_display}">
                     ${tournament.format === 'americano' ? '🔄' : ''}
-                    ${tournament.format === 'mexicano' ? '📊' : ''}
-                    ${tournament.format === 'mixed_americano' ? '👫' : ''}
-                    ${tournament.format === 'team_americano' ? '🤝' : ''}
-                    ${tournament.format === 'team_mexicano' ? '🤝📊' : ''}
-                    ${tournament.format === 'doubles_elimination' ? '🏆' : ''}
-                    ${tournament.format === 'doubles_round_robin' ? '🔁' : ''}
                     ${tournament.format_display}
                 </span>
                 ${tournament.points_per_match ? `<span><i class="fas fa-bullseye"></i> До ${tournament.points_per_match} очков</span>` : ''}
@@ -366,13 +350,7 @@ function updateStats(stats) {
 
 // НОВОЕ: Описания форматов
 const formatDescriptions = {
-    'americano': '🔄 Каждый играет с каждым и против каждого. Партнеры меняются каждый раунд автоматически. Победитель определяется по сумме очков. Идеально для социальных турниров!',
-    'mexicano': '📊 Как Americano, но пары формируются по текущему рейтингу. После каждого раунда топ-2 играют вместе против 3-4, делая матчи более сбалансированными.',
-    'mixed_americano': '👫 Как Americano, но обязательно мужчина + женщина в каждой паре. Отлично подходит для смешанных турниров.',
-    'team_americano': '🤝 Постоянные пары играют со всеми остальными парами. Очки суммируются для пары.',
-    'team_mexicano': '🤝📊 Постоянные пары, но формирование матчей по рейтингу пар.',
-    'doubles_elimination': '🏆 Олимпийская система с постоянными парами. Пары выбывают после одного поражения. Классический playoff формат.',
-    'doubles_round_robin': '🔁 Круговая система с постоянными парами. Каждая пара играет с каждой один раз.'
+    'americano': '🔄 Каждый играет с каждым и против каждого. Партнеры меняются каждый раунд автоматически. Победитель определяется по сумме очков. Идеально для социальных турниров!'
 };
 
 // НОВОЕ: Обновление описания формата
@@ -380,18 +358,6 @@ function updateFormatDescription() {
     const format = document.getElementById('tournamentFormat').value;
     const description = formatDescriptions[format] || '';
     document.getElementById('formatDescription').textContent = description;
-
-    // Обновляем подсказку для максимального количества участников
-    const isTeam = format.includes('team') || format.includes('doubles');
-    const maxParticipantsInput = document.getElementById('maxParticipants');
-
-    if (isTeam) {
-        maxParticipantsInput.previousElementSibling.nextElementSibling.textContent = 'Количество пар';
-        maxParticipantsInput.min = 2;
-    } else {
-        maxParticipantsInput.previousElementSibling.nextElementSibling.textContent = 'Лучше кратно 4 для Americano/Mexicano';
-        maxParticipantsInput.min = 4;
-    }
 }
 
 // Модальное окно создания турнира

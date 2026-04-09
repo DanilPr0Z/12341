@@ -203,13 +203,15 @@ let filteredTrainers = [];
 let allUsers = [];
 let currentTrainerCalendar = null;
 
+const API_BASE = '{% url "manager:dashboard" %}api/';
+
 document.addEventListener('DOMContentLoaded', function() {
     loadTrainers();
     loadUsers();
 });
 
 function loadTrainers() {
-    fetch('/admin/api/trainers/')
+    fetch(`${API_BASE}trainers/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -227,7 +229,7 @@ function loadTrainers() {
 }
 
 function loadUsers() {
-    fetch('/admin/api/users/')
+    fetch(`${API_BASE}users/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -346,7 +348,7 @@ function filterTrainers() {
 }
 
 function viewTrainer(id) {
-    fetch(`/admin/api/trainers/${id}/`)
+    fetch(`${API_BASE}trainers/${id}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -460,7 +462,7 @@ function viewTrainerSchedule(trainerId, trainerName) {
         allDaySlot: false,
         height: 'auto',
         events: function(info, successCallback, failureCallback) {
-            fetch(`/admin/api/trainers/${trainerId}/schedule/?start=${info.startStr}&end=${info.endStr}`)
+            fetch(`${API_BASE}trainers/${trainerId}/schedule/?start=${info.startStr}&end=${info.endStr}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -520,7 +522,7 @@ function editTrainer(trainerId) {
     document.getElementById('formModalTitle').textContent = 'Редактировать тренера';
     document.getElementById('trainerId').value = trainerId;
 
-    fetch(`/admin/api/trainers/${trainerId}/`)
+    fetch(`${API_BASE}trainers/${trainerId}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -568,8 +570,8 @@ function submitTrainerForm(event) {
     };
 
     const url = isEdit
-        ? `/admin/api/trainers/${trainerId}/update/`
-        : '/admin/api/trainers/create/';
+        ? `${API_BASE}trainers/${trainerId}/update/`
+        : `${API_BASE}trainers/create/`;
 
     fetch(url, {
         method: 'POST',
@@ -600,7 +602,7 @@ function deleteTrainer(trainerId) {
         return;
     }
 
-    fetch(`/admin/api/trainers/${trainerId}/delete/`, {
+    fetch(`${API_BASE}trainers/${trainerId}/delete/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken')

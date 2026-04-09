@@ -72,28 +72,69 @@
                     </div>
 
                     <div class="participants-list">
-                        <p class="participants-title">Участники:</p>
-                        <div class="participants-avatars">
-                            <div class="participant-avatar" title="{{ booking.user.get_full_name }} (организатор)">
-                                {% if booking.user.profile.avatar %}
-                                    <img src="{{ booking.user.profile.avatar.url }}" alt="{{ booking.user.get_full_name }}">
-                                {% else %}
-                                    <i class="fas fa-user"></i>
-                                {% endif %}
-                                <span class="organizer-badge">Орг.</span>
+                        <p class="participants-title">Участники ({{ booking.partners.count|add:1 }}/{{ booking.max_players }}):</p>
+                        <div class="participants-detailed">
+                            <!-- Организатор -->
+                            <div class="participant-item organizer">
+                                <div class="participant-avatar-wrapper">
+                                    {% if booking.user.profile.avatar %}
+                                        <img src="{{ booking.user.profile.avatar.url }}" alt="{{ booking.user.get_full_name }}">
+                                    {% else %}
+                                        <i class="fas fa-user"></i>
+                                    {% endif %}
+                                    <span class="organizer-badge">Орг.</span>
+                                </div>
+                                <div class="participant-info">
+                                    <div class="participant-name">{{ booking.user.get_full_name }}</div>
+                                    {% if booking.user.rating %}
+                                    <div class="participant-rating">
+                                        <i class="fas fa-star"></i> {{ booking.user.rating.level }}
+                                        <span class="rating-numeric">({{ booking.user.rating.numeric_rating }})</span>
+                                    </div>
+                                    {% else %}
+                                    <div class="participant-rating no-rating">
+                                        <i class="fas fa-question-circle"></i> Нет рейтинга
+                                    </div>
+                                    {% endif %}
+                                </div>
                             </div>
+
+                            <!-- Партнёры -->
                             {% for partner in booking.partners.all %}
-                            <div class="participant-avatar" title="{{ partner.get_full_name }}">
-                                {% if partner.profile.avatar %}
-                                    <img src="{{ partner.profile.avatar.url }}" alt="{{ partner.get_full_name }}">
-                                {% else %}
-                                    <i class="fas fa-user"></i>
-                                {% endif %}
+                            <div class="participant-item">
+                                <div class="participant-avatar-wrapper">
+                                    {% if partner.profile.avatar %}
+                                        <img src="{{ partner.profile.avatar.url }}" alt="{{ partner.get_full_name }}">
+                                    {% else %}
+                                        <i class="fas fa-user"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="participant-info">
+                                    <div class="participant-name">{{ partner.get_full_name }}</div>
+                                    {% if partner.rating %}
+                                    <div class="participant-rating">
+                                        <i class="fas fa-star"></i> {{ partner.rating.level }}
+                                        <span class="rating-numeric">({{ partner.rating.numeric_rating }})</span>
+                                    </div>
+                                    {% else %}
+                                    <div class="participant-rating no-rating">
+                                        <i class="fas fa-question-circle"></i> Нет рейтинга
+                                    </div>
+                                    {% endif %}
+                                </div>
                             </div>
                             {% endfor %}
+
+                            <!-- Свободные места -->
                             {% for i in booking.available_slots|make_list %}
-                            <div class="participant-avatar empty">
-                                <i class="fas fa-question"></i>
+                            <div class="participant-item empty-slot">
+                                <div class="participant-avatar-wrapper empty">
+                                    <i class="fas fa-question"></i>
+                                </div>
+                                <div class="participant-info">
+                                    <div class="participant-name">Свободное место</div>
+                                    <div class="participant-rating">Ждём игрока</div>
+                                </div>
                             </div>
                             {% endfor %}
                         </div>
@@ -283,58 +324,139 @@
 }
 
 .participants-list {
-    margin-top: 15px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
 }
 
 .participants-title {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 10px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--secondary-color);
+    font-size: 1rem;
 }
 
-.participants-avatars {
+.participants-detailed {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.participant-avatar {
-    position: relative;
-    width: 40px;
-    height: 40px;
+.participant-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.participant-item:hover {
+    background: #e9ecef;
+}
+
+.participant-item.organizer {
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(103, 58, 183, 0.1));
+    border: 1px solid rgba(156, 39, 176, 0.2);
+}
+
+.participant-item.empty-slot {
+    background: white;
+    border: 2px dashed #e0e0e0;
+    opacity: 0.7;
+}
+
+.participant-avatar-wrapper {
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
-    overflow: hidden;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 1rem;
-    border: 2px solid white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-.participant-avatar img {
+.participant-avatar-wrapper img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.participant-avatar.empty {
+.participant-avatar-wrapper.empty {
     background: #e0e0e0;
     color: #999;
 }
 
 .organizer-badge {
     position: absolute;
-    bottom: -5px;
-    right: -5px;
-    background: #ff9800;
+    bottom: -2px;
+    right: -2px;
+    background: #f59e0b;
     color: white;
-    font-size: 0.6rem;
-    padding: 2px 4px;
+    font-size: 9px;
+    padding: 2px 5px;
     border-radius: 4px;
     font-weight: 600;
+}
+
+.participant-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.participant-name {
+    font-weight: 600;
+    color: var(--secondary-color);
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.participant-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #666;
+    font-size: 0.85rem;
+    margin-top: 2px;
+}
+
+.participant-rating i {
+    color: #f59e0b;
+}
+
+.participant-rating.no-rating {
+    color: #999;
+    font-style: italic;
+}
+
+.rating-numeric {
+    color: #999;
+    font-size: 0.8rem;
+}
+
+/* Modal styles removed - join happens directly now */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .booking-footer {
@@ -388,40 +510,59 @@
 </style>
 
 <script>
-function joinBooking(bookingId) {
-    if (!confirm('Вы уверены, что хотите присоединиться к этому бронированию?')) {
-        return;
-    }
-
+async function joinBooking(bookingId) {
     const btn = document.querySelector(`[data-booking-id="${bookingId}"]`);
     const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Присоединяюсь...';
-    btn.disabled = true;
 
-    fetch(`/booking/join/${bookingId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+        // Отправляем запрос сразу с дефолтным сообщением
+        const message = 'Хочу присоединиться к игре';
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка запроса...';
+        btn.disabled = true;
+
+        // Отправляем запрос через waiting list API
+        const response = await fetch(`/booking/waiting-list/${bookingId}/join/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({ message })
+        });
+
+        const data = await response.json();
+
         if (data.success) {
-            alert(data.message);
-            location.reload();
+            if (window.toast) {
+                window.toast.success(data.message);
+            } else {
+                alert(data.message);
+            }
+            // Обновляем страницу через 1 секунду
+            setTimeout(() => location.reload(), 1000);
         } else {
-            alert(data.message);
+            if (window.toast) {
+                window.toast.error(data.message);
+            } else {
+                alert(data.message);
+            }
             btn.innerHTML = originalHtml;
             btn.disabled = false;
         }
-    })
-    .catch(error => {
-        alert('Произошла ошибка при присоединении');
+    } catch (error) {
+        console.error('Error joining game:', error);
+        if (window.toast) {
+            window.toast.error('Произошла ошибка при отправке запроса');
+        } else {
+            alert('Произошла ошибка при отправке запроса');
+        }
         btn.innerHTML = originalHtml;
         btn.disabled = false;
-    });
+    }
 }
+
+// Modal removed - join happens directly now
 
 function getCookie(name) {
     let cookieValue = null;

@@ -39,4 +39,9 @@ urlpatterns = [
     path('api/matches/<int:match_id>/set-score/', views.api_match_set_score, name='api_match_set_score'),
     path('api/matches/<int:match_id>/set-winner/', views.api_match_set_winner, name='api_match_set_winner'),  # legacy
     path('api/matches/<int:match_id>/schedule/', views.api_match_schedule, name='api_match_schedule'),
+
+    # Публичные API endpoints (для игроков)
+    path('ajax/tournament/<int:tournament_id>/generate-bracket/', views.ajax_generate_bracket, name='ajax_generate_bracket'),
+    path('ajax/match/<int:match_id>/submit-score/', views.ajax_submit_match_score, name='ajax_submit_match_score'),
+    path('ajax/tournament/<int:tournament_id>/leaderboard/', views.ajax_public_tournament_leaderboard, name='ajax_public_tournament_leaderboard'),
 ]

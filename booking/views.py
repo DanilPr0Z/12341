@@ -27,7 +27,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-from django.utils.html import escape
+
 from .utils import (
     create_error_message,
     create_success_message,
@@ -43,6 +43,84 @@ from .decorators import (
     auth_ratelimit
 )
 
+@login_required
+@require_POST
+def check_availability(request):
+    """Проверка доступности временного слота для бронирования"""
+    court_id = request.POST.get('court_id')
+    date_str = request.POST.get('date')
+    start_time_str = request.POST.get('start_time')
+    duration_str = request.POST.get('duration')
+
+    if not all([court_id, date_str, start_time_str, duration_str]):
+        return JsonResponse({
+            'success': False,
+            'available': False,
+            'message': 'Необходимо указать корт, дату, время начала и продолжительность'
+        })
+
+    try:
+        court = Court.objects.filter(id=court_id, is_available=True).first()
+        if not court:
+            return JsonResponse({
+                'success': False,
+                'available': False,
+                'message': 'Корт не найден или недоступен'
+            })
+
+        booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        start_time = datetime.strptime(start_time_str, '%H:%M').time()
+
+        duration_hours = float(str(duration_str).replace(',', '.'))
+        total_minutes = int(start_time.hour * 60 + start_time.minute + round(duration_hours * 60))
+        end_hour = total_minutes // 60
+        end_minute = total_minutes % 60
+        from datetime import time as dt_time
+        end_time = dt_time(hour=end_hour, minute=end_minute)
+
+        today = timezone.now().date()
+        current_time = timezone.now().time()
+
+        is_valid, error_msg = validate_booking_times(booking_date, start_time, end_time, today, current_time)
+        if not is_valid:
+            return JsonResponse({
+                'success': True,
+                'available': False,
+                'message': error_msg
+            })
+
+        is_valid, error_msg = validate_working_hours(start_time, end_time)
+        if not is_valid:
+            return JsonResponse({
+                'success': True,
+                'available': False,
+                'message': error_msg
+            })
+
+        has_conflict, conflicting = check_time_conflicts(court, booking_date, start_time, end_time)
+        if has_conflict:
+            return JsonResponse({
+                'success': True,
+                'available': False,
+                'message': 'Выбранное время уже занято'
+            })
+
+        return JsonResponse({
+            'success': True,
+            'available': True,
+            'message': 'Время доступно'
+        })
+
+    except (ValueError, TypeError) as e:
+        logger.warning(f"check_availability: invalid input — {e}")
+        return JsonResponse({
+            'success': False,
+            'available': False,
+            'message': 'Некорректные данные запроса'
+        })
+
+
+@login_required
 def booking_page(request):
     """Страница бронирования кортов"""
     courts = Court.objects.filter(is_available=True).order_by('name')
@@ -50,13 +128,14 @@ def booking_page(request):
 
     # Получаем приглашения для текущего пользователя
     pending_invitations = []
-    if request.user.is_authenticated:
-        from booking.models import BookingInvitation
-        pending_invitations = BookingInvitation.objects.filter(
-            invitee=request.user,
-            status='pending',
-            booking__date__gte=today_date  # Только будущие бронирования
-        ).select_related('booking', 'booking__court', 'inviter').order_by('booking__date', 'booking__start_time')
+    from booking.models import BookingInvitation
+    pending_invitations = BookingInvitation.objects.filter(
+        invitee=request.user,
+        status='pending',
+        booking__date__gte=today_date
+    ).select_related(
+        'booking', 'booking__court', 'inviter', 'inviter__profile'
+    ).order_by('booking__date', 'booking__start_time')
 
     return render(request, 'booking.html', {
         'courts': courts,
@@ -68,8 +147,12 @@ def booking_page(request):
 @require_GET
 @api_data_ratelimit(rate='60/m')
 def get_available_slots(request):
-    court_id = request.GET.get('court')
+    # Поддерживаем оба имени параметра для совместимости:
+    # - старый фронт: court
+    # - новый аккордеон: court_id (и мы тоже используем court)
+    court_id = request.GET.get('court') or request.GET.get('court_id')
     date_str = request.GET.get('date')
+    duration_raw = request.GET.get('duration')
 
     logger.debug(f"get_available_slots called with court={court_id}, date={date_str}")
     logger.debug(f"Current time: {timezone.now().time()}")
@@ -81,6 +164,20 @@ def get_available_slots(request):
         })
 
     try:
+        # Длительность (часов) для генерации слотов (аккордеон).
+        # Если не передано или некорректно — по умолчанию 1 час.
+        duration_hours = 1.0
+        if duration_raw is not None and duration_raw != '':
+            try:
+                duration_hours = float(str(duration_raw).replace(',', '.'))
+            except (TypeError, ValueError):
+                duration_hours = 1.0
+
+        # Разрешаем только сетку 0.5 часа (1, 1.5, 2, 2.5, 3)
+        allowed_durations = {1.0, 1.5, 2.0, 2.5, 3.0}
+        if duration_hours not in allowed_durations:
+            duration_hours = 1.0
+
         court = Court.objects.filter(id=court_id, is_available=True).first()
         if not court:
             logger.warning(f"Court not found or not available: {court_id}")
@@ -111,46 +208,68 @@ def get_available_slots(request):
 
         logger.debug(f"Found {existing_bookings.count()} existing bookings for court {court.name} on {booking_date}")
 
-        # Словарь занятых часов
-        booked_hours = {}
+        # Занятые интервалы в минутах (start, end)
+        booked_intervals = []
         for booking in existing_bookings:
-            start_hour = booking.start_time.hour
-            end_hour = booking.end_time.hour
-            for hour in range(start_hour, end_hour):
-                booked_hours[hour] = True
-            logger.debug(f"Booking slot: {start_hour}:00-{end_hour}:00")
+            start_minutes = booking.start_time.hour * 60 + booking.start_time.minute
+            end_minutes = booking.end_time.hour * 60 + booking.end_time.minute
+            booked_intervals.append((start_minutes, end_minutes))
+            logger.debug(
+                f"Booking slot: {booking.start_time.strftime('%H:%M')}-{booking.end_time.strftime('%H:%M')}"
+            )
+
+        def overlaps(a_start, a_end, b_start, b_end):
+            return a_start < b_end and b_start < a_end
 
         # Рабочие часы: 8:00 - 22:00
         WORKING_HOURS_START = 8
         WORKING_HOURS_END = 22
+        working_start_minutes = WORKING_HOURS_START * 60
+        working_end_minutes = WORKING_HOURS_END * 60
 
-        # ТОЛЬКО СВОБОДНЫЕ СЛОТЫ
-        free_slots = []
+        # Генерация слотов для аккордеона (free slots) с учётом длительности
+        slot_duration_minutes = int(duration_hours * 60)
+        slots = []
 
         # Только если сегодняшняя дата
         if booking_date == today:
-            current_hour = current_time.hour
-            logger.debug(f"Booking for today - current hour: {current_hour}")
+            current_minutes = current_time.hour * 60 + current_time.minute
+            logger.debug(f"Booking for today - current minutes: {current_minutes}")
         else:
-            current_hour = -1  # Будущая дата, все часы доступны
+            current_minutes = -1  # Будущая дата, все время доступно
             logger.debug(f"Booking for future date - all hours available")
 
-        for hour in range(WORKING_HOURS_START, WORKING_HOURS_END):
-            is_available = hour not in booked_hours
+        # Стартовые времена: каждые 30 минут (под длительности 1.5/2.5)
+        step_minutes = 30
+        start_min = working_start_minutes
+        last_start = working_end_minutes - slot_duration_minutes
+        if last_start < start_min:
+            last_start = start_min - step_minutes  # не будет слотов
 
-            # Если сегодня, нельзя бронировать прошедшее время
-            if booking_date == today and hour < current_hour:
+        start_m = start_min
+        while start_m <= last_start:
+            end_m = start_m + slot_duration_minutes
+
+            is_available = True
+
+            # Нельзя бронировать в прошлом (для сегодня)
+            if booking_date == today and start_m < current_minutes:
                 is_available = False
 
-            # ДОБАВЛЯЕМ ТОЛЬКО СВОБОДНЫЕ СЛОТЫ
+            # Проверяем пересечения с существующими бронированиями
+            if is_available and booked_intervals:
+                for b_start, b_end in booked_intervals:
+                    if overlaps(start_m, end_m, b_start, b_end):
+                        is_available = False
+                        break
+
             if is_available:
-                free_slots.append({
-                    'type': 'free_slot',
-                    'start_time': f"{hour:02d}:00",
-                    'end_time': f"{(hour + 1):02d}:00",
-                    'duration': 1,
-                    'hour': hour
+                slots.append({
+                    'start_time': f"{start_m // 60:02d}:{start_m % 60:02d}",
+                    'booked': False
                 })
+
+            start_m += step_minutes
 
         # Получаем рейтинг текущего пользователя (если залогинен)
         user_rating = None
@@ -199,6 +318,29 @@ def get_available_slots(request):
             })
 
         # Объединяем свободные слоты и бронирования с партнёрами
+        # Legacy items (для старого UI): слоты по часам + записи с поиском партнера
+        free_slots = []
+        for hour in range(WORKING_HOURS_START, WORKING_HOURS_END):
+            # свободен ли целый час (старый формат), без учёта дробных минут
+            hour_start = hour * 60
+            hour_end = (hour + 1) * 60
+            hour_available = True
+            if booking_date == today and hour_start < current_minutes:
+                hour_available = False
+            if hour_available and booked_intervals:
+                for b_start, b_end in booked_intervals:
+                    if overlaps(hour_start, hour_end, b_start, b_end):
+                        hour_available = False
+                        break
+            if hour_available:
+                free_slots.append({
+                    'type': 'free_slot',
+                    'start_time': f"{hour:02d}:00",
+                    'end_time': f"{(hour + 1):02d}:00",
+                    'duration': 1,
+                    'hour': hour
+                })
+
         all_items = free_slots + partner_bookings
         # Сортируем по времени начала
         all_items.sort(key=lambda x: x['hour'])
@@ -207,6 +349,8 @@ def get_available_slots(request):
 
         result = {
             'success': True,
+            # Новый формат для аккордеона
+            'slots': slots,
             'items': all_items,  # Смешанный список: свободные слоты + бронирования с партнёрами
             'court_price': float(court.price_per_hour),
             'court_name': court.name,
@@ -215,7 +359,8 @@ def get_available_slots(request):
             'date_formatted': booking_date.strftime('%d.%m.%Y'),
             'free_slots_count': len(free_slots),
             'partner_bookings_count': len(partner_bookings),
-            'user_rating': user_rating
+            'user_rating': user_rating,
+            'duration': duration_hours
         }
 
         logger.debug(f"Returning {len(all_items)} total items (free slots + partner bookings)")
@@ -265,9 +410,18 @@ def create_booking(request):
 
         # Рассчитываем end_time если не указан
         if not end_time_str and duration:
-            hours = int(duration)
-            end_hour = int(start_time_str.split(':')[0]) + hours
-            end_time = datetime.strptime(f"{end_hour:02d}:00", '%H:%M').time()
+            try:
+                duration_hours = float(str(duration).replace(',', '.'))
+            except (TypeError, ValueError):
+                duration_hours = 1.0
+
+            # Приводим к минутам, поддерживаем шаг 30 минут
+            duration_minutes = int(round(duration_hours * 60))
+            start_minutes = start_time.hour * 60 + start_time.minute
+            end_minutes = start_minutes + duration_minutes
+            end_hour = end_minutes // 60
+            end_minute = end_minutes % 60
+            end_time = datetime.strptime(f"{end_hour:02d}:{end_minute:02d}", '%H:%M').time()
         else:
             end_time = datetime.strptime(end_time_str, '%H:%M').time()
 
@@ -311,7 +465,7 @@ def create_booking(request):
                 return redirect('booking')
 
             # Получаем данные для поиска партнеров
-            looking_for_partner = request.POST.get('looking_for_partner') == 'on'
+            looking_for_partner = bool(request.POST.get('looking_for_partner'))
             max_players = int(request.POST.get('max_players', 4))
 
             # Получаем выбранные уровни рейтинга (множественные чекбоксы)
@@ -358,7 +512,7 @@ def create_booking(request):
                 is_public=is_public if game_mode in ['americano', 'mexicano'] else False,
                 rounds_count=rounds_count if game_mode in ['americano', 'mexicano'] else 3,
                 points_per_round=points_per_round if game_mode in ['americano', 'mexicano'] else 24,
-                game_status='pending' if game_mode in ['americano', 'mexicano'] else 'pending'
+                game_status='pending'
             )
 
             # Повторная проверка (защита от race condition)
@@ -371,6 +525,21 @@ def create_booking(request):
                 error_msg = "Это время было забронировано другим пользователем. Пожалуйста, выберите другое время."
                 messages.error(request, create_error_message("Время занято", error_msg))
                 return redirect('booking')
+
+            # Для социальных игр (Americano/Mexicano) добавляем создателя как первого участника
+            if game_mode in ['americano', 'mexicano']:
+                from .models import GameParticipant
+                try:
+                    creator_rating = request.user.rating.numeric_rating
+                except Exception:
+                    creator_rating = 1.00
+                GameParticipant.objects.create(
+                    booking=booking,
+                    user=request.user,
+                    position=1,
+                    status='accepted',
+                    rating_before=creator_rating
+                )
 
             # Отправляем приглашения выбранным участникам
             if invited_participant_ids:
@@ -389,6 +558,30 @@ def create_booking(request):
                             invitee_phone=invited_user.profile.phone if hasattr(invited_user, 'profile') else '',
                             message=f"Приглашение присоединиться к игре {booking_date.strftime('%d.%m.%Y')} в {start_time_str}"
                         )
+                        # Создаем уведомление в базе для приглашённого
+                        try:
+                            from users.models import Notification
+                            from booking.models import BookingInvitation as BI
+                            inviter_name = request.user.get_full_name() or request.user.username
+                            inv_obj = BI.objects.filter(
+                                booking=booking, invitee=invited_user
+                            ).order_by('-id').first()
+                            Notification.objects.create(
+                                user=invited_user,
+                                type='booking_invitation',
+                                title='Приглашение в игру',
+                                message=(
+                                    f"{inviter_name} приглашает вас на игру "
+                                    f"{booking_date.strftime('%d.%m.%Y')} в {start_time_str} "
+                                    f"на корте {court.name}"
+                                ),
+                                metadata={
+                                    'booking_id': booking.id,
+                                    'invitation_id': inv_obj.id if inv_obj else None,
+                                }
+                            )
+                        except Exception as ne:
+                            logger.error(f"Error creating invitation notification: {str(ne)}")
                         invitations_sent += 1
                         logger.info(f"Invitation sent to user {invited_user.username} for booking {booking.id}")
                     except User.DoesNotExist:
@@ -401,6 +594,11 @@ def create_booking(request):
 
         # 7. Очищаем кэш
         clear_slots_cache(court_id=court_id, date_str=date_str)
+        try:
+            from users.analytics import invalidate_player_stats_cache
+            invalidate_player_stats_cache(request.user.id)
+        except Exception:
+            pass
 
         # 8. Логируем успех
         logger.info(
@@ -414,54 +612,13 @@ def create_booking(request):
         booking_type_text = "Тренировка" if booking_type == 'training' else "Игра"
         coach_info = f" с тренером {coach.get_full_name() or coach.username}" if coach else ""
 
-        success_details = f"""
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <i class="fas fa-check-circle" style="font-size: 24px; color: white;"></i>
-            <div style="flex: 1;">
-                <div style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 8px;">
-                    🎉 Бронирование успешно создано!
-                </div>
-                <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px;">
-                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 8px 15px;">
-                        <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
-                            <i class="fas fa-clipboard-list"></i> Тип:
-                        </div>
-                        <div style="font-weight: bold; color: white; font-size: 14px;">{booking_type_text}{coach_info}</div>
+        success_details = (
+            f"{court.name} · {booking_date.strftime('%d.%m.%Y')} · "
+            f"{start_time_str}–{end_time.strftime('%H:%M')} · "
+            f"{duration_text} · {int(booking.total_price)} руб."
+        )
 
-                        <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
-                            <i class="fas fa-court-sport"></i> Корт:
-                        </div>
-                        <div style="font-weight: bold; color: white; font-size: 14px;">{court.name}</div>
-
-                        <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
-                            <i class="fas fa-calendar"></i> Дата:
-                        </div>
-                        <div style="font-weight: bold; color: white; font-size: 14px;">{booking_date.strftime("%d.%m.%Y")}</div>
-
-                        <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
-                            <i class="fas fa-clock"></i> Время:
-                        </div>
-                        <div style="font-weight: bold; color: white; font-size: 14px;">{start_time_str} - {end_time.strftime("%H:%M")}</div>
-
-                        <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
-                            <i class="fas fa-hourglass"></i> Продолжительность:
-                        </div>
-                        <div style="font-weight: bold; color: white; font-size: 14px;">{duration_text}</div>
-
-                        <div style="color: rgba(255,255,255,0.9); font-size: 14px;">
-                            <i class="fas fa-tag"></i> Стоимость:
-                        </div>
-                        <div style="font-weight: bold; color: white; font-size: 14px;">{int(booking.total_price)} руб.</div>
-                    </div>
-                </div>
-                <div style="margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.8);">
-                    <i class="fas fa-info-circle"></i> Вы можете подтвердить бронирование за 24 часа до начала
-                </div>
-            </div>
-        </div>
-        """
-
-        messages.success(request, success_details)
+        messages.success(request, f"Бронирование создано! {success_details}")
         return redirect(f"{reverse('profile')}#bookings")
 
     except Exception as e:
@@ -514,8 +671,45 @@ def cancel_booking(request, booking_id):
         booking.status = 'cancelled'
         booking.save()
 
+        # Уведомляем всех партнёров/приглашённых об отмене
+        try:
+            from users.models import Notification
+            from booking.models import BookingInvitation
+            date_fmt = booking.date.strftime('%d.%m.%Y')
+            time_fmt = booking.start_time.strftime('%H:%M')
+            cancel_msg = (
+                f"Игра {date_fmt} в {time_fmt} на корте {booking.court.name} отменена"
+            )
+            # Партнёры (обычные игры)
+            for partner in booking.partners.all():
+                Notification.objects.create(
+                    user=partner,
+                    type='booking_cancelled',
+                    title='Игра отменена',
+                    message=cancel_msg,
+                    metadata={'booking_id': booking.id}
+                )
+            # Приглашённые
+            for inv in BookingInvitation.objects.filter(booking=booking, status='pending'):
+                if inv.invitee is None:
+                    continue
+                Notification.objects.create(
+                    user=inv.invitee,
+                    type='booking_cancelled',
+                    title='Игра отменена',
+                    message=cancel_msg,
+                    metadata={'booking_id': booking.id}
+                )
+        except Exception as ne:
+            logger.error(f"Error creating cancellation notifications: {str(ne)}")
+
         # Очищаем кэш
         clear_slots_cache(court_id=court_id, date_str=date_str)
+        try:
+            from users.analytics import invalidate_player_stats_cache
+            invalidate_player_stats_cache(request.user.id)
+        except Exception:
+            pass
 
         logger.info(f"Booking {booking_id} cancelled by user {request.user.username}")
 
@@ -1319,23 +1513,41 @@ def api_decline_invitation(request, invitation_id):
         }, status=500)
 
 
-# ========== СОЦИАЛЬНЫЕ ИГРЫ (AMERICANO/MEXICANO) ==========
+# ========== СОЦИАЛЬНЫЕ ИГРЫ (AMERICANO) ==========
 
 @login_required
+@login_required
 def games_list(request):
-    """Страница со списком социальных игр"""
+    """Страница со списком социальных игр и бронирований"""
     from .models import GameParticipant
 
     today = timezone.now().date()
 
-    # Публичные игры, в которых можно участвовать
+    # Публичные игры (americano/mexicano), в которых можно участвовать
     public_games = Booking.objects.filter(
         is_public=True,
         game_mode__in=['americano', 'mexicano'],
         date__gte=today,
         game_status__in=['pending', 'ready']
+    ).exclude(
+        user=request.user
     ).select_related('user', 'court', 'user__rating').prefetch_related(
         'game_participants__user__rating'
+    ).order_by('date', 'start_time')
+
+    # Публичные бронирования, которые ищут партнёров (обычные игры)
+    public_bookings = Booking.objects.filter(
+        looking_for_partner=True,
+        status__in=['pending', 'confirmed'],
+        date__gte=today
+    ).exclude(
+        user=request.user
+    ).exclude(
+        partners=request.user
+    ).exclude(
+        game_mode__in=['americano', 'mexicano']
+    ).select_related('user', 'court', 'user__profile', 'user__rating').prefetch_related(
+        'partners'
     ).order_by('date', 'start_time')
 
     # Приглашения пользователя в социальные игры
@@ -1345,7 +1557,7 @@ def games_list(request):
         booking__date__gte=today
     ).select_related('booking', 'booking__court', 'booking__user').order_by('booking__date', 'booking__start_time')
 
-    # Игры, в которых пользователь участвует
+    # Мои игры (americano/mexicano) через GameParticipant
     my_games = GameParticipant.objects.filter(
         user=request.user,
         status__in=['accepted', 'joined'],
@@ -1354,10 +1566,23 @@ def games_list(request):
         'booking__game_participants__user__rating'
     ).order_by('booking__date', 'booking__start_time')
 
+    # Мои обычные бронирования (как создатель или партнёр)
+    my_bookings = Booking.objects.filter(
+        Q(user=request.user) | Q(partners=request.user),
+        date__gte=today,
+        status__in=['pending', 'confirmed']
+    ).exclude(
+        game_mode__in=['americano', 'mexicano']
+    ).select_related('court', 'user').prefetch_related(
+        'partners'
+    ).distinct().order_by('date', 'start_time')
+
     context = {
         'public_games': public_games,
+        'public_bookings': public_bookings,
         'game_invitations': game_invitations,
         'my_games': my_games,
+        'my_bookings': my_bookings,
         'today': today
     }
 
@@ -1401,7 +1626,7 @@ def invite_to_game(request, booking_id):
         # Получаем рейтинг приглашаемого
         try:
             rating_before = invited_user.rating.numeric_rating
-        except:
+        except Exception:
             rating_before = 1.00
 
         # Создаем приглашение
@@ -1440,11 +1665,12 @@ def accept_game_invitation(request, participant_id):
         participant.status = 'accepted'
         participant.save()
 
-        # Проверяем, все ли приглашения приняты
+        # Проверяем, готова ли игра к началу (4 принятых участника, нет ожидающих)
         booking = participant.booking
-        all_accepted = not booking.game_participants.filter(status='invited').exists()
+        accepted_count = booking.game_participants.filter(status='accepted').count()
+        has_pending = booking.game_participants.filter(status='invited').exists()
 
-        if all_accepted and booking.game_participants.count() == 4:
+        if accepted_count >= 4 and not has_pending:
             booking.game_status = 'ready'
             booking.save()
 
@@ -1495,7 +1721,6 @@ def decline_game_invitation(request, participant_id):
 def start_game(request, booking_id):
     """Начать игру и сгенерировать раунды"""
     from .models import GameParticipant, GameRound
-    import random
 
     try:
         booking = get_object_or_404(Booking, id=booking_id, user=request.user)
@@ -1523,23 +1748,15 @@ def start_game(request, booking_id):
         # Генерируем раунды
         players = [p.user for p in participants]
 
-        if booking.game_mode == 'americano':
-            # Americano: каждый играет с каждым в паре
-            rounds_data = [
-                # Раунд 1: 1-2 vs 3-4
-                (players[0], players[1], players[2], players[3]),
-                # Раунд 2: 1-3 vs 2-4
-                (players[0], players[2], players[1], players[3]),
-                # Раунд 3: 1-4 vs 2-3
-                (players[0], players[3], players[1], players[2]),
-            ]
-        else:  # mexicano
-            # Mexicano: пары формируются по рейтингу после каждого раунда
-            # Первый раунд - случайные пары
-            random.shuffle(players)
-            rounds_data = [
-                (players[0], players[1], players[2], players[3])
-            ]
+        # Americano: каждый играет с каждым в паре
+        rounds_data = [
+            # Раунд 1: 1-2 vs 3-4
+            (players[0], players[1], players[2], players[3]),
+            # Раунд 2: 1-3 vs 2-4
+            (players[0], players[2], players[1], players[3]),
+            # Раунд 3: 1-4 vs 2-3
+            (players[0], players[3], players[1], players[2]),
+        ]
 
         # Создаем раунды
         for round_num, (p1, p2, p3, p4) in enumerate(rounds_data, start=1):
@@ -1647,10 +1864,6 @@ def submit_round_score(request, booking_id, round_number):
             })
         else:
             # Переходим к следующему раунду
-            if booking.game_mode == 'mexicano' and round_number < booking.rounds_count:
-                # Генерируем следующий раунд по рейтингу
-                generate_next_mexicano_round(booking, round_number + 1)
-
             booking.current_round = round_number + 1
             booking.save()
 
@@ -1669,35 +1882,6 @@ def submit_round_score(request, booking_id, round_number):
             'success': False,
             'message': 'Ошибка при сохранении счета'
         }, status=500)
-
-
-def generate_next_mexicano_round(booking, round_number):
-    """Генерация следующего раунда для Mexicano"""
-    from .models import GameParticipant, GameRound
-
-    # Получаем участников, отсортированных по очкам
-    participants = list(booking.game_participants.filter(status='joined').order_by('-total_points'))
-
-    if len(participants) != 4:
-        return
-
-    # Формируем пары: 1-й с 4-м, 2-й с 3-м (сильные со слабыми)
-    team1_p1 = participants[0].user
-    team1_p2 = participants[3].user
-    team2_p1 = participants[1].user
-    team2_p2 = participants[2].user
-
-    GameRound.objects.create(
-        booking=booking,
-        round_number=round_number,
-        team1_player1=team1_p1,
-        team1_player2=team1_p2,
-        team2_player1=team2_p1,
-        team2_player2=team2_p2
-    )
-
-    logger.info(f"Generated Mexicano round {round_number} for game {booking.id}")
-
 
 def calculate_rating_changes(booking):
     """Рассчитать изменения рейтинга после завершения игры"""
@@ -1739,28 +1923,54 @@ def calculate_rating_changes(booking):
 
 
 @login_required
+@login_required
 def game_detail(request, booking_id):
     """Детальная страница игры"""
     from .models import GameParticipant, GameRound
 
     booking = get_object_or_404(Booking, id=booking_id)
 
-    # Проверяем доступ
-    is_participant = GameParticipant.objects.filter(booking=booking, user=request.user).exists()
+    # Проверяем доступ - поддерживаем оба типа игр
+    # 1. Социальные игры (Americano) с GameParticipant
+    is_game_participant = GameParticipant.objects.filter(booking=booking, user=request.user).exists()
+
+    # 2. Обычные игры с partners (ManyToMany)
+    is_partner = request.user in booking.partners.all()
+
+    # Общая проверка участника
+    is_participant = is_game_participant or is_partner or booking.user == request.user
     is_creator = booking.user == request.user
 
-    if not (is_participant or is_creator or booking.is_public):
+    if not (is_participant or booking.is_public or booking.looking_for_partner):
         return JsonResponse({
             'success': False,
             'message': 'У вас нет доступа к этой игре'
         }, status=403)
 
-    participants = booking.game_participants.all().select_related('user', 'user__rating').order_by('position')
+    # Для americano/mexicano — используем GameParticipant
+    game_participants = booking.game_participants.all().select_related('user', 'user__rating', 'user__profile').order_by('position')
+
+    # Для обычных бронирований — строим список из owner + partners
+    partners_list = []
+    if not game_participants.exists():
+        # Добавляем создателя
+        partners_list.append({
+            'user': booking.user,
+            'is_creator': True,
+        })
+        # Добавляем партнёров
+        for partner in booking.partners.select_related('profile', 'rating').all():
+            partners_list.append({
+                'user': partner,
+                'is_creator': False,
+            })
+
     rounds = booking.game_rounds.all().order_by('round_number')
 
     context = {
         'booking': booking,
-        'participants': participants,
+        'participants': game_participants,
+        'partners_list': partners_list,
         'rounds': rounds,
         'is_creator': is_creator,
         'is_participant': is_participant
@@ -1773,3 +1983,389 @@ def game_detail(request, booking_id):
 def create_game_page(request):
     """Страница создания игры с современным интерфейсом"""
     return render(request, 'booking/create_game.html')
+
+
+# ===========================
+# COACH BOOKING API
+# ===========================
+
+@login_required
+@require_GET
+def api_coach_detail(request, coach_id):
+    """API: Получить информацию о тренере"""
+    try:
+        from django.contrib.auth.models import User
+        coach = get_object_or_404(User, id=coach_id, groups__name='Тренеры')
+
+        data = {
+            'success': True,
+            'coach': {
+                'id': coach.id,
+                'username': coach.username,
+                'full_name': coach.get_full_name() or coach.username,
+                'email': coach.email,
+            }
+        }
+
+        # Добавляем профиль если есть
+        if hasattr(coach, 'profile'):
+            profile = coach.profile
+            data['coach']['specialization'] = profile.specialization if hasattr(profile, 'specialization') else None
+            data['coach']['price_per_hour'] = float(profile.price_per_hour) if hasattr(profile, 'price_per_hour') else None
+            data['coach']['bio'] = profile.bio if hasattr(profile, 'bio') else None
+            data['coach']['phone'] = profile.phone if hasattr(profile, 'phone') else None
+
+        return JsonResponse(data)
+
+    except Exception as e:
+        logger.error(f"Error getting coach info: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка получения информации о тренере'
+        }, status=500)
+
+
+@login_required
+@require_GET
+def api_courts_list(request):
+    """API: Получить список доступных кортов"""
+    try:
+        courts = Court.objects.filter(is_available=True).order_by('name')
+
+        data = {
+            'success': True,
+            'courts': [
+                {
+                    'id': court.id,
+                    'name': court.name,
+                    'description': court.description,
+                    'price_per_hour': float(court.price_per_hour),
+                    'is_available': court.is_available
+                }
+                for court in courts
+            ]
+        }
+
+        return JsonResponse(data)
+
+    except Exception as e:
+        logger.error(f"Error getting courts list: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка получения списка кортов'
+        }, status=500)
+
+
+# ===========================
+# WAITING LIST API
+# ===========================
+
+@login_required
+@require_POST
+def join_game_waiting_list(request, booking_id):
+    """Добавить запрос на присоединение к игре (в лист ожидания)"""
+    from .models import WaitingList
+
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    # Проверяем, что пользователь не создатель
+    if booking.user == request.user:
+        return JsonResponse({
+            'success': False,
+            'message': 'Вы создатель этой игры'
+        })
+
+    # Проверяем, что пользователь не партнёр
+    if request.user in booking.partners.all():
+        return JsonResponse({
+            'success': False,
+            'message': 'Вы уже участник этой игры'
+        })
+
+    # Проверяем, что игра ищет партнёров
+    if not booking.looking_for_partner:
+        return JsonResponse({
+            'success': False,
+            'message': 'Игра не ищет партнёров'
+        })
+
+    # Проверяем, что есть свободные места
+    if booking.is_full:
+        return JsonResponse({
+            'success': False,
+            'message': 'Нет свободных мест'
+        })
+
+    # Проверяем, нет ли уже запроса
+    existing = WaitingList.objects.filter(
+        booking=booking,
+        user=request.user,
+        status='pending'
+    ).exists()
+
+    if existing:
+        return JsonResponse({
+            'success': False,
+            'message': 'Вы уже отправили запрос на присоединение'
+        })
+
+    # Получаем сообщение из запроса
+    message = request.POST.get('message', '').strip()
+
+    # Создаём запрос в лист ожидания
+    waiting = WaitingList.objects.create(
+        booking=booking,
+        user=request.user,
+        message=message,
+        status='pending'
+    )
+
+    # Отправляем системное сообщение в чат
+    from .models import GameChat
+    user_name = request.user.get_full_name() or request.user.username
+    GameChat.send_system_message(
+        booking=booking,
+        message=f"{user_name} хочет присоединиться к игре"
+    )
+
+    logger.info(f"User {request.user.username} joined waiting list for booking {booking.id}")
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Запрос отправлен владельцу игры',
+        'waiting_id': waiting.id
+    })
+
+
+@login_required
+def get_waiting_list(request, booking_id):
+    """Получить лист ожидания для игры"""
+    from .models import WaitingList
+
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    # Проверяем, что пользователь - владелец игры
+    if booking.user != request.user:
+        return JsonResponse({
+            'success': False,
+            'message': 'Только владелец может просматривать лист ожидания'
+        }, status=403)
+
+    # Получаем pending запросы
+    waiting_list = WaitingList.objects.filter(
+        booking=booking,
+        status='pending'
+    ).select_related('user', 'user__rating').order_by('created_at')
+
+    data = []
+    for waiting in waiting_list:
+        user_data = {
+            'id': waiting.id,
+            'user': {
+                'id': waiting.user.id,
+                'username': waiting.user.username,
+                'full_name': waiting.user.get_full_name() or waiting.user.username,
+                'rating': None
+            },
+            'message': waiting.message,
+            'created_at': waiting.created_at.isoformat()
+        }
+
+        # Добавляем рейтинг если есть
+        if hasattr(waiting.user, 'rating'):
+            user_data['user']['rating'] = {
+                'level': waiting.user.rating.level,
+                'numeric': float(waiting.user.rating.numeric_rating)
+            }
+
+        data.append(user_data)
+
+    return JsonResponse({
+        'success': True,
+        'waiting_list': data,
+        'count': len(data)
+    })
+
+
+@login_required
+@require_POST
+def approve_waiting_list(request, waiting_id):
+    """Одобрить запрос из листа ожидания"""
+    from .models import WaitingList, GameChat
+
+    waiting = get_object_or_404(WaitingList, id=waiting_id)
+    booking = waiting.booking
+
+    # Проверяем, что пользователь - владелец игры
+    if booking.user != request.user:
+        return JsonResponse({
+            'success': False,
+            'message': 'Только владелец может одобрять запросы'
+        }, status=403)
+
+    # Одобряем запрос
+    success, message = waiting.approve(approved_by=request.user)
+
+    if success:
+        # Отправляем системное сообщение в чат
+        user_name = waiting.user.get_full_name() or waiting.user.username
+        GameChat.send_system_message(
+            booking=booking,
+            message=f"{user_name} присоединился к игре"
+        )
+
+        logger.info(f"User {waiting.user.username} approved for booking {booking.id}")
+
+    return JsonResponse({
+        'success': success,
+        'message': message
+    })
+
+
+@login_required
+@require_POST
+def reject_waiting_list(request, waiting_id):
+    """Отклонить запрос из листа ожидания"""
+    from .models import WaitingList
+
+    waiting = get_object_or_404(WaitingList, id=waiting_id)
+    booking = waiting.booking
+
+    # Проверяем, что пользователь - владелец игры
+    if booking.user != request.user:
+        return JsonResponse({
+            'success': False,
+            'message': 'Только владелец может отклонять запросы'
+        }, status=403)
+
+    # Получаем причину отклонения
+    reason = request.POST.get('reason', '').strip()
+
+    # Отклоняем запрос
+    success, message = waiting.reject(rejected_by=request.user, reason=reason)
+
+    if success:
+        logger.info(f"Waiting request {waiting_id} rejected for booking {booking.id}")
+
+    return JsonResponse({
+        'success': success,
+        'message': message
+    })
+
+
+# ===========================
+# GAME CHAT API
+# ===========================
+
+@login_required
+def get_game_chat(request, booking_id):
+    """Получить сообщения чата игры"""
+    from .models import GameChat, GameParticipant
+
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    # Проверяем, что пользователь - участник игры (обычная или Americano/Mexicano)
+    is_participant = (
+        booking.user == request.user or
+        request.user in booking.partners.all() or
+        GameParticipant.objects.filter(booking=booking, user=request.user).exists()
+    )
+
+    if not is_participant:
+        return JsonResponse({
+            'success': False,
+            'message': 'Только участники игры могут видеть чат'
+        }, status=403)
+
+    # Получаем сообщения
+    messages = GameChat.objects.filter(
+        booking=booking
+    ).select_related('user').order_by('created_at')
+
+    # Ограничиваем последними 100 сообщениями
+    messages = messages[:100]
+
+    data = []
+    for msg in messages:
+        data.append({
+            'id': msg.id,
+            'user': {
+                'id': msg.user.id,
+                'username': msg.user.username,
+                'full_name': msg.user.get_full_name() or msg.user.username
+            },
+            'message': msg.message,
+            'is_system': msg.is_system_message,
+            'created_at': msg.created_at.isoformat(),
+            'is_own': msg.user == request.user
+        })
+
+    return JsonResponse({
+        'success': True,
+        'messages': data,
+        'count': len(data)
+    })
+
+
+@login_required
+@require_POST
+def send_game_chat_message(request, booking_id):
+    """Отправить сообщение в чат игры"""
+    from .models import GameChat, GameParticipant
+
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    # Проверяем, что пользователь - участник игры (обычная или Americano/Mexicano)
+    is_participant = (
+        booking.user == request.user or
+        request.user in booking.partners.all() or
+        GameParticipant.objects.filter(booking=booking, user=request.user).exists()
+    )
+
+    if not is_participant:
+        return JsonResponse({
+            'success': False,
+            'message': 'Только участники игры могут отправлять сообщения'
+        }, status=403)
+
+    # Получаем сообщение
+    message_text = request.POST.get('message', '').strip()
+
+    if not message_text:
+        return JsonResponse({
+            'success': False,
+            'message': 'Сообщение не может быть пустым'
+        })
+
+    if len(message_text) > 1000:
+        return JsonResponse({
+            'success': False,
+            'message': 'Сообщение слишком длинное (максимум 1000 символов)'
+        })
+
+    # Создаём сообщение
+    chat_message = GameChat.objects.create(
+        booking=booking,
+        user=request.user,
+        message=message_text,
+        is_system_message=False
+    )
+
+    logger.info(f"Chat message sent by {request.user.username} for booking {booking.id}")
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Сообщение отправлено',
+        'chat_message': {
+            'id': chat_message.id,
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'full_name': request.user.get_full_name() or request.user.username
+            },
+            'message': chat_message.message,
+            'is_system': False,
+            'created_at': chat_message.created_at.isoformat(),
+            'is_own': True
+        }
+    })

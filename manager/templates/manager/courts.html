@@ -105,6 +105,8 @@
 let allCourts = [];
 let filteredCourts = [];
 
+const API_BASE = '{% url "manager:dashboard" %}api/';
+
 document.addEventListener('DOMContentLoaded', function() {
     loadCourts();
 });
@@ -196,7 +198,7 @@ function filterCourts() {
 }
 
 function viewCourt(id) {
-    fetch(`/admin/api/courts/${id}/`)
+    fetch(`${API_BASE}courts/${id}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -266,7 +268,7 @@ function editCourt(courtId) {
     document.getElementById('courtId').value = courtId;
 
     // Загрузка данных корта
-    fetch(`/admin/api/courts/${courtId}/`)
+    fetch(`${API_BASE}courts/${courtId}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -302,8 +304,8 @@ function submitCourtForm(event) {
     };
 
     const url = isEdit
-        ? `/admin/api/courts/${courtId}/update/`
-        : '/admin/api/courts/create/';
+        ? `${API_BASE}courts/${courtId}/update/`
+        : `${API_BASE}courts/create/`;
 
     fetch(url, {
         method: 'POST',
@@ -334,7 +336,7 @@ function deleteCourt(courtId) {
         return;
     }
 
-    fetch(`/admin/api/courts/${courtId}/delete/`, {
+    fetch(`${API_BASE}courts/${courtId}/delete/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken')

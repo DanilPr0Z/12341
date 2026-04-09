@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils import timezone
-from .models import Court, Booking, BookingInvitation, Payment, BookingHistory
+from .models import Court, Booking, BookingInvitation, Payment, BookingHistory, WaitingList, GameChat
 
 
 # === COURT ADMIN ===
@@ -121,7 +121,7 @@ class BookingAdmin(admin.ModelAdmin):
         """Массовое подтверждение бронирований"""
         updated = 0
         for booking in queryset.filter(status='pending'):
-            success, message = booking.confirm()
+            success = booking.confirm()
             if success:
                 updated += 1
                 # Создаем запись в истории
@@ -279,4 +279,135 @@ class BookingInvitationAdmin(admin.ModelAdmin):
     search_fields = ['inviter__username', 'inviter__first_name', 'inviter__last_name', 'invitee__username', 'invitee__first_name', 'invitee__last_name', 'invitee_phone']
 
     readonly_fields = ['created_at', 'responded_at']
+
+
+# === WAITING LIST ADMIN ===
+
+@admin.register(WaitingList)
+class WaitingListAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'user_link', 'booking_link', 'status_badge',
+        'created_at', 'responded_by'
+    ]
+    list_filter = ['status', 'created_at']
+    search_fields = [
+        'user__username', 'user__first_name', 'user__last_name',
+        'booking__id', 'message'
+    ]
+    readonly_fields = ['created_at', 'responded_at']
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('booking', 'user', 'status', 'message')
+        }),
+        ('Ответ', {
+            'fields': ('responded_by', 'responded_at', 'created_at')
+        }),
+    )
+
+    actions = ['approve_requests', 'reject_requests']
+
+    def user_link(self, obj):
+        url = reverse('admin:auth_user_change', args=[obj.user.id])
+        return format_html('<a href="{}">{}</a>', url, obj.user.get_full_name() or obj.user.username)
+    user_link.short_description = 'Пользователь'
+
+    def booking_link(self, obj):
+        url = reverse('admin:booking_booking_change', args=[obj.booking.id])
+        return format_html('<a href="{}">Бронь #{}</a>', url, obj.booking.id)
+    booking_link.short_description = 'Бронирование'
+
+    def status_badge(self, obj):
+        colors = {
+            'pending': '#fbbf24',
+            'approved': '#10b981',
+            'rejected': '#ef4444',
+            'cancelled': '#6b7280'
+        }
+        return format_html(
+            '<span style="background: {}; color: white; padding: 3px 10px; '
+            'border-radius: 12px; font-size: 11px; font-weight: 600;">{}</span>',
+            colors.get(obj.status, '#6b7280'),
+            obj.get_status_display()
+        )
+    status_badge.short_description = 'Статус'
+
+    def approve_requests(self, request, queryset):
+        """Одобрить выбранные запросы"""
+        approved = 0
+        errors = []
+        for waiting in queryset.filter(status='pending'):
+            success, message = waiting.approve(approved_by=request.user)
+            if success:
+                approved += 1
+            else:
+                errors.append(f"Запрос #{waiting.id}: {message}")
+
+        if approved:
+            self.message_user(request, f'Одобрено запросов: {approved}')
+        if errors:
+            self.message_user(request, 'Ошибки: ' + '; '.join(errors), level='warning')
+    approve_requests.short_description = 'Одобрить выбранные запросы'
+
+    def reject_requests(self, request, queryset):
+        """Отклонить выбранные запросы"""
+        rejected = 0
+        for waiting in queryset.filter(status='pending'):
+            success, message = waiting.reject(rejected_by=request.user)
+            if success:
+                rejected += 1
+        self.message_user(request, f'Отклонено запросов: {rejected}')
+    reject_requests.short_description = 'Отклонить выбранные запросы'
+
+
+# === GAME CHAT ADMIN ===
+
+@admin.register(GameChat)
+class GameChatAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'booking_link', 'user_link', 'message_preview',
+        'is_system_message', 'created_at'
+    ]
+    list_filter = ['is_system_message', 'is_read', 'created_at']
+    search_fields = [
+        'user__username', 'user__first_name', 'user__last_name',
+        'booking__id', 'message'
+    ]
+    readonly_fields = ['created_at']
+    date_hierarchy = 'created_at'
+
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('booking', 'user', 'message', 'is_system_message', 'is_read')
+        }),
+        ('Метаданные', {
+            'fields': ('created_at',)
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return True  # Можно отправлять сообщения от имени системы
+
+    def user_link(self, obj):
+        url = reverse('admin:auth_user_change', args=[obj.user.id])
+        return format_html('<a href="{}">{}</a>', url, obj.user.get_full_name() or obj.user.username)
+    user_link.short_description = 'Пользователь'
+
+    def booking_link(self, obj):
+        url = reverse('admin:booking_booking_change', args=[obj.booking.id])
+        return format_html('<a href="{}">Бронь #{}</a>', url, obj.booking.id)
+    booking_link.short_description = 'Бронирование'
+
+    def message_preview(self, obj):
+        """Превью сообщения"""
+        max_length = 60
+        message = obj.message[:max_length]
+        if len(obj.message) > max_length:
+            message += '...'
+
+        if obj.is_system_message:
+            return format_html('<span style="color: #6b7280; font-style: italic;">🤖 {}</span>', message)
+        return message
+    message_preview.short_description = 'Сообщение'
 

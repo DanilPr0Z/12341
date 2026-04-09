@@ -178,6 +178,7 @@
 
 {% block extra_js %}
 <script>
+const API_BASE = '{% url "manager:dashboard" %}api/';
 let allUsers = [];
 let filteredUsers = [];
 
@@ -213,7 +214,7 @@ function calculateLevel(rating) {
 }
 
 function loadUsers() {
-    fetch('/admin/api/users/')
+    fetch(`${API_BASE}users/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -338,7 +339,7 @@ function filterUsers() {
 }
 
 function viewUser(id) {
-    fetch(`/manager/api/users/${id}/`)
+    fetch(`${API_BASE}users/${id}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -432,7 +433,7 @@ function showEditUserModal(userId) {
     document.getElementById('passwordRequired').style.display = 'none';
 
     // Загрузка данных пользователя
-    fetch(`/admin/api/users/${userId}/`)
+    fetch(`${API_BASE}users/${userId}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -499,8 +500,8 @@ function submitUserForm(event) {
     }
 
     const url = isEdit
-        ? `/admin/api/users/${userId}/update/`
-        : '/admin/api/users/create/';
+        ? `${API_BASE}users/${userId}/update/`
+        : `${API_BASE}users/create/`;
 
     fetch(url, {
         method: 'POST',
@@ -531,7 +532,7 @@ function deleteUser(userId) {
         return;
     }
 
-    fetch(`/admin/api/users/${userId}/delete/`, {
+    fetch(`${API_BASE}users/${userId}/delete/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken')
@@ -568,7 +569,7 @@ function getCookie(name) {
 }
 
 function exportUsers() {
-    window.location.href = '/admin/api/users/export/';
+    window.location.href = `${API_BASE}users/export/`;
 }
 
 function formatNumber(num) {

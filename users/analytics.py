@@ -6,6 +6,7 @@
 from django.db.models import Count, Sum, Q, Avg, F, Case, When, Value, IntegerField
 from django.db.models.functions import TruncMonth, TruncWeek, TruncDate, ExtractWeekDay
 from django.utils import timezone
+from django.core.cache import cache
 from datetime import datetime, timedelta
 from collections import defaultdict
 from booking.models import Booking, Court
@@ -15,7 +16,7 @@ from django.contrib.auth.models import User
 
 def get_player_stats(user):
     """
-    Полная статистика игрока
+    Полная статистика игрока (кэшируется на 5 минут)
 
     Возвращает:
     - Общие показатели (игры, часы, траты)
@@ -23,6 +24,23 @@ def get_player_stats(user):
     - Активность по месяцам/неделям
     - Прогресс рейтинга
     """
+    cache_key = f'player_stats_{user.id}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    result = _compute_player_stats(user)
+    cache.set(cache_key, result, timeout=300)
+    return result
+
+
+def invalidate_player_stats_cache(user_id):
+    """Сбросить кэш статистики игрока при обновлении данных"""
+    cache.delete(f'player_stats_{user_id}')
+
+
+def _compute_player_stats(user):
+    """Внутренняя функция вычисления статистики (без кэша)"""
     today = timezone.now().date()
 
     # Все завершенные игры пользователя (как создатель или партнер)
@@ -178,7 +196,7 @@ def get_player_stats(user):
 
         tournaments_played = tournament_participations.count()
         tournaments_won = tournament_participations.filter(
-            placement=1  # Первое место
+            final_position=1  # Первое место
         ).count()
     except (ImportError, Exception):
         # Если модели турниров нет или ошибка
@@ -597,3 +615,84 @@ def _calculate_achievements(total_games, total_hours, partners_count, games_per_
         })
 
     return achievements
+
+
+def get_rating_chart_data(user, months=3):
+    """
+    Получить данные для графика изменения рейтинга за последние N месяцев
+
+    Args:
+        user: Пользователь
+        months: Количество месяцев для отображения (по умолчанию 3)
+
+    Returns:
+        Dict с данными для Chart.js:
+        {
+            'labels': ['2026-01-01', '2026-01-15', ...],
+            'values': [3.5, 3.6, 3.7, ...],
+            'levels': ['C', 'C', 'C+', ...]
+        }
+    """
+    try:
+        rating = user.rating
+        history = rating.rating_history or []
+
+        if not history:
+            # Если истории нет, возвращаем только текущий рейтинг
+            return {
+                'labels': [timezone.now().date().isoformat()],
+                'values': [float(rating.numeric_rating)],
+                'levels': [rating.level]
+            }
+
+        # Вычисляем дату отсечения
+        cutoff_date = timezone.now() - timedelta(days=30 * months)
+
+        # Фильтруем историю за последние N месяцев
+        filtered_history = []
+        for entry in history:
+            try:
+                entry_date = datetime.fromisoformat(entry['date'])
+                # Если дата без timezone, считаем её локальной
+                if timezone.is_naive(entry_date):
+                    entry_date = timezone.make_aware(entry_date)
+
+                if entry_date >= cutoff_date:
+                    filtered_history.append(entry)
+            except (KeyError, ValueError, TypeError):
+                continue
+
+        # Сортируем по дате
+        filtered_history.sort(key=lambda x: x.get('date', ''))
+
+        # Формируем данные для графика
+        labels = []
+        values = []
+        levels = []
+
+        for entry in filtered_history:
+            try:
+                labels.append(entry['date'][:10])  # YYYY-MM-DD
+                values.append(float(entry['new_rating']))
+                levels.append(entry['new_level'])
+            except (KeyError, ValueError, TypeError):
+                continue
+
+        # Добавляем текущий рейтинг в конец
+        labels.append(timezone.now().date().isoformat())
+        values.append(float(rating.numeric_rating))
+        levels.append(rating.level)
+
+        return {
+            'labels': labels,
+            'values': values,
+            'levels': levels
+        }
+
+    except (AttributeError, PlayerRating.DoesNotExist):
+        # Если у пользователя нет рейтинга
+        return {
+            'labels': [],
+            'values': [],
+            'levels': []
+        }

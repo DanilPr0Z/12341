@@ -437,6 +437,22 @@ def delete_avatar(request):
 
 @require_POST
 @login_required
+def update_preferred_side(request):
+    """AJAX обновление стороны игры"""
+    try:
+        side = request.POST.get('preferred_side', '')
+        if side not in ('left', 'right', ''):
+            return JsonResponse({'success': False, 'message': 'Неверное значение'})
+        profile = request.user.profile
+        profile.preferred_side = side if side else None
+        profile.save(update_fields=['preferred_side'])
+        side_display = {'left': 'Левая', 'right': 'Правая', '': 'Не указана'}.get(side, 'Не указана')
+        return JsonResponse({'success': True, 'message': 'Сторона игры обновлена!', 'side': side, 'side_display': side_display})
+    except Exception as e:
+        logger.error(f"Preferred side update error: {str(e)}")
+        return JsonResponse({'success': False, 'message': f'Ошибка: {str(e)}'}, status=500)
+
+
 def update_profile(request):
     """AJAX обновление данных профиля"""
     try:
@@ -617,6 +633,25 @@ def profile(request):
         weekday_stats_json = '[]'
         rating_progress_json = '[]'
 
+    # Награды за последний год
+    from users.models import PlayerAchievement
+    year_ago = timezone.now() - timedelta(days=365)
+    achievements = PlayerAchievement.objects.filter(
+        user=request.user,
+        date_achieved__gte=year_ago,
+        achievement_type='tournament_place'
+    ).select_related('tournament').order_by('-date_achieved')
+
+    # График изменения рейтинга за последние 3 месяца
+    from users.analytics import get_rating_chart_data
+    rating_chart_data = json.dumps(get_rating_chart_data(request.user, months=3))
+
+    # Количество непрочитанных уведомлений
+    from users.models import Notification as UserNotification
+    unread_notifications_count = UserNotification.objects.filter(
+        user=request.user, is_read=False
+    ).count()
+
     context = {
         'user': user,
         'bookings_with_extra': bookings_with_extra,  # Передаем обновленный список
@@ -631,6 +666,9 @@ def profile(request):
         'monthly_activity_json': monthly_activity_json,
         'weekday_stats_json': weekday_stats_json,
         'rating_progress_json': rating_progress_json,
+        'achievements': achievements,
+        'rating_chart_data': rating_chart_data,
+        'unread_notifications_count': unread_notifications_count,
     }
 
     return render(request, 'users/profile.html', context)
@@ -750,6 +788,7 @@ def my_training_sessions(request):
 def notifications_list(request):
     """Список уведомлений пользователя"""
     from .models import Notification
+    from booking.models import BookingInvitation
 
     # Получаем все уведомления пользователя
     notifications = Notification.objects.filter(
@@ -757,13 +796,34 @@ def notifications_list(request):
     ).order_by('-created_at')
 
     # Разделяем на непрочитанные и прочитанные
-    unread_notifications = notifications.filter(is_read=False)
-    read_notifications = notifications.filter(is_read=True)[:20]  # Последние 20 прочитанных
+    unread_notifications = list(notifications.filter(is_read=False))
+    read_notifications = list(notifications.filter(is_read=True)[:20])
+
+    # Собираем invitation_id из метаданных уведомлений типа booking_invitation
+    invitation_ids = set()
+    for n in unread_notifications + read_notifications:
+        if n.type == 'booking_invitation' and n.metadata and n.metadata.get('invitation_id'):
+            invitation_ids.add(n.metadata['invitation_id'])
+
+    # Получаем статусы приглашений одним запросом
+    invitation_statuses = {}
+    if invitation_ids:
+        invitations = BookingInvitation.objects.filter(id__in=invitation_ids).values_list('id', 'status')
+        invitation_statuses = {inv_id: status for inv_id, status in invitations}
+
+    # Аннотируем уведомления статусом приглашения
+    for n in unread_notifications + read_notifications:
+        if n.type == 'booking_invitation' and n.metadata and n.metadata.get('invitation_id'):
+            inv_id = n.metadata['invitation_id']
+            inv_status = invitation_statuses.get(int(inv_id) if isinstance(inv_id, str) else inv_id, 'pending')
+            n.invitation_status = inv_status
+        else:
+            n.invitation_status = None
 
     context = {
         'unread_notifications': unread_notifications,
         'read_notifications': read_notifications,
-        'unread_count': unread_notifications.count()
+        'unread_count': len(unread_notifications)
     }
 
     return render(request, 'users/notifications.html', context)
@@ -1034,31 +1094,37 @@ def leaderboard(request):
 
     # ==================== ВКЛАДКА "ИГРЫ" ====================
     elif tab == 'games':
-        # Подсчитываем игры для каждого пользователя
-        from django.db.models import Prefetch
+        # Подсчитываем игры для каждого пользователя ОПТИМИЗИРОВАННО (без N+1)
+        from django.db.models import Count, Q
 
-        # Оптимизированный запрос
+        # Используем annotate для подсчета игр за один запрос вместо N запросов
+        players_queryset = base_qs.filter(rating__isnull=False).annotate(
+            games_count=Count(
+                'bookings_created',
+                filter=Q(bookings_created__status='confirmed'),
+                distinct=True
+            ) + Count(
+                'bookings_as_partner',
+                filter=Q(bookings_as_partner__status='confirmed'),
+                distinct=True
+            )
+        ).filter(games_count__gt=0).select_related('rating')
+
+        # Собираем данные
         players_with_games = []
+        for player in players_queryset:
+            rating = player.rating
 
-        for player in base_qs.filter(rating__isnull=False):
-            games_count = Booking.objects.filter(
-                Q(user=player) | Q(partners=player),
-                status='confirmed'
-            ).count()
-
-            if games_count > 0:
-                rating = player.rating if hasattr(player, 'rating') else None
-
-                players_with_games.append({
-                    'user': player,
-                    'rating': rating,
-                    'games_count': games_count,
-                    'stats': {
-                        'level': rating.level if rating else 'D',
-                        'numeric_rating': float(rating.numeric_rating) if rating else 1.0,
-                        'games_count': games_count
-                    }
-                })
+            players_with_games.append({
+                'user': player,
+                'rating': rating,
+                'games_count': player.games_count,
+                'stats': {
+                    'level': rating.level if rating else 'D',
+                    'numeric_rating': float(rating.numeric_rating) if rating else 1.0,
+                    'games_count': player.games_count
+                }
+            })
 
         # Сортируем по количеству игр
         players_with_games.sort(key=lambda x: x['games_count'], reverse=True)
@@ -1142,3 +1208,125 @@ def leaderboard(request):
     }
 
     return render(request, 'users/leaderboard.html', context)
+
+
+@login_required
+def my_bookings(request):
+    """
+    Страница 'Мои бронирования' - полная страница со всеми бронированиями,
+    турнирами и результатами
+    """
+    from booking.models import Booking
+    from tournament.models import Tournament, TournamentParticipant
+    from datetime import datetime, timedelta
+    from django.utils import timezone
+    from django.db.models import Q, Count, Sum, Avg
+
+    user = request.user
+    today = timezone.now().date()
+    current_time = timezone.now().time()
+
+    # ========== БРОНИРОВАНИЯ ==========
+    # Бронирования где я создатель
+    my_bookings = Booking.objects.filter(
+        user=user
+    ).select_related('court').prefetch_related('partners').order_by('-date', '-start_time')
+
+    # Бронирования где я участник (партнёр)
+    participant_bookings = Booking.objects.filter(
+        partners=user
+    ).select_related('court', 'user').order_by('-date', '-start_time')
+
+    # Объединяем и добавляем доп. данные
+    all_bookings = []
+
+    for booking in my_bookings:
+        booking_datetime = timezone.make_aware(datetime.combine(booking.date, booking.start_time))
+        time_diff = booking_datetime - timezone.now()
+
+        all_bookings.append({
+            'booking': booking,
+            'is_creator': True,
+            'is_past': booking.date < today or (booking.date == today and booking.start_time < current_time),
+            'can_confirm': timedelta(hours=0) < time_diff <= timedelta(hours=24),
+            'can_cancel': booking.status in ['pending', 'confirmed'] and time_diff > timedelta(hours=0),
+        })
+
+    for booking in participant_bookings:
+        booking_datetime = timezone.make_aware(datetime.combine(booking.date, booking.start_time))
+        time_diff = booking_datetime - timezone.now()
+
+        all_bookings.append({
+            'booking': booking,
+            'is_creator': False,
+            'is_past': booking.date < today or (booking.date == today and booking.start_time < current_time),
+            'can_confirm': False,  # Только создатель может подтверждать
+            'can_cancel': False,  # Только создатель может отменять
+        })
+
+    # Сортируем по дате
+    all_bookings.sort(key=lambda x: (x['booking'].date, x['booking'].start_time), reverse=True)
+
+    # ========== ТУРНИРЫ ==========
+    # Турниры где я участник
+    my_tournaments = TournamentParticipant.objects.filter(
+        user=user
+    ).select_related('tournament').order_by('-tournament__start_date')
+
+    tournaments_data = []
+    for participant in my_tournaments:
+        tournament = participant.tournament
+        tournaments_data.append({
+            'tournament': tournament,
+            'participant': participant,
+            'is_upcoming': tournament.start_date >= today,
+            'is_completed': tournament.status == 'completed',
+        })
+
+    # ========== ИГРЫ И РЕЗУЛЬТАТЫ ==========
+    from booking.models import GameParticipant
+
+    # Получить все игры где пользователь был участником
+    my_game_participations = GameParticipant.objects.filter(
+        user=user
+    ).select_related(
+        'booking',
+        'booking__court',
+        'booking__user'
+    ).prefetch_related(
+        'booking__game_participants'
+    ).order_by('-booking__date', '-booking__start_time')
+
+    games_data = []
+    for participation in my_game_participations:
+        booking = participation.booking
+        games_data.append({
+            'participation': participation,
+            'booking': booking,
+            'total_points': participation.total_points,
+            'rating_change': participation.rating_change,
+            'placement': None,  # Можно добавить подсчет места позже
+        })
+
+    # ========== СТАТИСТИКА ==========
+    total_wins = sum(1 for g in games_data if g['participation'].total_points > 0)
+
+    stats = {
+        'total_bookings': len(all_bookings),
+        'upcoming_bookings': sum(1 for b in all_bookings if not b['is_past']),
+        'past_bookings': sum(1 for b in all_bookings if b['is_past']),
+        'total_tournaments': len(tournaments_data),
+        'upcoming_tournaments': sum(1 for t in tournaments_data if t['is_upcoming']),
+        'completed_tournaments': sum(1 for t in tournaments_data if t['is_completed']),
+        'total_games': len(games_data),
+        'total_wins': total_wins,
+    }
+
+    context = {
+        'all_bookings': all_bookings,
+        'tournaments_data': tournaments_data,
+        'games_data': games_data,
+        'stats': stats,
+    }
+
+    return render(request, 'users/my_bookings.html', context)

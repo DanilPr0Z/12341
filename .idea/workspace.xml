@@ -5,12 +5,93 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5d1754e3-8f8c-4a4b-97dd-0341b3fd3117" name="Changes" comment="1.9.5&#10;UI обновочка">
+      <change afterPath="$PROJECT_DIR$/ШАБЛОН_теоретической_и_практической_части_ПРОЕКТНОЙ_РАБОТЫ.docx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DEVELOPMENT.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FUTURE_FEATURES.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/IMPROVEMENTS_AND_FEATURES.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PROJECT_ANALYSIS_AND_ROADMAP.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/REAL_PADEL_TOURNAMENT_REDESIGN.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SOCIAL_GAMES_DESIGN.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/booking/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/booking/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/booking/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/booking/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/booking/services.py" beforeDir="false" afterPath="$PROJECT_DIR$/booking/services.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/booking/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/booking/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/booking/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/booking/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/booking/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/booking/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/templates/manager/analytics.html" beforeDir="false" afterPath="$PROJECT_DIR$/manager/templates/manager/analytics.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/templates/manager/bookings.html" beforeDir="false" afterPath="$PROJECT_DIR$/manager/templates/manager/bookings.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/templates/manager/courts.html" beforeDir="false" afterPath="$PROJECT_DIR$/manager/templates/manager/courts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/templates/manager/payments.html" beforeDir="false" afterPath="$PROJECT_DIR$/manager/templates/manager/payments.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/templates/manager/schedule.html" beforeDir="false" afterPath="$PROJECT_DIR$/manager/templates/manager/schedule.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/templates/manager/tournament_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/manager/templates/manager/tournament_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/templates/manager/tournaments.html" beforeDir="false" afterPath="$PROJECT_DIR$/manager/templates/manager/tournaments.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/templates/manager/trainers.html" beforeDir="false" afterPath="$PROJECT_DIR$/manager/templates/manager/trainers.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/templates/manager/users.html" beforeDir="false" afterPath="$PROJECT_DIR$/manager/templates/manager/users.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/manager/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/paddle_booking/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/paddle_booking/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/buttons.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/buttons.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/coaches-modern.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/coaches-modern.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/components.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/components.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/css/enhanced-profile.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/enhanced-profile.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/fab-menu.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/fab-menu.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/forms.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/forms.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/game-creator.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/game-creator.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/leaderboard.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/leaderboard.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/modern-styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/modern-styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/notifications.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/notifications.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/pages.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/pages.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/profile-accordion.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/profile-accordion.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/responsive-tables.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/responsive-tables.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/tournament-detail.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/tournament-detail.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/tournaments.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/tournaments.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/booking.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/booking.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/coaches-modern.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/coaches-modern.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/components.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/components.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/game-creator.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/game-creator.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/main.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/notifications.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/notifications.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/tournament-detail.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/tournament-detail.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/tournaments.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/tournaments.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/booking.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/booking.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/booking/find_partners.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/booking/find_partners.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/booking/game_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/booking/game_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/booking/games_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/booking/games_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/booking/payment.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/booking/payment.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/booking/payment_failed.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/booking/payment_failed.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/booking/payment_success.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/booking/payment_success.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/booking/player_stats.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/booking/player_stats.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/booking/player_stats_content.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/booking/player_stats_content.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/emails/base_email.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/emails/base_email.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/emails/booking_cancelled.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/emails/booking_cancelled.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/emails/booking_confirmed.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/emails/booking_confirmed.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/emails/booking_created.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/emails/booking_created.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/emails/email_verification.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/emails/email_verification.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/emails/payment_failed.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/emails/payment_failed.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/emails/payment_pending.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/emails/payment_pending.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/emails/payment_success.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/emails/payment_success.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/home.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/partials/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/partials/footer.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/partials/navbar.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/partials/navbar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/tournament/public_tournament_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tournament/public_tournament_detail.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/tournament/public_tournaments.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tournament/public_tournaments.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/users/coaches_list_modern.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/users/coaches_list_modern.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/users/leaderboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/users/leaderboard.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/users/partials/enhanced_profile_overview.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/users/partials/enhanced_profile_overview.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/users/partials/notification_card.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/users/partials/notification_card.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/users/profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/users/profile.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tournament/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/apps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tournament/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tournament/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tournament/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/users/analytics.py" beforeDir="false" afterPath="$PROJECT_DIR$/users/analytics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/users/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/users/services.py" beforeDir="false" afterPath="$PROJECT_DIR$/users/services.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/users/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/users/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/users/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/users/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,42 +137,43 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.clean_duplicates.executor&quot;: &quot;Run&quot;,
-    &quot;Python.create_coach_group.executor&quot;: &quot;Run&quot;,
-    &quot;Python.create_test_coaches.executor&quot;: &quot;Run&quot;,
-    &quot;Python.create_test_courts.executor&quot;: &quot;Run&quot;,
-    &quot;Python.forms.executor&quot;: &quot;Run&quot;,
-    &quot;Python.reset_database.executor&quot;: &quot;Run&quot;,
-    &quot;Python.setup_env.executor&quot;: &quot;Run&quot;,
-    &quot;Python.shell.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;javascript.preferred.runtime.type.id&quot;: &quot;node&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/danil/PycharmProjects/PythonProject27/static/js/booking&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
+    "DefaultHtmlFileTemplate": "HTML File",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.clean_duplicates.executor": "Run",
+    "Python.create_coach_group.executor": "Run",
+    "Python.create_test_coaches.executor": "Run",
+    "Python.create_test_courts.executor": "Run",
+    "Python.forms.executor": "Run",
+    "Python.reset_database.executor": "Run",
+    "Python.setup_env.executor": "Run",
+    "Python.shell.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "main",
+    "javascript.preferred.runtime.type.id": "node",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/Users/danil/PycharmProjects/PythonProject27",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/static/js/booking" />
       <recent name="$PROJECT_DIR$/media" />
       <recent name="$PROJECT_DIR$/users" />
@@ -104,7 +186,7 @@
       <recent name="$PROJECT_DIR$/users" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.reset_database">
+  <component name="RunManager" selected="Python.create_coach_group">
     <configuration name="create_coach_group" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="paddle_booking" />
       <option name="ENV_FILES" value="" />
@@ -215,13 +297,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Python.reset_database" />
-        <item itemvalue="Python.create_test_coaches" />
-        <item itemvalue="Python.create_coach_group" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -239,6 +314,8 @@
       <updated>1765460729409</updated>
       <workItem from="1767329704053" duration="562000" />
       <workItem from="1767619018480" duration="171000" />
+      <workItem from="1772392969404" duration="41000" />
+      <workItem from="1772695757011" duration="515000" />
     </task>
     <task id="LOCAL-00001" summary="1.0">
       <option name="closed" value="true" />

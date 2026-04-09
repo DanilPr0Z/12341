@@ -5,12 +5,21 @@
             <a href="{% url 'home' %}">Paddle Booking</a>
         </div>
 
-        <div class="nav-menu">
+        <!-- Hamburger button (mobile only) -->
+        <button class="nav-hamburger" id="navHamburger" aria-label="Открыть меню" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div class="nav-menu" id="navMenu">
+            {% if user.is_authenticated %}
             <a href="{% url 'booking' %}" class="nav-item {% if request.path == '/booking/' %}active{% endif %}">Бронирование</a>
+            {% endif %}
             <a href="{% url 'coaches_list' %}" class="nav-item {% if '/users/coaches/' in request.path %}active{% endif %}">Тренеры</a>
             <a href="{% url 'tournament:public_tournaments_list' %}" class="nav-item {% if '/tournament/' in request.path %}active{% endif %}">Турниры</a>
-            <a href="{% url 'leaderboard' %}" class="nav-item {% if '/users/leaderboard/' in request.path %}active{% endif %}">Рейтинг</a>
             {% if user.is_authenticated %}
+            <a href="{% url 'leaderboard' %}" class="nav-item {% if '/users/leaderboard/' in request.path %}active{% endif %}">Рейтинг</a>
             <a href="{% url 'games_list' %}" class="nav-item {% if '/booking/games/' in request.path %}active{% endif %}">Игры</a>
             {% endif %}
         </div>
@@ -32,16 +41,9 @@
 
                         <div class="dropdown-divider"></div>
 
-                        <a href="{% url 'profile' %}#notifications" id="notifications-link">
+                        <a href="{% url 'notifications_list' %}" id="notifications-link">
                             <i class="fas fa-bell"></i> Уведомления
                             <span class="notification-badge-dropdown" id="notificationBadgeDropdown" style="display: none;">0</span>
-                        </a>
-
-                        <div class="dropdown-divider"></div>
-
-                        <a href="#" onclick="toggleTheme(); return false;" id="theme-toggle-link">
-                            <i class="fas fa-moon" id="theme-icon"></i>
-                            <span id="theme-text">Темная тема</span>
                         </a>
 
                         <div class="dropdown-divider"></div>
@@ -229,46 +231,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const notificationBadge = document.getElementById('notificationBadge');
     const notificationBadgeDropdown = document.getElementById('notificationBadgeDropdown');
 
-    // Функция загрузки уведомлений
+    // Функция загрузки счётчика уведомлений
     function loadNotifications() {
-        fetch('/booking/api/notifications/')
+        fetch('/users/ajax/notifications/count/')
             .then(response => response.json())
             .then(data => {
-                console.log('📬 Уведомления загружены:', data);
-
-                if (data.success && data.notifications && data.notifications.length > 0) {
-                    // Обновляем счетчик на кнопке пользователя
-                    if (notificationBadge) {
-                        notificationBadge.textContent = data.count;
-                        notificationBadge.style.display = 'flex';
-                    }
-                    // Обновляем счетчик в dropdown
-                    if (notificationBadgeDropdown) {
-                        notificationBadgeDropdown.textContent = data.count;
-                        notificationBadgeDropdown.style.display = 'inline-flex';
-                    }
+                const count = data.count || 0;
+                if (count > 0) {
+                    if (notificationBadge) { notificationBadge.textContent = count; notificationBadge.style.display = 'flex'; }
+                    if (notificationBadgeDropdown) { notificationBadgeDropdown.textContent = count; notificationBadgeDropdown.style.display = 'inline-flex'; }
                 } else {
-                    // Нет уведомлений
-                    if (notificationBadge) {
-                        notificationBadge.style.display = 'none';
-                    }
-                    if (notificationBadgeDropdown) {
-                        notificationBadgeDropdown.style.display = 'none';
-                    }
+                    if (notificationBadge) notificationBadge.style.display = 'none';
+                    if (notificationBadgeDropdown) notificationBadgeDropdown.style.display = 'none';
                 }
             })
-            .catch(error => {
-                console.error('❌ Ошибка загрузки уведомлений:', error);
-            });
+            .catch(() => {});
     }
-
+    window.loadNotifications = loadNotifications;
 
     // Загружаем уведомления при загрузке страницы
-    if (notificationBadge) {
-        loadNotifications();
-        // Обновляем каждые 30 секунд
-        setInterval(loadNotifications, 30000);
-    }
+    {% if user.is_authenticated %}
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
+    {% endif %}
 });
 </script>
 
@@ -350,61 +335,151 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 
-<!-- ========== ПЕРЕКЛЮЧЕНИЕ ТЕМНОЙ ТЕМЫ (ГЛОБАЛЬНО) ========== -->
+<!-- Hamburger menu JS -->
 <script>
-// Функция переключения темы - глобальная
-function toggleTheme() {
-    const html = document.documentElement;
-    const themeIcon = document.getElementById('theme-icon');
-    const themeText = document.getElementById('theme-text');
-    const currentTheme = html.getAttribute('data-theme');
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.getElementById('navHamburger');
+    const navMenu = document.getElementById('navMenu');
+    const navAuth = document.querySelector('.nav-auth');
 
-    if (currentTheme === 'dark') {
-        html.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-        if (themeIcon) {
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
-        }
-        if (themeText) {
-            themeText.textContent = 'Темная тема';
-        }
-    } else {
-        html.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-        if (themeIcon) {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-        }
-        if (themeText) {
-            themeText.textContent = 'Светлая тема';
-        }
+    if (hamburger && navMenu) {
+        hamburger.addEventListener('click', function() {
+            const isOpen = navMenu.classList.contains('mobile-open');
+            navMenu.classList.toggle('mobile-open');
+            hamburger.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', !isOpen);
+            document.body.style.overflow = !isOpen ? 'hidden' : '';
+        });
+
+        // Закрываем при клике на ссылку
+        navMenu.querySelectorAll('.nav-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                navMenu.classList.remove('mobile-open');
+                hamburger.classList.remove('active');
+                hamburger.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            });
+        });
+
+        // Закрываем при клике вне меню
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.navbar') && navMenu.classList.contains('mobile-open')) {
+                navMenu.classList.remove('mobile-open');
+                hamburger.classList.remove('active');
+                hamburger.setAttribute('aria-expanded', 'false');
+                document.body.style.overflow = '';
+            }
+        });
     }
+});
+</script>
+
+<style>
+/* ===== HAMBURGER BUTTON ===== */
+.nav-hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    z-index: 1001;
 }
 
-// Загружаем сохраненную тему при загрузке страницы
-(function() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    const html = document.documentElement;
+.nav-hamburger:hover {
+    background: rgba(158, 240, 26, 0.1);
+}
 
-    if (savedTheme === 'dark') {
-        html.setAttribute('data-theme', 'dark');
+.nav-hamburger span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--dark-color);
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+}
+
+.nav-hamburger.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.nav-hamburger.active span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+.nav-hamburger.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ===== MOBILE MENU ===== */
+@media (max-width: 768px) {
+    .nav-hamburger {
+        display: flex;
     }
 
-    // Обновляем иконку и текст после загрузки DOM
-    document.addEventListener('DOMContentLoaded', function() {
-        const themeIcon = document.getElementById('theme-icon');
-        const themeText = document.getElementById('theme-text');
+    .nav-menu {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: white;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        z-index: 1000;
+        padding: 80px 20px 40px;
+        overflow-y: auto;
+    }
 
-        if (savedTheme === 'dark') {
-            if (themeIcon) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            }
-            if (themeText) {
-                themeText.textContent = 'Светлая тема';
-            }
-        }
-    });
-})();
-</script>
+    .nav-menu.mobile-open {
+        display: flex !important;
+        animation: menuSlideDown 0.3s ease-out;
+    }
+
+    @keyframes menuSlideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-item {
+        font-size: 20px;
+        font-weight: 600;
+        padding: 14px 32px;
+        width: 100%;
+        text-align: center;
+        border-radius: 12px;
+        transition: background 0.2s, color 0.2s;
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+        background: rgba(158, 240, 26, 0.12);
+        color: var(--secondary-color);
+    }
+
+    /* nav-auth всегда виден на мобилке - только аватар/кнопки */
+    .nav-auth {
+        gap: 8px;
+    }
+
+    .nav-auth .auth-btn {
+        padding: 8px 14px;
+        font-size: 14px;
+    }
+}
+</style>
+
+<!-- Theme switcher removed -->

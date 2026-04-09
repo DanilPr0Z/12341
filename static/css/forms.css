@@ -468,49 +468,23 @@ input[type="radio"] {
     }
 }
 
+/* ==================== FORM SELECT UTILITY ==================== */
+.form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    background: white;
+    transition: border-color 0.2s;
+    cursor: pointer;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(158, 240, 26, 0.15);
+}
+
 /* ==================== DARK THEME SUPPORT ==================== */
-:root[data-theme="dark"] .modal-content {
-    background: #1e1e1e;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-}
 
-:root[data-theme="dark"] .modal-content h2 {
-    color: #f8f9fa;
-    background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-    border-bottom-color: #333;
-}
-
-:root[data-theme="dark"] .form-group label {
-    color: #f8f9fa;
-}
-
-:root[data-theme="dark"] .form-input,
-:root[data-theme="dark"] input,
-:root[data-theme="dark"] select,
-:root[data-theme="dark"] textarea {
-    background: #2a2a2a;
-    border-color: #3a3a3a;
-    color: #f8f9fa;
-}
-
-:root[data-theme="dark"] .form-input:focus,
-:root[data-theme="dark"] input:focus,
-:root[data-theme="dark"] select:focus,
-:root[data-theme="dark"] textarea:focus {
-    background: #333;
-    border-color: #9ef01a;
-}
-
-:root[data-theme="dark"] .close-modal {
-    background: #2a2a2a;
-    color: #adb5bd;
-}
-
-:root[data-theme="dark"] .form-footer {
-    border-top-color: #333;
-}
-
-:root[data-theme="dark"] .logout-confirmation h2,
-:root[data-theme="dark"] .logout-confirmation p {
-    color: #f8f9fa;
-}

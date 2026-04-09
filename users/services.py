@@ -171,11 +171,8 @@ class NotificationService:
             {'booking': booking}
         )
         
-        # Отмечаем, что email отправлен
-        notification.mark_email_sent()
-        
         return notification
-    
+
     @staticmethod
     def notify_booking_confirmed(booking):
         """Уведомить о подтверждении бронирования"""
@@ -192,10 +189,9 @@ class NotificationService:
             'booking_confirmed',
             {'booking': booking}
         )
-        
-        notification.mark_email_sent()
+
         return notification
-    
+
     @staticmethod
     def notify_booking_cancelled(booking):
         """Уведомить об отмене бронирования"""
@@ -212,10 +208,9 @@ class NotificationService:
             'booking_cancelled',
             {'booking': booking}
         )
-        
-        notification.mark_email_sent()
+
         return notification
-    
+
     @staticmethod
     def notify_payment_success(payment):
         """Уведомить об успешной оплате"""
@@ -232,10 +227,9 @@ class NotificationService:
             'payment_success',
             {'payment': payment, 'booking': payment.booking}
         )
-        
-        notification.mark_email_sent()
+
         return notification
-    
+
     @staticmethod
     def notify_payment_failed(payment):
         """Уведомить об ошибке оплаты"""
@@ -252,10 +246,9 @@ class NotificationService:
             'payment_failed',
             {'payment': payment, 'booking': payment.booking}
         )
-        
-        notification.mark_email_sent()
+
         return notification
-    
+
     @staticmethod
     def notify_payment_pending(payment):
         """Уведомить об ожидании оплаты"""
@@ -272,8 +265,7 @@ class NotificationService:
             'payment_pending',
             {'payment': payment, 'booking': payment.booking}
         )
-        
-        notification.mark_email_sent()
+
         return notification
     
     @staticmethod

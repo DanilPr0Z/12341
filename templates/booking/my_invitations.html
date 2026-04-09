@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Мои приглашения — Paddle Booking{% endblock %}
+
+{% block extra_css %}
+<style>
+    .invitations-container {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+    .page-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text-primary, #e8eaf0);
+        margin-bottom: 28px;
+    }
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary, #e8eaf0);
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08));
+    }
+    .inv-card {
+        background: var(--card-bg, #1e2836);
+        border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .inv-info h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary, #e8eaf0);
+        margin: 0 0 4px;
+    }
+    .inv-info p {
+        font-size: 0.875rem;
+        color: var(--text-secondary, #9aa3b2);
+        margin: 0;
+    }
+    .inv-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-accept {
+        background: rgba(34,197,94,0.15);
+        color: #22c55e;
+        border: 1px solid rgba(34,197,94,0.3);
+        border-radius: 8px;
+        padding: 7px 16px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-accept:hover { background: rgba(34,197,94,0.25); }
+    .btn-decline {
+        background: rgba(239,68,68,0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 8px;
+        padding: 7px 16px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-decline:hover { background: rgba(239,68,68,0.2); }
+    .status-pill {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .sp-pending  { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .sp-accepted { background: rgba(34,197,94,0.15);  color: #22c55e; }
+    .sp-declined { background: rgba(239,68,68,0.15);  color: #ef4444; }
+    .sp-cancelled{ background: rgba(156,163,175,0.15);color: #9ca3af; }
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: var(--text-secondary, #9aa3b2);
+        font-size: 0.9rem;
+        background: var(--card-bg, #1e2836);
+        border-radius: 12px;
+        border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+        margin-bottom: 12px;
+    }
+    .section-block { margin-bottom: 36px; }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-secondary, #9aa3b2);
+        text-decoration: none;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+    }
+    .back-link:hover { color: var(--text-primary, #e8eaf0); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="invitations-container">
+    <a href="{% url 'profile' %}" class="back-link">← Назад к профилю</a>
+    <h1 class="page-title">Приглашения</h1>
+
+    <!-- Входящие -->
+    <div class="section-block">
+        <div class="section-title">Входящие приглашения</div>
+        {% if received_invitations %}
+            {% for inv in received_invitations %}
+            <div class="inv-card" id="inv-{{ inv.id }}">
+                <div class="inv-info">
+                    <h4>{{ inv.booking.court.name }} — {{ inv.booking.date|date:"d E Y" }}</h4>
+                    <p>
+                        {{ inv.booking.start_time|time:"H:i" }} — {{ inv.booking.end_time|time:"H:i" }}
+                        &nbsp;·&nbsp;
+                        от <strong>{{ inv.inviter.get_full_name|default:inv.inviter.username }}</strong>
+                    </p>
+                    {% if inv.message %}
+                    <p style="margin-top:6px;font-style:italic;">"{{ inv.message }}"</p>
+                    {% endif %}
+                </div>
+                <div class="inv-actions">
+                    <button class="btn-accept" onclick="respondInvitation({{ inv.id }}, 'accept')">Принять</button>
+                    <button class="btn-decline" onclick="respondInvitation({{ inv.id }}, 'decline')">Отклонить</button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">Нет входящих приглашений</div>
+        {% endif %}
+    </div>
+
+    <!-- Отправленные -->
+    <div class="section-block">
+        <div class="section-title">Отправленные приглашения</div>
+        {% if sent_invitations %}
+            {% for inv in sent_invitations %}
+            <div class="inv-card">
+                <div class="inv-info">
+                    <h4>{{ inv.booking.court.name }} — {{ inv.booking.date|date:"d E Y" }}</h4>
+                    <p>
+                        {{ inv.booking.start_time|time:"H:i" }} — {{ inv.booking.end_time|time:"H:i" }}
+                        &nbsp;·&nbsp;
+                        кому: <strong>{% if inv.invitee %}{{ inv.invitee.get_full_name|default:inv.invitee.username }}{% else %}{{ inv.invitee_email|default:"—" }}{% endif %}</strong>
+                    </p>
+                </div>
+                <span class="status-pill sp-{{ inv.status }}">{{ inv.get_status_display }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">Нет отправленных приглашений</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+const CSRF = '{{ csrf_token }}';
+
+function respondInvitation(invId, action) {
+    const label = action === 'accept' ? 'принять' : 'отклонить';
+    if (!confirm(`Вы уверены, что хотите ${label} приглашение?`)) return;
+
+    fetch(`/booking/invitation/${invId}/${action}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const card = document.getElementById(`inv-${invId}`);
+            if (card) card.remove();
+            if (action === 'accept' && data.booking_id) {
+                window.location.href = `/booking/${data.booking_id}/`;
+            }
+        } else {
+            alert(data.message || 'Произошла ошибка');
+        }
+    })
+    .catch(() => alert('Ошибка сети. Попробуйте ещё раз.'));
+}
+</script>
+{% endblock %}

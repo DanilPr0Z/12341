@@ -30,6 +30,7 @@
 
 {% block extra_js %}
 <script>
+const API_BASE = '{% url "manager:dashboard" %}api/';
 let analyticsData = {};
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -405,7 +406,7 @@ function formatDate(dateString) {
 
 function exportAnalytics() {
     const days = document.getElementById('periodFilter').value;
-    window.location.href = `/manager/api/analytics/export/?days=${days}`;
+    window.location.href = `${API_BASE}analytics/export/?days=${days}`;
 }
 </script>
 

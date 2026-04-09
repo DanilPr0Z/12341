@@ -583,6 +583,50 @@ function throttle(func, limit = 300) {
     };
 }
 
+// ==================== RESPONSIVE TABLES ====================
+/**
+ * Автоматически добавляет data-label атрибуты для адаптивных таблиц
+ * Находит все таблицы с классом .responsive-table или .history-table и добавляет data-label
+ */
+function initResponsiveTables() {
+    const tables = document.querySelectorAll('table.responsive-table, table.history-table, table');
+
+    tables.forEach(table => {
+        const headers = table.querySelectorAll('thead th');
+        const rows = table.querySelectorAll('tbody tr');
+
+        // Если нет заголовков, пропускаем
+        if (headers.length === 0) return;
+
+        // Для каждой строки добавляем data-label к ячейкам
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+                // Пропускаем, если уже есть data-label
+                if (cell.hasAttribute('data-label')) return;
+
+                // Получаем текст заголовка
+                if (headers[index]) {
+                    const headerText = headers[index].textContent.trim();
+                    cell.setAttribute('data-label', headerText);
+                }
+            });
+        });
+
+        // Добавляем класс responsive-table если его нет
+        if (!table.classList.contains('responsive-table') &&
+            !table.classList.contains('history-table')) {
+            // Оборачиваем таблицу в wrapper для overflow-x scroll
+            if (!table.parentElement.classList.contains('responsive-table-wrapper')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'responsive-table-wrapper';
+                table.parentNode.insertBefore(wrapper, table);
+                wrapper.appendChild(table);
+            }
+        }
+    });
+}
+
 // ==================== AUTO-APPLY DEBOUNCE TO SEARCH INPUTS ====================
 /**
  * Автоматически применяет debounce ко всем поисковым полям при загрузке страницы
@@ -610,6 +654,9 @@ document.addEventListener('DOMContentLoaded', function() {
             input.addEventListener('input', debouncedFilter);
         }
     });
+
+    // Инициализируем адаптивные таблицы
+    initResponsiveTables();
 
     // Инициализируем lazy loading для изображений
     initLazyLoading();
@@ -673,7 +720,7 @@ function addToLazyLoad(img) {
     if ('loading' in HTMLImageElement.prototype) {
         img.setAttribute('loading', 'lazy');
     } else {
-        // Создаем observer если его еще нет
+        // Создаём observer если его ещё нет
         if (!window._lazyImageObserver) {
             window._lazyImageObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -711,3 +758,4 @@ window.debounce = debounce;
 window.throttle = throttle;
 window.addToLazyLoad = addToLazyLoad;
 window.initLazyLoading = initLazyLoading;
+window.initResponsiveTables = initResponsiveTables;

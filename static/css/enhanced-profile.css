@@ -2,266 +2,193 @@
  * ============================================
  * ENHANCED PLAYER PROFILE
  * ============================================
- *
- * Современный профиль игрока с визуальным прогресс-баром рейтинга
- * Вдохновлено Lunda Padel, адаптировано для веб-версии
  */
 
-/* ==================== RATING PROGRESS BAR ==================== */
-.rating-progress-bar-container {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
+/* ==================== RATING CARD (NEW DESIGN) ==================== */
+.rating-card {
+    background: var(--card-bg, #ffffff);
+    border-radius: 20px;
+    padding: 22px 24px 20px;
     margin-bottom: 24px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.rating-progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.current-rating-display {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.current-rating-badge {
-    background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
-    color: #1a1a1a;
-    font-size: 28px;
-    font-weight: 700;
-    padding: 8px 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(158, 240, 26, 0.3);
-}
-
-.current-rating-info h3 {
-    margin: 0;
-    font-size: 18px;
-    color: #1a1a1a;
-    font-weight: 600;
-}
-
-.current-rating-info p {
-    margin: 4px 0 0;
-    font-size: 14px;
-    color: #666;
-}
-
-.rating-numeric-value {
-    font-size: 16px;
-    font-weight: 600;
-    color: #38b000;
-}
-
-/* Горизонтальный прогресс-бар */
-.horizontal-progress-bar {
     position: relative;
-    height: 60px;
-    background: linear-gradient(
-        to right,
-        #e74c3c 0%,      /* D - Красный */
-        #f39c12 20%,     /* D+ - Оранжевый */
-        #f1c40f 35%,     /* C-, C - Желтый */
-        #9ef01a 50%,     /* C+ - Салатовый */
-        #38b000 65%,     /* B-, B - Зеленый */
-        #3498db 80%,     /* B+ - Синий */
-        #9b59b6 90%,     /* A - Фиолетовый */
-        #2c3e50 100%     /* PRO - Темный */
-    );
-    border-radius: 30px;
     overflow: hidden;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(158, 240, 26, 0.25);
 }
 
-/* Метки уровней */
-.progress-labels {
+.rating-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #9ef01a 0%, #38b000 60%, transparent 100%);
+}
+
+/* Подсказка о верификации */
+.rating-verify-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245, 158, 11, 0.10);
+    border: 1px solid rgba(245, 158, 11, 0.30);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #d97706;
+}
+.rating-verify-hint i { font-size: 14px; flex-shrink: 0; }
+
+/* Шапка карточки */
+.rating-card-header {
     display: flex;
     justify-content: space-between;
-    margin-top: 12px;
-    padding: 0 10px;
+    align-items: center;
+    margin-bottom: 18px;
 }
 
-.progress-label {
-    font-size: 12px;
+.rating-number-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rating-label {
+    font-size: 18px;
     font-weight: 600;
-    color: #666;
-    text-align: center;
+    color: var(--secondary-color, #1a1a1a);
 }
 
-.progress-label.active {
+.rating-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--primary-color, #9ef01a);
+    /* добавляем тень чтобы число не терялось на светлом фоне */
+    text-shadow: 0 0 20px rgba(158, 240, 26, 0.4);
+    letter-spacing: -0.5px;
+}
+
+/* На тёмной теме число должно выглядеть нормально */
+[data-theme="dark"] .rating-number {
+    text-shadow: 0 0 20px rgba(158, 240, 26, 0.6);
+}
+
+.rating-level-pill {
+    background: rgba(158, 240, 26, 0.15);
+    border: 1.5px solid rgba(56, 176, 0, 0.50);
     color: #38b000;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
 }
 
-/* Индикатор текущей позиции */
-.progress-indicator {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 24px;
-    height: 24px;
-    background: white;
-    border: 4px solid #1a1a1a;
-    border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    z-index: 10;
-    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.progress-indicator::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 12px;
-    height: 12px;
-    background: #38b000;
-    border-radius: 50%;
-}
-
-/* Tooltip для индикатора */
-.progress-indicator-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1a1a1a;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 8px;
+.rating-level-desc {
     font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-    margin-bottom: 8px;
-    pointer-events: none;
+    color: var(--gray-color, #666);
+    font-weight: 500;
+    max-width: 160px;
+    text-align: right;
 }
 
-.progress-indicator-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: #1a1a1a;
+/* ===== СЕГМЕНТИРОВАННЫЙ БАР ===== */
+.rating-segments {
+    display: flex;
+    gap: 5px;
+    align-items: flex-end;
+}
+
+.rseg-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+}
+
+.rseg {
+    width: 100%;
+    height: 14px;
+    border-radius: 7px;
+}
+
+/* Активный уровень — яркий зелёный с свечением */
+.rseg-active {
+    background: #9ef01a;
+    box-shadow: 0 0 10px rgba(158, 240, 26, 0.55), 0 2px 4px rgba(0,0,0,0.15);
+    transform: scaleY(1.3);
+    transform-origin: bottom;
+}
+
+/* PRO активный — золотой */
+.rseg-active.rseg-pro {
+    background: linear-gradient(90deg, #f6d365 0%, #fda085 100%);
+    box-shadow: 0 0 10px rgba(246, 211, 101, 0.55);
+}
+
+/* Пройденные уровни — приглушённый зелёный */
+.rseg-past {
+    background: rgba(56, 176, 0, 0.22);
+    border: 1px solid rgba(56, 176, 0, 0.20);
+}
+
+/* Будущие уровни — серый */
+.rseg-future {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* Подписи под сегментами */
+.rseg-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gray-color, #999);
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+}
+.rseg-label-active {
+    color: #38b000;
+    font-size: 11px;
+    font-weight: 700;
 }
 
 /* ==================== STATISTICS CARDS ==================== */
 .profile-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
     margin-bottom: 24px;
 }
 
 .profile-stat-card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
+    background: var(--card-bg, white);
+    border-radius: 14px;
+    padding: 14px 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
 }
-
 .profile-stat-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 .stat-card-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
-    font-size: 24px;
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 8px; font-size: 18px;
 }
+.stat-card-icon.tournaments { background: linear-gradient(135deg, #38b000 0%, #1a6b00 100%); color: white; }
+.stat-card-icon.games       { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+.stat-card-icon.partners    { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+.stat-card-icon.wins        { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
 
-.stat-card-icon.tournaments {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
+.stat-card-value { font-size: 22px; font-weight: 700; color: var(--secondary-color, #1a1a1a); margin: 0; }
+.stat-card-label { font-size: 12px; color: #666; margin: 3px 0 0; }
 
-.stat-card-icon.games {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-}
-
-.stat-card-icon.partners {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    color: white;
-}
-
-.stat-card-icon.wins {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    color: white;
-}
-
-.stat-card-value {
-    font-size: 32px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0;
-}
-
-.stat-card-label {
-    font-size: 14px;
-    color: #666;
-    margin: 4px 0 0;
-}
-
-.stat-card-trend {
-    font-size: 12px;
-    margin-top: 8px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.stat-card-trend.positive {
-    color: #38b000;
-}
-
-.stat-card-trend.negative {
-    color: #e74c3c;
-}
-
-.stat-card-trend i {
-    font-size: 10px;
-}
-
-/* ==================== WARNING BANNER ==================== */
-.rating-verification-banner {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
-    border-left: 4px solid #ffc107;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
-}
-
-.rating-verification-banner i {
-    font-size: 20px;
-    color: #f39c12;
-}
-
-.rating-verification-banner span {
-    font-size: 14px;
-    color: #856404;
-    font-weight: 500;
-}
+.stat-card-trend { font-size: 11px; margin-top: 5px; display: flex; align-items: center; gap: 4px; }
+.stat-card-trend.positive { color: #38b000; }
+.stat-card-trend.negative { color: #e74c3c; }
+.stat-card-trend i { font-size: 10px; }
 
 /* ==================== QUICK ACTION SECTIONS ==================== */
 .profile-quick-actions {
@@ -272,159 +199,66 @@
 }
 
 .quick-action-card {
-    background: white;
+    background: var(--card-bg, white);
     border-radius: 16px;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
 }
+.quick-action-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12); }
 
-.quick-action-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-}
+.quick-action-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.quick-action-header h4 { margin: 0; font-size: 16px; font-weight: 600; color: var(--secondary-color, #1a1a1a); }
+.quick-action-arrow { color: #9ef01a; font-size: 20px; }
+.quick-action-content { color: #666; font-size: 14px; }
 
-.quick-action-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.quick-action-header h4 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #1a1a1a;
-}
-
-.quick-action-arrow {
-    color: #9ef01a;
-    font-size: 20px;
-}
-
-.quick-action-content {
-    color: #666;
-    font-size: 14px;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 32px 16px;
-}
-
-.empty-state-icon {
-    font-size: 48px;
-    color: #ccc;
-    margin-bottom: 12px;
-}
-
-.empty-state-text {
-    color: #999;
-    font-size: 14px;
-    margin-bottom: 16px;
-}
-
+.empty-state { text-align: center; padding: 32px 16px; }
+.empty-state-icon { font-size: 48px; color: #ccc; margin-bottom: 12px; }
+.empty-state-text { color: #999; font-size: 14px; margin-bottom: 16px; }
 .empty-state-action {
     display: inline-block;
     background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
-    color: #1a1a1a;
-    padding: 10px 20px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.3s ease;
+    color: #1a1a1a; padding: 10px 20px; border-radius: 8px;
+    text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.3s ease;
 }
+.empty-state-action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(158, 240, 26, 0.4); }
 
-.empty-state-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(158, 240, 26, 0.4);
-}
-
-/* ==================== RESPONSIVE DESIGN ==================== */
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
-    .rating-progress-bar-container {
-        padding: 16px;
-    }
-
-    .current-rating-badge {
-        font-size: 24px;
-        padding: 6px 16px;
-    }
-
-    .current-rating-info h3 {
-        font-size: 16px;
-    }
-
-    .horizontal-progress-bar {
-        height: 50px;
-    }
-
-    .profile-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .profile-quick-actions {
-        grid-template-columns: 1fr;
-    }
+    .rating-card { padding: 16px 16px 14px; }
+    .rating-number { font-size: 24px; }
+    .rating-label { font-size: 15px; }
+    .rseg { height: 12px; }
+    .rseg-label { font-size: 9px; }
+    .profile-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .profile-quick-actions { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {
-    .rating-progress-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .horizontal-progress-bar {
-        height: 40px;
-    }
-
-    .progress-label {
-        font-size: 10px;
-    }
-
-    .profile-stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .stat-card-value {
-        font-size: 28px;
-    }
+    .rating-segments { gap: 3px; }
+    .rseg-label { display: none; }
+    .profile-stats-grid { grid-template-columns: 1fr; }
+    .stat-card-value { font-size: 28px; }
 }
 
 /* ==================== ANIMATIONS ==================== */
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-.rating-progress-bar-container,
+.rating-card,
 .profile-stat-card,
 .quick-action-card {
-    animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+    animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 
-.profile-stat-card:nth-child(1) { animation-delay: 0.1s; }
-.profile-stat-card:nth-child(2) { animation-delay: 0.2s; }
-.profile-stat-card:nth-child(3) { animation-delay: 0.3s; }
-.profile-stat-card:nth-child(4) { animation-delay: 0.4s; }
+.profile-stat-card:nth-child(1) { animation-delay: 0.05s; }
+.profile-stat-card:nth-child(2) { animation-delay: 0.10s; }
+.profile-stat-card:nth-child(3) { animation-delay: 0.15s; }
+.profile-stat-card:nth-child(4) { animation-delay: 0.20s; }
 
-/* ==================== USER INFO METADATA ==================== */
-/* ==================== BOOKING SPECIFIC STYLES ==================== */
-.price-per-person {
-    font-size: 0.9em;
-    color: #666;
-}
-
-.looking-for-partner {
-    color: #ff6b6b;
-}
+/* ==================== MISC ==================== */
+.price-per-person { font-size: 0.9em; color: #666; }
+.looking-for-partner { color: #ff6b6b; }

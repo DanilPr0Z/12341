@@ -295,19 +295,6 @@ a.btn {
 }
 
 /* Dark Theme Support */
-:root[data-theme="dark"] .btn-secondary {
-    background: var(--card-bg);
-    color: var(--text-color);
-    border-color: var(--card-border);
-}
-
-:root[data-theme="dark"] .btn-secondary:hover {
-    background: var(--bg-dark);
-}
-
-:root[data-theme="dark"] .btn-ghost:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
 
 /* Mobile Optimization */
 @media (max-width: 768px) {

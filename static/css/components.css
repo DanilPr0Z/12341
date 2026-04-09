@@ -331,19 +331,6 @@ img[data-src]:not([src]) {
 }
 
 /* Темная тема для скелетонов */
-:root[data-theme="dark"] .skeleton-line,
-:root[data-theme="dark"] .skeleton-circle,
-:root[data-theme="dark"] .skeleton-court,
-:root[data-theme="dark"] .skeleton-slot {
-    background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
-    background-size: 200% 100%;
-}
-
-:root[data-theme="dark"] .skeleton-court-title,
-:root[data-theme="dark"] .skeleton-court-price,
-:root[data-theme="dark"] .skeleton-court-desc {
-    background: rgba(255, 255, 255, 0.1);
-}
 
 /* ==================== 3D CARD EFFECTS ==================== */
 .card-3d {
@@ -491,13 +478,6 @@ img[data-src]:not([src]) {
 }
 
 /* Темная тема для flip cards */
-:root[data-theme="dark"] .flip-card-front {
-    background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-}
-
-:root[data-theme="dark"] .flip-card-front h3 {
-    color: var(--text-color);
-}
 
 /* Адаптивность flip cards */
 @media (max-width: 768px) {
@@ -1023,27 +1003,6 @@ img[data-src]:not([src]) {
 }
 
 /* ==================== ТЕМНАЯ ТЕМА ДЛЯ КОМПОНЕНТОВ ==================== */
-:root[data-theme="dark"] .info-card {
-    background: var(--card-bg);
-    color: var(--text-color);
-}
-
-:root[data-theme="dark"] .info-card-title {
-    color: var(--primary-color);
-}
-
-:root[data-theme="dark"] .info-card-text {
-    color: var(--gray-color);
-}
-
-:root[data-theme="dark"] .modal-modern .modal-content {
-    background: rgba(30, 30, 30, 0.98);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-:root[data-theme="dark"] .progress-bar {
-    background: #2a2a2a;
-}
 
 /* ==================== COURT OCCUPANCY PROGRESS BAR ==================== */
 .court-occupancy {
@@ -1093,11 +1052,3 @@ img[data-src]:not([src]) {
     background: linear-gradient(90deg, #f44336, #ef5350);
 }
 
-:root[data-theme="dark"] .court-occupancy {
-    background: rgba(158, 240, 26, 0.1);
-    border-color: rgba(158, 240, 26, 0.3);
-}
-
-:root[data-theme="dark"] .court-occupancy-label {
-    color: var(--gray-color);
-}

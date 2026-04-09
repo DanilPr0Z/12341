@@ -92,13 +92,13 @@
 }
 
 .table-btn.secondary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #38b000, #1a6b00);
     color: white;
 }
 
 .table-btn.secondary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 10px rgba(56, 176, 0, 0.3);
 }
 
 .table-btn.danger {
@@ -124,6 +124,46 @@
 /* Иконки только для мобильных */
 .table-btn .mobile-icon {
     display: none;
+}
+
+/* ==================== WRAPPER ДЛЯ ГОРИЗОНТАЛЬНОЙ ПРОКРУТКИ ==================== */
+.responsive-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Плавная прокрутка на iOS */
+    margin: 20px 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.responsive-table-wrapper table {
+    min-width: 100%;
+}
+
+/* Скроллбар для десктопа */
+.responsive-table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.responsive-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.responsive-table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.responsive-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+@media (max-width: 768px) {
+    .responsive-table-wrapper {
+        overflow-x: visible; /* На мобильных используем карточки */
+        box-shadow: none;
+    }
 }
 
 /* ==================== МОБИЛЬНАЯ ВЕРСИЯ (КАРТОЧКИ) ==================== */
@@ -381,26 +421,6 @@
 }
 
 /* ==================== ТЕМНАЯ ТЕМА ==================== */
-:root[data-theme="dark"] .responsive-table tbody tr {
-    border-bottom-color: #2d2d2d;
-}
-
-:root[data-theme="dark"] .table-empty h3 {
-    color: var(--text-color);
-}
-
-:root[data-theme="dark"] .pagination-btn {
-    background: var(--card-bg);
-    border-color: #404040;
-    color: var(--text-color);
-}
-
-:root[data-theme="dark"] .table-search input,
-:root[data-theme="dark"] .table-filter-select {
-    background: #2a2a2a;
-    border-color: #404040;
-    color: var(--text-color);
-}
 
 /* ==================== СПЕЦИАЛЬНЫЕ КОЛОНКИ ==================== */
 

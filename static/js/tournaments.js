@@ -38,7 +38,7 @@ class TournamentsList {
         try {
             this.showLoading();
 
-            const response = await fetch('/tournament/api/list/');
+            const response = await fetch('/tournaments/api/list/');
             const data = await response.json();
 
             if (data.success) {
@@ -84,7 +84,7 @@ class TournamentsList {
         // Добавляем обработчики клика
         grid.querySelectorAll('.tournament-card').forEach((card, index) => {
             card.addEventListener('click', () => {
-                window.location.href = `/tournament/public/${items[index].id}/`;
+                window.location.href = `/tournaments/public/${items[index].id}/`;
             });
         });
     }
@@ -96,12 +96,6 @@ class TournamentsList {
         // Определяем градиент для хедера в зависимости от формата
         const headerGradients = {
             'americano': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            'mexicano': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-            'mixed_americano': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-            'team_americano': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-            'team_mexicano': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-            'doubles_elimination': 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-            'doubles_round_robin': 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
         };
 
         const gradient = headerGradients[tournament.format] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
@@ -111,7 +105,7 @@ class TournamentsList {
             'registration_open': 'Регистрация',
             'registration_closed': 'Закрыта',
             'in_progress': 'Идет',
-            'completed': 'Завершен',
+            'completed': 'Завершён',
             'cancelled': 'Отменен',
             'draft': 'Черновик'
         };
@@ -192,12 +186,6 @@ class TournamentsList {
     formatTypeShort(format) {
         const types = {
             'americano': 'Americano',
-            'mexicano': 'Mexicano',
-            'mixed_americano': 'Mixed',
-            'team_americano': 'Team Americano',
-            'team_mexicano': 'Team Mexicano',
-            'doubles_elimination': 'Плей-офф',
-            'doubles_round_robin': 'Круговая',
         };
         return types[format] || format;
     }

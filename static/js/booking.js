@@ -1042,7 +1042,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <div class="duration-options" style="
                     display: grid;
-                    grid-template-columns: repeat(3, 1fr);
+                    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
                     gap: 15px;
                     margin-bottom: 30px;
                 ">
@@ -1063,6 +1063,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div style="font-size: 0.9rem; color: #666;">${startTime} - ${calculateEndTime(startTime, 1)}</div>
                     </button>
 
+                    <button class="duration-option" data-hours="1.5" style="
+                        padding: 20px 10px;
+                        border: 2px solid #eee;
+                        border-radius: 10px;
+                        background: white;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 10px;
+                    ">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #333;">1,5 часа</div>
+                        <div style="font-size: 1.1rem; color: #38b000; font-weight: bold;">${courtPrice * 1.5} ₽</div>
+                        <div style="font-size: 0.9rem; color: #666;">${startTime} - ${calculateEndTime(startTime, 1.5)}</div>
+                    </button>
+
                     <button class="duration-option" data-hours="2" style="
                         padding: 20px 10px;
                         border: 2px solid #eee;
@@ -1078,6 +1095,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div style="font-size: 1.5rem; font-weight: bold; color: #333;">2 часа</div>
                         <div style="font-size: 1.1rem; color: #38b000; font-weight: bold;">${courtPrice * 2} ₽</div>
                         <div style="font-size: 0.9rem; color: #666;">${startTime} - ${calculateEndTime(startTime, 2)}</div>
+                    </button>
+
+                    <button class="duration-option" data-hours="2.5" style="
+                        padding: 20px 10px;
+                        border: 2px solid #eee;
+                        border-radius: 10px;
+                        background: white;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 10px;
+                    ">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #333;">2,5 часа</div>
+                        <div style="font-size: 1.1rem; color: #38b000; font-weight: bold;">${courtPrice * 2.5} ₽</div>
+                        <div style="font-size: 0.9rem; color: #666;">${startTime} - ${calculateEndTime(startTime, 2.5)}</div>
                     </button>
 
                     <button class="duration-option" data-hours="3" style="
@@ -1099,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
 
                 <div style="text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 20px;">
-                    <i class="fas fa-info-circle"></i> Вы можете забронировать от 1 до 3 часов подряд
+                    <i class="fas fa-info-circle"></i> Вы можете забронировать от 1 до 3 часов (с шагом 30 мин)
                 </div>
 
                 <div style="display: flex; justify-content: space-between; gap: 15px;">
@@ -1123,7 +1157,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Обработчики для выбора продолжительности
         modal.querySelectorAll('.duration-option').forEach(option => {
             option.addEventListener('click', function() {
-                const hours = parseInt(this.dataset.hours);
+                const hours = parseFloat(this.dataset.hours);
                 selectedDuration = hours;
 
                 const endTime = calculateEndTime(startTime, hours);
@@ -1164,11 +1198,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Расчет времени окончания
+    // Расчет времени окончания (поддерживает дробные часы: 1.5, 2.5 и т.д.)
     function calculateEndTime(startTime, hours) {
-        const [startHour] = startTime.split(':').map(Number);
-        const endHour = startHour + hours;
-        return `${endHour.toString().padStart(2, '0')}:00`;
+        const [startHour, startMin] = startTime.split(':').map(Number);
+        const totalMinutes = (startHour * 60 + (startMin || 0)) + Math.round(hours * 60);
+        const endHour = Math.floor(totalMinutes / 60);
+        const endMin = totalMinutes % 60;
+        return `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
     }
 
     // Проверка доступности расширенного слота
@@ -1660,7 +1696,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modeCard.style.transform = 'scale(1.02)';
 
             // Показываем/скрываем параметры социальной игры
-            if (gameMode === 'americano' || gameMode === 'mexicano') {
+            if (gameMode === 'americano') {
                 if (socialGameParams) {
                     socialGameParams.style.display = 'block';
                     socialGameParams.style.animation = 'fadeIn 0.3s ease';

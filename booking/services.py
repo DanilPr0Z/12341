@@ -60,7 +60,7 @@ class PaymentService:
         Подтвердить платеж
         В реальной интеграции здесь будет проверка статуса в платежной системе
         """
-        payment.mark_as_paid(transaction_id=transaction_id)
+        payment.mark_as_paid()
         
         # Создаем запись в истории
         BookingHistoryService.create_history_entry(
@@ -78,7 +78,7 @@ class PaymentService:
         """
         Вернуть платеж (заглушка для будущей интеграции)
         """
-        payment.mark_as_refunded()
+        payment.refund()
         
         # Создаем запись в истории
         BookingHistoryService.create_history_entry(

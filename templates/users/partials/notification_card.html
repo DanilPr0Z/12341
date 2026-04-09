@@ -81,16 +81,26 @@
 
         <!-- Действия (если нужны) -->
         {% if notification.type == 'booking_invitation' %}
-        <div class="notification-actions">
-            <button class="notification-action-btn" onclick="handleInvitationAccept('{{ notification.metadata.invitation_id }}')">
-                <i class="fas fa-check"></i>
-                Принять
-            </button>
-            <button class="notification-action-btn secondary" onclick="handleInvitationDecline('{{ notification.metadata.invitation_id }}')">
-                <i class="fas fa-times"></i>
-                Отклонить
-            </button>
-        </div>
+            {% if notification.invitation_status == 'pending' %}
+            <div class="notification-actions">
+                <button class="notification-action-btn" onclick="handleInvitationAccept('{{ notification.metadata.invitation_id }}', this)">
+                    <i class="fas fa-check"></i>
+                    Принять
+                </button>
+                <button class="notification-action-btn secondary" onclick="handleInvitationDecline('{{ notification.metadata.invitation_id }}', this)">
+                    <i class="fas fa-times"></i>
+                    Отклонить
+                </button>
+            </div>
+            {% elif notification.invitation_status == 'accepted' %}
+            <div class="notification-status-label" style="color: #10b981; font-weight: 600; font-size: 13px; margin-top: 8px;">
+                <i class="fas fa-check-circle"></i> Принято
+            </div>
+            {% elif notification.invitation_status == 'declined' %}
+            <div class="notification-status-label" style="color: #ef4444; font-weight: 600; font-size: 13px; margin-top: 8px;">
+                <i class="fas fa-times-circle"></i> Отклонено
+            </div>
+            {% endif %}
         {% elif notification.type == 'booking_reminder_24h' or notification.type == 'booking_reminder_1h' %}
         <div class="notification-actions">
             <button class="notification-action-btn" onclick="window.location.href='{% url 'profile' %}?tab=bookings'">
@@ -103,6 +113,13 @@
             <button class="notification-action-btn" onclick="window.location.href='{% url 'profile' %}#rating'">
                 <i class="fas fa-chart-line"></i>
                 Посмотреть рейтинг
+            </button>
+        </div>
+        {% elif notification.type == 'booking_cancelled' %}
+        <div class="notification-actions">
+            <button class="notification-action-btn secondary" onclick="window.location.href='{% url 'my_bookings' %}'">
+                <i class="fas fa-calendar-alt"></i>
+                Мои бронирования
             </button>
         </div>
         {% endif %}

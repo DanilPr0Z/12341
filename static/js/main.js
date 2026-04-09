@@ -28,25 +28,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showMessage(type, text) {
-        // Удаляем старые сообщения
-        document.querySelectorAll('.custom-message').forEach(msg => msg.remove());
+        // Создаем или получаем контейнер для toast уведомлений
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
 
         // Создаем элемент сообщения
         const messageDiv = document.createElement('div');
         messageDiv.className = `custom-message ${type}-message`;
         messageDiv.textContent = text;
         messageDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
             padding: 15px 20px;
             border-radius: 8px;
-            z-index: 10000;
             max-width: 300px;
             animation: slideIn 0.3s ease;
             color: white;
             font-weight: bold;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 12px;
+            position: relative;
         `;
 
         if (type === 'success') {
@@ -57,7 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.style.borderLeft = '4px solid #bd2130';
         }
 
-        document.body.appendChild(messageDiv);
+        // Добавляем в контейнер (новые сообщения сверху)
+        toastContainer.insertBefore(messageDiv, toastContainer.firstChild);
 
         // Удаляем сообщение через 5 секунд
         setTimeout(() => {
@@ -65,6 +69,10 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 if (messageDiv.parentNode) {
                     messageDiv.parentNode.removeChild(messageDiv);
+                }
+                // Удаляем контейнер если он пустой
+                if (toastContainer.children.length === 0) {
+                    toastContainer.remove();
                 }
             }, 300);
         }, 5000);
@@ -76,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (openLoginBtn) {
         openLoginBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            window.window.closeAllModals();
+            window.closeAllModals();
             if (loginModal) window.openModal(loginModal);
         });
     }
@@ -84,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (openRegisterBtn) {
         openRegisterBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            window.window.closeAllModals();
+            window.closeAllModals();
             if (registerModal) window.openModal(registerModal);
         });
     }
@@ -219,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
+                    submitBtn.classList.remove('btn-loading');
                 }
             })
             .catch(error => {
@@ -226,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showMessage('error', 'Ошибка при входе');
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
+                submitBtn.classList.remove('btn-loading');
             });
         });
     }
@@ -327,6 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Восстанавливаем кнопку
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
+                    submitBtn.classList.remove('btn-loading');
                 }
             })
             .catch(error => {
@@ -334,6 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showMessage('error', 'Произошла ошибка при регистрации');
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
+                submitBtn.classList.remove('btn-loading');
             });
         });
     }
@@ -361,6 +373,218 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(form);
             form.submit();
         });
+    }
+
+    // ==================== ВАЛИДАЦИЯ ФОРМ В РЕАЛЬНОМ ВРЕМЕНИ ====================
+
+    /**
+     * Валидация email
+     */
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    /**
+     * Валидация пароля
+     */
+    function validatePassword(password) {
+        return password.length >= 8;
+    }
+
+    /**
+     * Валидация имени пользователя
+     */
+    function validateUsername(username) {
+        return username.length >= 3 && /^[a-zA-Z0-9_]+$/.test(username);
+    }
+
+    /**
+     * Показать ошибку поля
+     */
+    function showFieldError(input, message) {
+        // Удаляем старую ошибку
+        const parent = input.parentNode;
+        const oldError = parent.querySelector('.error-message');
+        if (oldError) oldError.remove();
+
+        // Создаем новую ошибку
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.style.cssText = `
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            padding: 5px 10px;
+            background-color: #f8d7da;
+            border-radius: 4px;
+            border-left: 3px solid #dc3545;
+        `;
+        errorDiv.textContent = message;
+        parent.appendChild(errorDiv);
+
+        // Красная рамка
+        input.style.borderColor = '#dc3545';
+        input.style.boxShadow = '0 0 0 0.2rem rgba(220,53,69,.25)';
+    }
+
+    /**
+     * Очистить ошибку поля
+     */
+    function clearFieldError(input) {
+        const parent = input.parentNode;
+        const errorMsg = parent.querySelector('.error-message');
+        if (errorMsg) errorMsg.remove();
+
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+    }
+
+    /**
+     * Показать успешную валидацию
+     */
+    function showFieldSuccess(input) {
+        clearFieldError(input);
+        input.style.borderColor = '#28a745';
+        input.style.boxShadow = '0 0 0 0.2rem rgba(40,167,69,.25)';
+    }
+
+    // Валидация полей логина
+    if (loginForm) {
+        const emailInput = loginForm.querySelector('input[name="email"]');
+        const passwordInput = loginForm.querySelector('input[name="password"]');
+
+        if (emailInput) {
+            emailInput.addEventListener('blur', function() {
+                const value = this.value.trim();
+                if (!value) {
+                    showFieldError(this, 'Email обязателен');
+                } else if (!validateEmail(value)) {
+                    showFieldError(this, 'Некорректный email адрес');
+                } else {
+                    showFieldSuccess(this);
+                }
+            });
+
+            emailInput.addEventListener('input', function() {
+                if (this.value.trim() && validateEmail(this.value.trim())) {
+                    showFieldSuccess(this);
+                }
+            });
+        }
+
+        if (passwordInput) {
+            passwordInput.addEventListener('blur', function() {
+                const value = this.value;
+                if (!value) {
+                    showFieldError(this, 'Пароль обязателен');
+                } else if (!validatePassword(value)) {
+                    showFieldError(this, 'Пароль должен быть минимум 8 символов');
+                } else {
+                    showFieldSuccess(this);
+                }
+            });
+
+            passwordInput.addEventListener('input', function() {
+                if (this.value && validatePassword(this.value)) {
+                    showFieldSuccess(this);
+                }
+            });
+        }
+    }
+
+    // Валидация полей регистрации
+    if (registerForm) {
+        const usernameInput = registerForm.querySelector('input[name="username"]');
+        const emailInput = registerForm.querySelector('input[name="email"]');
+        const password1Input = registerForm.querySelector('input[name="password1"]');
+        const password2Input = registerForm.querySelector('input[name="password2"]');
+
+        if (usernameInput) {
+            usernameInput.addEventListener('blur', function() {
+                const value = this.value.trim();
+                if (!value) {
+                    showFieldError(this, 'Имя пользователя обязательно');
+                } else if (!validateUsername(value)) {
+                    showFieldError(this, 'Минимум 3 символа. Только буквы, цифры и _');
+                } else {
+                    showFieldSuccess(this);
+                }
+            });
+
+            usernameInput.addEventListener('input', function() {
+                if (this.value.trim() && validateUsername(this.value.trim())) {
+                    showFieldSuccess(this);
+                }
+            });
+        }
+
+        if (emailInput) {
+            emailInput.addEventListener('blur', function() {
+                const value = this.value.trim();
+                if (!value) {
+                    showFieldError(this, 'Email обязателен');
+                } else if (!validateEmail(value)) {
+                    showFieldError(this, 'Некорректный email адрес');
+                } else {
+                    showFieldSuccess(this);
+                }
+            });
+
+            emailInput.addEventListener('input', function() {
+                if (this.value.trim() && validateEmail(this.value.trim())) {
+                    showFieldSuccess(this);
+                }
+            });
+        }
+
+        if (password1Input) {
+            password1Input.addEventListener('blur', function() {
+                const value = this.value;
+                if (!value) {
+                    showFieldError(this, 'Пароль обязателен');
+                } else if (!validatePassword(value)) {
+                    showFieldError(this, 'Пароль должен быть минимум 8 символов');
+                } else {
+                    showFieldSuccess(this);
+                }
+            });
+
+            password1Input.addEventListener('input', function() {
+                if (this.value && validatePassword(this.value)) {
+                    showFieldSuccess(this);
+                }
+                // Проверяем совпадение паролей если второй пароль уже введен
+                if (password2Input && password2Input.value) {
+                    if (this.value === password2Input.value) {
+                        showFieldSuccess(password2Input);
+                    } else {
+                        showFieldError(password2Input, 'Пароли не совпадают');
+                    }
+                }
+            });
+        }
+
+        if (password2Input) {
+            password2Input.addEventListener('blur', function() {
+                const value = this.value;
+                if (!value) {
+                    showFieldError(this, 'Подтвердите пароль');
+                } else if (password1Input && value !== password1Input.value) {
+                    showFieldError(this, 'Пароли не совпадают');
+                } else {
+                    showFieldSuccess(this);
+                }
+            });
+
+            password2Input.addEventListener('input', function() {
+                if (password1Input && this.value === password1Input.value) {
+                    showFieldSuccess(this);
+                } else if (this.value) {
+                    showFieldError(this, 'Пароли не совпадают');
+                }
+            });
+        }
     }
 
     // ==================== ВЫПАДАЮЩЕЕ МЕНЮ ====================

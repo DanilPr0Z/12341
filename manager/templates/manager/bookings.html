@@ -171,6 +171,8 @@ let filteredBookings = [];
 let allUsers = [];
 let allCoaches = [];
 
+const API_BASE = '{% url "manager:dashboard" %}api/';
+
 document.addEventListener('DOMContentLoaded', function() {
     loadBookings();
     loadCourts();
@@ -323,7 +325,7 @@ function formatDate(dateString) {
 }
 
 function viewBooking(id) {
-    fetch(`/manager/api/bookings/${id}/`)
+    fetch(`${API_BASE}bookings/${id}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -383,7 +385,7 @@ function editBooking(id) {
 function confirmBooking(id) {
     if (!confirm('Подтвердить бронирование?')) return;
 
-    fetch(`/manager/api/bookings/${id}/confirm/`, {
+    fetch(`${API_BASE}bookings/${id}/confirm/`, {
         method: 'POST',
         headers: {'X-CSRFToken': getCookie('csrftoken')}
     })
@@ -400,7 +402,7 @@ function confirmBooking(id) {
 function cancelBooking(id) {
     if (!confirm('Отменить бронирование?')) return;
 
-    fetch(`/manager/api/bookings/${id}/cancel/`, {
+    fetch(`${API_BASE}bookings/${id}/cancel/`, {
         method: 'POST',
         headers: {'X-CSRFToken': getCookie('csrftoken')}
     })
@@ -419,11 +421,11 @@ function refreshBookings() {
 }
 
 function exportBookings() {
-    window.location.href = '/manager/api/bookings/export/';
+    window.location.href = `${API_BASE}bookings/export/`;
 }
 
 function loadUsersForForm() {
-    fetch('/manager/api/users/')
+    fetch(`${API_BASE}users/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -456,7 +458,7 @@ function populateUserSelects() {
 }
 
 function populateCourtSelect(selectId) {
-    fetch('/manager/api/courts/')
+    fetch(`${API_BASE}courts/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -499,7 +501,7 @@ function showEditBookingModal(bookingId) {
     populateCourtSelect('bookingCourt');
 
     // Загрузка данных бронирования
-    fetch(`/manager/api/bookings/${bookingId}/`)
+    fetch(`${API_BASE}bookings/${bookingId}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -558,8 +560,8 @@ function submitBookingForm(event) {
     };
 
     const url = isEdit
-        ? `/manager/api/bookings/${bookingId}/update/`
-        : '/manager/api/bookings/create/';
+        ? `${API_BASE}bookings/${bookingId}/update/`
+        : `${API_BASE}bookings/create/`;
 
     fetch(url, {
         method: 'POST',
@@ -590,7 +592,7 @@ function deleteBooking(id) {
         return;
     }
 
-    fetch(`/manager/api/bookings/${id}/delete/`, {
+    fetch(`${API_BASE}bookings/${id}/delete/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken')

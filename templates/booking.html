@@ -6,709 +6,55 @@
 {% block extra_css %}
 <!-- FullCalendar CSS -->
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
-<style>
-    /* Компактный календарь */
-    .fullcalendar-wrapper {
-        background: var(--card-bg);
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-        transition: background-color 0.3s ease;
-    }
-
-    #main-calendar {
-        max-width: 100%;
-    }
-
-    /* Темная тема для календаря */
-    :root[data-theme="dark"] .fullcalendar-wrapper {
-        background: var(--card-bg);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-
-    :root[data-theme="dark"] #main-calendar .fc-scrollgrid {
-        border-color: var(--card-border) !important;
-    }
-
-    :root[data-theme="dark"] #main-calendar .fc-col-header-cell {
-        background: rgba(158, 240, 26, 0.15) !important;
-        color: var(--text-color) !important;
-        border-color: var(--card-border) !important;
-    }
-
-    :root[data-theme="dark"] #main-calendar .fc-daygrid-day {
-        background: var(--card-bg) !important;
-        border-color: var(--card-border) !important;
-    }
-
-    :root[data-theme="dark"] #main-calendar .fc-daygrid-day-number {
-        color: var(--text-color) !important;
-    }
-
-    :root[data-theme="dark"] #main-calendar .fc-day-other .fc-daygrid-day-number {
-        color: var(--gray-color) !important;
-        opacity: 0.5;
-    }
-
-
-
-    /* ========== КОМПАКТНЫЙ FullCalendar ========== */
-
-    #main-calendar {
-        position: relative;
-        z-index: 1;
-    }
-
-    /* Компактный toolbar */
-    #main-calendar .fc-toolbar {
-        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%) !important;
-        padding: 15px 20px !important;
-        border-radius: 12px !important;
-        margin-bottom: 15px !important;
-        box-shadow: 0 4px 15px rgba(158, 240, 26, 0.3) !important;
-    }
-
-    #main-calendar .fc-toolbar-title {
-        color: white !important;
-        font-weight: 700 !important;
-        font-size: 20px !important;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-    }
-
-    /* Компактная высота календаря */
-    #main-calendar .fc-daygrid {
-        height: auto !important;
-    }
-
-    #main-calendar .fc-scrollgrid {
-        border-radius: 8px !important;
-        overflow: hidden !important;
-    }
-
-    /* Кнопки календаря */
-    #main-calendar .fc-button {
-        background-color: white !important;
-        color: #38b000 !important;
-        border: 2px solid white !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        padding: 6px 14px !important;
-        transition: all 0.3s ease !important;
-        text-transform: capitalize !important;
-        cursor: pointer !important;
-        outline: none !important;
-        font-size: 14px !important;
-    }
-
-    #main-calendar .fc-button:not(:disabled):hover {
-        background-color: #bff167 !important;
-        color: white !important;
-        border-color: #bff167 !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    }
-
-    #main-calendar .fc-button:not(:disabled):active {
-        transform: translateY(0) !important;
-    }
-
-    #main-calendar .fc-button-primary.fc-button-active,
-    #main-calendar .fc-button-primary:not(:disabled).fc-button-active {
-        background-color: #7cc00f !important;
-        color: white !important;
-        border-color: #7cc00f !important;
-    }
-
-    #main-calendar .fc-button:disabled {
-        opacity: 0.5 !important;
-        cursor: not-allowed !important;
-    }
-
-    /* Сетка календаря */
-    #main-calendar .fc-scrollgrid {
-        border: 1px solid #f0f0f0 !important;
-    }
-
-    #main-calendar .fc-col-header {
-        background: linear-gradient(135deg, rgba(158, 240, 26, 0.1) 0%, rgba(191, 241, 103, 0.1) 100%);
-    }
-
-    #main-calendar .fc-col-header-cell {
-        padding: 8px 0 !important;
-        font-weight: 700 !important;
-        font-size: 13px !important;
-        color: var(--secondary-color) !important;
-        text-transform: uppercase !important;
-    }
-
-    #main-calendar .fc-daygrid-day {
-        transition: all 0.2s !important;
-        cursor: pointer !important;
-        min-height: 80px !important;
-    }
-
-    #main-calendar .fc-daygrid-day:hover {
-        background: rgba(158, 240, 26, 0.05) !important;
-    }
-
-    #main-calendar .fc-daygrid-day-number {
-        color: #666 !important;
-        font-weight: 600 !important;
-        padding: 6px !important;
-        font-size: 14px !important;
-    }
-
-    /* Сегодняшний день */
-    #main-calendar .fc-day-today {
-        background: linear-gradient(135deg, rgba(158, 240, 26, 0.15) 0%, rgba(191, 241, 103, 0.15) 100%) !important;
-    }
-
-    #main-calendar .fc-day-today .fc-daygrid-day-number {
-        color: var(--primary-dark) !important;
-        font-weight: 700 !important;
-        background: white !important;
-        border-radius: 50% !important;
-        width: 28px !important;
-        height: 28px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    /* Выделение выбранной даты */
-    #main-calendar .fc-day.selected-date {
-        background: rgba(158, 240, 26, 0.2) !important;
-        border: 2px solid var(--primary-color) !important;
-    }
-
-    /* События/бронирования */
-    #main-calendar .fc-event {
-        cursor: pointer !important;
-        border: none !important;
-        padding: 3px 6px !important;
-        border-radius: 4px !important;
-        font-size: 11px !important;
-        font-weight: 600 !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-        transition: all 0.2s !important;
-        margin: 1px 0 !important;
-    }
-
-    #main-calendar .fc-event:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
-        opacity: 1 !important;
-        filter: brightness(1.1) !important;
-    }
-
-    /* Выходные дни */
-    .fc .fc-day-sat,
-    .fc .fc-day-sun {
-        background: rgba(255, 152, 0, 0.03);
-    }
-
-    /* Временная сетка */
-    .fc .fc-timegrid-slot {
-        height: 40px;
-    }
-
-    .fc .fc-timegrid-slot-label {
-        color: #666;
-        font-weight: 600;
-        font-size: 13px;
-    }
-
-    .fc .fc-timegrid-now-indicator-line {
-        border-color: var(--primary-color);
-        border-width: 2px;
-    }
-
-    .fc .fc-timegrid-now-indicator-arrow {
-        border-color: var(--primary-color);
-    }
-
-    /* Адаптивность */
-    @media (max-width: 768px) {
-        .fc .fc-toolbar {
-            flex-direction: column;
-            gap: 10px;
-            padding: 15px;
-        }
-
-        .fc .fc-toolbar-title {
-            font-size: 20px;
-        }
-
-        .fc .fc-button {
-            font-size: 13px !important;
-            padding: 6px 12px !important;
-        }
-    }
-
-    /* ========== МОДАЛЬНОЕ ОКНО СОБЫТИЯ ========== */
-    .event-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(8px);
-        z-index: 9999;
-        align-items: center;
-        justify-content: center;
-        animation: fadeIn 0.3s ease;
-    }
-
-    .event-modal.active {
-        display: flex;
-    }
-
-    .event-modal-content {
-        background: white;
-        padding: 0;
-        border-radius: 16px;
-        max-width: 550px;
-        width: 90%;
-        max-height: 85vh;
-        overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: slideInUp 0.4s ease;
-    }
-
-    .event-modal-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-        padding: 25px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 3px solid var(--primary-dark);
-    }
-
-    .event-modal-header h3 {
-        margin: 0;
-        color: white;
-        font-size: 22px;
-        font-weight: 700;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .event-modal-close {
-        background: white;
-        color: var(--primary-dark);
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        cursor: pointer;
-        transition: all 0.3s;
-        border: none;
-        font-weight: 700;
-    }
-
-    .event-modal-close:hover {
-        transform: rotate(90deg) scale(1.1);
-        background: var(--primary-dark);
-        color: white;
-    }
-
-    #modalBody {
-        padding: 30px;
-        overflow-y: auto;
-        max-height: calc(85vh - 100px);
-    }
-
-    .event-detail {
-        display: flex;
-        justify-content: space-between;
-        padding: 15px 0;
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .event-detail:last-child {
-        border-bottom: none;
-    }
-
-    .event-detail-label {
-        font-weight: 600;
-        color: #666;
-        font-size: 14px;
-    }
-
-    .event-detail-value {
-        font-weight: 700;
-        color: #333;
-        text-align: right;
-        font-size: 15px;
-    }
-
-    .event-actions {
-        margin-top: 20px;
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-    }
-
-    .btn-event {
-        padding: 12px 24px;
-        border-radius: 8px;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        font-size: 14px;
-    }
-
-    .btn-view {
-        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-        color: white;
-    }
-
-    .btn-view:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(108, 117, 125, 0.3);
-    }
-
-    .btn-join {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        color: white;
-    }
-
-    .btn-join:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(158, 240, 26, 0.4);
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    @keyframes slideInUp {
-        from {
-            opacity: 0;
-            transform: translateY(50px) scale(0.9);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
-    /* Темная тема для модального окна */
-    :root[data-theme="dark"] .event-modal-content {
-        background: var(--card-bg);
-    }
-
-    :root[data-theme="dark"] #modalBody {
-        background: var(--card-bg);
-    }
-
-    :root[data-theme="dark"] .event-detail {
-        border-bottom-color: var(--card-border);
-    }
-
-    :root[data-theme="dark"] .event-detail-label {
-        color: var(--gray-color);
-    }
-
-    :root[data-theme="dark"] .event-detail-value {
-        color: var(--text-color);
-    }
-
-    .event-modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .event-modal-close {
-        cursor: pointer;
-        font-size: 24px;
-        color: #6b7280;
-    }
-
-    .event-modal-close:hover {
-        color: #1a1a1a;
-    }
-
-    .event-detail {
-        margin-bottom: 15px;
-    }
-
-    .event-detail-label {
-        font-weight: 600;
-        color: #6b7280;
-        font-size: 12px;
-        text-transform: uppercase;
-        margin-bottom: 4px;
-    }
-
-    .event-detail-value {
-        font-size: 16px;
-        color: #1a1a1a;
-    }
-
-    .event-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .btn-event {
-        flex: 1;
-        padding: 12px;
-        border-radius: 8px;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-view {
-        background: #3b82f6;
-        color: white;
-    }
-
-    .btn-view:hover {
-        background: #2563eb;
-    }
-
-    .btn-join {
-        background: #10b981;
-        color: white;
-    }
-
-    .btn-join:hover {
-        background: #059669;
-    }
-
-    /* Стили для переключателя типа бронирования */
-    .type-option .type-card {
-        text-align: center;
-        padding: 20px 15px;
-        border: 3px solid #e5e7eb;
-        border-radius: 12px;
-        background: white;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .type-option:hover .type-card {
-        border-color: var(--primary-color);
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(158, 240, 26, 0.2);
-    }
-
-    .type-option.active .type-card {
-        border-color: var(--primary-color);
-        background: linear-gradient(135deg, rgba(158, 240, 26, 0.1) 0%, rgba(191, 241, 103, 0.1) 100%);
-        box-shadow: 0 8px 20px rgba(158, 240, 26, 0.25);
-        transform: scale(1.02);
-    }
-
-    .type-option .type-card i {
-        color: var(--secondary-color);
-        transition: all 0.3s;
-    }
-
-    .type-option.active .type-card i {
-        color: var(--primary-color);
-        transform: scale(1.1);
-    }
-
-    #coach-selection {
-        animation: slideDown 0.4s ease-out;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            max-height: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            max-height: 200px;
-            transform: translateY(0);
-        }
-    }
-
-    /* Стили для выбора количества игроков */
-    .player-count-option {
-        transition: all 0.3s ease;
-    }
-
-    .player-count-option:hover {
-        border-color: var(--primary-color) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(158, 240, 26, 0.2);
-    }
-
-    .player-count-option.active {
-        border-color: var(--primary-color) !important;
-        background: linear-gradient(135deg, rgba(158, 240, 26, 0.1) 0%, rgba(191, 241, 103, 0.1) 100%) !important;
-        box-shadow: 0 4px 12px rgba(158, 240, 26, 0.3);
-    }
-
-    /* Стили для выбора уровней рейтинга */
-    .rating-level-option {
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .rating-badge {
-        padding: 12px 8px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        text-align: center;
-        font-weight: 700;
-        font-size: 16px;
-        color: var(--secondary-color);
-        background: white;
-        transition: all 0.3s ease;
-    }
-
-    .rating-level-option:hover .rating-badge {
-        border-color: var(--primary-color);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(158, 240, 26, 0.2);
-    }
-
-    .rating-level-option.active .rating-badge {
-        border-color: var(--primary-color);
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-        color: var(--secondary-color);
-        box-shadow: 0 4px 12px rgba(158, 240, 26, 0.3);
-    }
-
-    /* Стили для поиска участников */
-    .search-result-item {
-        padding: 12px;
-        border-bottom: 1px solid #f0f0f0;
-        cursor: pointer;
-        transition: background 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .search-result-item:hover {
-        background: rgba(158, 240, 26, 0.1);
-    }
-
-    .search-result-item:last-child {
-        border-bottom: none;
-    }
-
-    .participant-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-        color: var(--secondary-color);
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    .participant-tag .remove-participant {
-        cursor: pointer;
-        margin-left: 4px;
-        opacity: 0.7;
-        transition: opacity 0.2s;
-    }
-
-    .participant-tag .remove-participant:hover {
-        opacity: 1;
-    }
-</style>
+<!-- Accordion Booking CSS -->
+<link rel="stylesheet" href="{% static 'css/booking-accordion.css' %}">
+<!-- Booking Page CSS (extracted from inline) -->
+<link rel="stylesheet" href="{% static 'css/booking-page.css' %}">
 {% endblock %}
 
 {% block content %}
 
 <!-- Индикатор загрузки страницы -->
-<div id="page-loader" style="
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 20px;
-">
-    <div style="
-        width: 60px;
-        height: 60px;
-        border: 4px solid #f0f0f0;
-        border-top: 4px solid var(--primary-color);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    "></div>
-    <div style="
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--secondary-color);
-    ">Загрузка календаря...</div>
+<div id="page-loader">
+    <div class="page-loader-spinner"></div>
+    <div class="page-loader-text">Загрузка календаря...</div>
 </div>
-
-<style>
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-</style>
 
 <div class="page-header">
     <h1>Бронирование кортов</h1>
-    <p>Выберите дату, корт и время для бронирования</p>
+    <p>Следуйте шагам ниже для создания бронирования</p>
 </div>
 
 <!-- ПРИГЛАШЕНИЯ В ИГРУ -->
 {% if user.is_authenticated and pending_invitations %}
-<div class="invitations-section" style="margin-bottom: 30px;">
-    <div class="section-card" style="background: linear-gradient(135deg, rgba(158, 240, 26, 0.1) 0%, rgba(191, 241, 103, 0.1) 100%); border: 2px solid rgba(158, 240, 26, 0.3);">
-        <h3 style="color: var(--primary-color);"><i class="fas fa-envelope"></i> Приглашения в игру ({{ pending_invitations|length }})</h3>
-
-        <div class="invitations-list" style="display: grid; gap: 15px;">
+<div class="invitations-section">
+    <div class="section-card invitations-card">
+        <h3><i class="fas fa-envelope"></i> Приглашения в игру ({{ pending_invitations|length }})</h3>
+        <div class="invitations-list">
             {% for invitation in pending_invitations %}
-            <div class="invitation-item" id="invitation-{{ invitation.id }}" style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                    <div style="flex: 1; min-width: 200px;">
-                        <div style="font-size: 16px; font-weight: 600; color: var(--text-color); margin-bottom: 8px;">
+            <div class="invitation-item" id="invitation-{{ invitation.id }}">
+                <div class="invitation-item-inner">
+                    <div class="invitation-info">
+                        <div class="invitation-title">
                             <i class="fas fa-user"></i> {{ invitation.inviter.get_full_name|default:invitation.inviter.username }}
                             приглашает вас
                         </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; font-size: 14px; color: var(--gray-color);">
+                        <div class="invitation-meta">
                             <div><i class="fas fa-calendar"></i> {{ invitation.booking.date|date:"d.m.Y" }}</div>
                             <div><i class="fas fa-clock"></i> {{ invitation.booking.start_time|time:"H:i" }} - {{ invitation.booking.end_time|time:"H:i" }}</div>
                             <div><i class="fas fa-map-marker-alt"></i> {{ invitation.booking.court.name }}</div>
                         </div>
                         {% if invitation.message %}
-                        <div style="margin-top: 8px; padding: 8px 12px; background: rgba(158, 240, 26, 0.05); border-left: 3px solid var(--primary-color); border-radius: 4px; font-size: 13px; color: var(--gray-color);">
+                        <div class="invitation-message">
                             <i class="fas fa-comment"></i> {{ invitation.message }}
                         </div>
                         {% endif %}
                     </div>
-                    <div style="display: flex; gap: 10px; flex-shrink: 0;">
-                        <button class="btn-primary" onclick="acceptInvitation({{ invitation.id }})" style="padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                    <div class="invitation-actions">
+                        <button class="btn btn-primary" onclick="acceptInvitation({{ invitation.id }})">
                             <i class="fas fa-check"></i> Принять
                         </button>
-                        <button class="btn-secondary" onclick="declineInvitation({{ invitation.id }})" style="padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                        <button class="btn btn-secondary" onclick="declineInvitation({{ invitation.id }})">
                             <i class="fas fa-times"></i> Отклонить
                         </button>
                     </div>
@@ -720,435 +66,435 @@
 </div>
 {% endif %}
 
-<!-- КАЛЕНДАРЬ FULLCALENDAR -->
-<div class="fullcalendar-wrapper">
-    <div id="main-calendar"></div>
-</div>
+<!-- ACCORDION BOOKING STRUCTURE -->
+<div class="booking-accordion-container">
 
-<!-- ГОРИЗОНТАЛЬНЫЙ ВЫБОР КОРТОВ -->
-<div class="courts-horizontal-container">
-    <div class="section-card">
-        <h3><i class="fas fa-court-sport"></i> Выберите корт</h3>
-
-        <div id="courts-horizontal-list" class="courts-horizontal-list">
-            {% for court in courts %}
-            <div class="court-horizontal-item {% if forloop.first %}active{% endif %}"
-                 data-court-id="{{ court.id }}"
-                 data-court-price="{{ court.price_per_hour }}"
-                 onclick="selectCourt(this, {{ court.id }}, {{ court.price_per_hour }})"
-                 style="cursor: pointer;">
-
-                <div class="court-horizontal-image">
-                    <i class="fas fa-tennis-ball"></i>
-                </div>
-                <div class="court-horizontal-info">
-                    <h4>{{ court.name }}</h4>
-                    <span class="court-price">{{ court.price_per_hour }} ₽/час</span>
-                    <p class="court-description">{{ court.description|truncatechars:60 }}</p>
-                    <div class="court-status">
-                        {% if court.is_available %}
-                        <span class="status-available"><i class="fas fa-check-circle"></i> Доступен</span>
-                        {% else %}
-                        <span class="status-unavailable"><i class="fas fa-times-circle"></i> Недоступен</span>
-                        {% endif %}
-                    </div>
+    <!-- Step 1: Calendar Selection (open by default) -->
+    <div class="booking-accordion-item active" data-step="1">
+        <div class="booking-accordion-header">
+            <div class="accordion-header-left">
+                <div class="accordion-step-number">1</div>
+                <div class="accordion-header-title">
+                    <div class="accordion-title"><i class="fas fa-calendar"></i> Выберите дату</div>
+                    <div class="accordion-subtitle">Нажмите на дату в календаре</div>
                 </div>
             </div>
-            {% empty %}
-            <div class="no-courts">
-                <i class="fas fa-tennis-ball"></i>
-                <p>Нет доступных кортов в данный момент</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-
-<!-- ВРЕМЕННЫЕ СЛОТЫ С РАЗДЕЛАМИ -->
-<div class="time-slots-container">
-    <div class="section-card">
-        <h3><i class="fas fa-clock"></i> Доступное время</h3>
-
-        <!-- Фильтры времени -->
-        <div class="time-filter-section">
-            <div class="time-filter-buttons">
-                <button class="time-filter-btn active" data-time-filter="all">
-                    <i class="fas fa-infinity"></i>
-                    <span>Всё время</span>
-                </button>
-                <button class="time-filter-btn" data-time-filter="morning">
-                    <i class="fas fa-sunrise"></i>
-                    <span>Утро</span>
-                    <small>08:00 - 12:00</small>
-                </button>
-                <button class="time-filter-btn" data-time-filter="day">
-                    <i class="fas fa-sun"></i>
-                    <span>День</span>
-                    <small>12:00 - 17:00</small>
-                </button>
-                <button class="time-filter-btn" data-time-filter="evening">
-                    <i class="fas fa-moon"></i>
-                    <span>Вечер</span>
-                    <small>17:00 - 22:00</small>
-                </button>
+            <div class="accordion-header-right">
+                <span class="accordion-status-badge pending">В процессе</span>
+                <span class="accordion-status-badge completed" style="display:none;">✓ Выбрано</span>
+                <i class="fas fa-chevron-down accordion-toggle-icon"></i>
             </div>
         </div>
-
-        <div id="time-slots-sections" class="time-slots-sections">
-            <!-- УТРО -->
-            <div class="time-section morning-section">
-                <div class="section-header" data-section="morning">
-                    <h4><i class="fas fa-sun"></i> Утро (8:00 - 12:00)</h4>
-                    <span class="toggle-arrow"><i class="fas fa-chevron-down"></i></span>
-                </div>
-                <div class="section-content" id="morning-slots" style="display: block;">
-                    <div class="select-court-date">
-                        <i class="fas fa-calendar-check"></i>
-                        <p>Выберите дату и корт, чтобы увидеть доступное время</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ДЕНЬ -->
-            <div class="time-section day-section">
-                <div class="section-header" data-section="day">
-                    <h4><i class="fas fa-cloud-sun"></i> День (12:00 - 17:00)</h4>
-                    <span class="toggle-arrow"><i class="fas fa-chevron-down"></i></span>
-                </div>
-                <div class="section-content" id="day-slots" style="display: block;">
-                    <div class="select-court-date">
-                        <i class="fas fa-calendar-check"></i>
-                        <p>Выберите дату и корт, чтобы увидеть доступное время</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ВЕЧЕР -->
-            <div class="time-section evening-section">
-                <div class="section-header" data-section="evening">
-                    <h4><i class="fas fa-moon"></i> Вечер (17:00 - 22:00)</h4>
-                    <span class="toggle-arrow"><i class="fas fa-chevron-down"></i></span>
-                </div>
-                <div class="section-content" id="evening-slots" style="display: block;">
-                    <div class="select-court-date">
-                        <i class="fas fa-calendar-check"></i>
-                        <p>Выберите дату и корт, чтобы увидеть доступное время</p>
-                    </div>
+        <div class="booking-accordion-content">
+            <div class="accordion-content-inner">
+                <!-- CALENDAR HERE -->
+                <div class="fullcalendar-wrapper">
+                    <div id="main-calendar"></div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- СТАТИСТИКА ВЫБРАННОГО ВРЕМЕНИ -->
-<div id="selected-time-info" class="selected-time-info" style="display: none;">
-    <div class="section-card">
-        <h3><i class="fas fa-check-circle"></i> Выбранное время</h3>
-        <div class="selected-details">
-            <div class="selected-item">
-                <span class="label">Корт:</span>
-                <span id="selected-court" class="value"></span>
+    <!-- Step 2: Court Selection (collapsed, locked) -->
+    <div class="booking-accordion-item locked" data-step="2">
+        <div class="booking-accordion-header">
+            <div class="accordion-header-left">
+                <div class="accordion-step-number">2</div>
+                <div class="accordion-header-title">
+                    <div class="accordion-title"><i class="fas fa-tennis-ball"></i> Выберите корт</div>
+                    <div class="accordion-subtitle">Сначала выберите дату</div>
+                </div>
             </div>
-            <div class="selected-item">
-                <span class="label">Дата:</span>
-                <span id="selected-date" class="value"></span>
+            <div class="accordion-header-right">
+                <span class="accordion-status-badge pending">В процессе</span>
+                <span class="accordion-status-badge completed" style="display:none;">✓ Выбрано</span>
+                <i class="fas fa-chevron-down accordion-toggle-icon"></i>
             </div>
-            <div class="selected-item">
-                <span class="label">Время:</span>
-                <span id="selected-time" class="value"></span>
+        </div>
+        <div class="booking-accordion-content">
+            <div class="accordion-content-inner">
+                <!-- COURTS GRID (compact) -->
+                <div class="compact-courts-grid">
+                    {% for court in courts %}
+                    <div class="compact-court-card {% if forloop.first %}active{% endif %}"
+                         data-court-id="{{ court.id }}"
+                         data-court-name="{{ court.name }}"
+                         data-court-price="{{ court.price_per_hour }}"
+                         onclick="selectCourtAccordion(this, {{ court.id }}, '{{ court.name }}', {{ court.price_per_hour }})">
+
+                        <div class="compact-court-icon">
+                            <i class="fas fa-tennis-ball"></i>
+                        </div>
+                        <div class="compact-court-info">
+                            <h4>{{ court.name }}</h4>
+                            <div class="compact-court-price">{{ court.price_per_hour }} ₽/час</div>
+                            {% if court.is_available %}
+                            <span class="compact-court-status available"><i class="fas fa-check-circle"></i> Доступен</span>
+                            {% else %}
+                            <span class="compact-court-status unavailable"><i class="fas fa-times-circle"></i> Недоступен</span>
+                            {% endif %}
+                        </div>
+                        <div class="compact-court-checkmark">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-courts-message">
+                        <i class="fas fa-tennis-ball"></i>
+                        <p>Нет доступных кортов в данный момент</p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-            <div class="selected-item">
-                <span class="label">Стоимость:</span>
-                <span id="selected-price" class="value"></span>
-            </div>
-            <button id="confirm-booking-btn" class="btn-primary">Забронировать</button>
         </div>
     </div>
-</div>
 
-<!-- Модальное окно подтверждения бронирования -->
-<div id="bookingConfirmModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h2>Подтверждение бронирования</h2>
-        <div class="booking-details">
-            <div class="booking-detail-item">
-                <span class="detail-label">Корт:</span>
-                <span id="modal-court-name" class="detail-value"></span>
+    <!-- Step 3: Time Selection (collapsed, locked) -->
+    <div class="booking-accordion-item locked" data-step="3">
+        <div class="booking-accordion-header">
+            <div class="accordion-header-left">
+                <div class="accordion-step-number">3</div>
+                <div class="accordion-header-title">
+                    <div class="accordion-title"><i class="fas fa-clock"></i> Выберите время</div>
+                    <div class="accordion-subtitle">Сначала выберите корт</div>
+                </div>
             </div>
-            <div class="booking-detail-item">
-                <span class="detail-label">Дата:</span>
-                <span id="modal-date" class="detail-value"></span>
-            </div>
-            <div class="booking-detail-item">
-                <span class="detail-label">Время:</span>
-                <span id="modal-time" class="detail-value"></span>
-            </div>
-            <div class="booking-detail-item">
-                <span class="detail-label">Стоимость:</span>
-                <span id="modal-price" class="detail-value"></span>
+            <div class="accordion-header-right">
+                <span class="accordion-status-badge pending">В процессе</span>
+                <span class="accordion-status-badge completed" style="display:none;">✓ Выбрано</span>
+                <i class="fas fa-chevron-down accordion-toggle-icon"></i>
             </div>
         </div>
+        <div class="booking-accordion-content">
+            <div class="accordion-content-inner">
+                <!-- TIME PERIOD FILTERS -->
+                <div class="time-period-filters">
+                    <button class="time-period-btn active" data-filter="all"><i class="fas fa-infinity"></i> Всё время</button>
+                    <button class="time-period-btn" data-filter="morning"><i class="fas fa-sunrise"></i> Утро <span class="time-period-label">8:00-12:00</span></button>
+                    <button class="time-period-btn" data-filter="afternoon"><i class="fas fa-sun"></i> День <span class="time-period-label">12:00-17:00</span></button>
+                    <button class="time-period-btn" data-filter="evening"><i class="fas fa-moon"></i> Вечер <span class="time-period-label">17:00-22:00</span></button>
+                </div>
 
-        <form id="booking-form" method="post" action="{% url 'create_booking' %}">
-            {% csrf_token %}
-            <input type="hidden" name="court_id" id="form-court-id">
-            <input type="hidden" name="date" id="form-date">
-            <input type="hidden" name="start_time" id="form-start-time">
-            <input type="hidden" name="end_time" id="form-end-time">
-            <input type="hidden" name="duration" id="form-duration" value="1">
+                <!-- TIME SLOTS GRID -->
+                <div id="time-slots-grid" class="compact-time-slots">
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <i class="fas fa-calendar-check" style="font-size: 32px; margin-bottom: 16px;"></i>
+                        <p>Выберите дату и корт, чтобы увидеть доступное время</p>
+                    </div>
+                </div>
 
-            <!-- Тип бронирования -->
-            <div class="booking-type-selector" style="margin: 20px 0;">
-                <label style="display: block; margin-bottom: 12px; font-weight: 600; color: var(--secondary-color); font-size: 15px;">
-                    <i class="fas fa-clipboard-list"></i> Тип бронирования:
-                </label>
-                <div style="display: flex; gap: 12px;">
-                    <label class="type-option active" style="flex: 1; cursor: pointer;">
-                        <input type="radio" name="booking_type" value="game" checked style="display: none;">
-                        <div class="type-card">
-                            <i class="fas fa-users" style="font-size: 24px; margin-bottom: 8px;"></i>
-                            <span style="font-weight: 600; font-size: 15px;">Игра</span>
-                            <small style="display: block; font-size: 12px; color: #666; margin-top: 4px;">Играть с друзьями</small>
+                <!-- DURATION SELECTOR (показывается после выбора времени) -->
+                <div id="duration-selector-container" class="duration-selector-container" style="display: none;">
+                    <div class="duration-selector-label"><i class="fas fa-hourglass-half"></i> Длительность бронирования</div>
+                    <div class="duration-control">
+                        <button type="button" class="duration-btn duration-minus" id="duration-minus">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <div class="duration-display">
+                            <span id="duration-value">1</span> <span id="duration-label">час</span>
                         </div>
-                    </label>
-                    <label class="type-option" style="flex: 1; cursor: pointer;">
-                        <input type="radio" name="booking_type" value="training" style="display: none;">
-                        <div class="type-card">
-                            <i class="fas fa-dumbbell" style="font-size: 24px; margin-bottom: 8px;"></i>
-                            <span style="font-weight: 600; font-size: 15px;">Тренировка</span>
-                            <small style="display: block; font-size: 12px; color: #666; margin-top: 4px;">С тренером</small>
-                        </div>
-                    </label>
+                        <button type="button" class="duration-btn duration-plus" id="duration-plus">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="duration-time-range" id="duration-time-range" style="text-align: center; font-size: 0.95rem; color: var(--primary-dark); font-weight: 600; margin: 8px 0;"></div>
+                    <div class="duration-info">
+                        Минимум: 1 час | Максимум: 3 часа | Шаг: 30 минут
+                    </div>
+                    <button type="button" class="btn btn-primary duration-continue-btn" onclick="validateAndContinueFromTime()">
+                        <i class="fas fa-arrow-right"></i> Продолжить к настройкам
+                    </button>
+                    <div id="time-not-selected-warning" style="display:none; color:#f59e0b; font-size:0.875rem; margin-top:10px; text-align:center;">
+                        <i class="fas fa-exclamation-triangle"></i> Сначала выберите время из списка выше
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Режим игры (показывается только для игр) -->
-            <div id="game-mode-section" style="margin: 20px 0; display: block;">
-                <label style="display: block; margin-bottom: 12px; font-weight: 600; color: var(--secondary-color); font-size: 15px;">
-                    <i class="fas fa-gamepad"></i> Режим игры:
-                </label>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                    <label class="game-mode-option active" style="cursor: pointer;">
-                        <input type="radio" name="game_mode" value="regular" checked style="display: none;">
-                        <div class="mode-card" style="padding: 15px; border: 2px solid #ddd; border-radius: 12px; background: white; transition: all 0.3s; text-align: center;">
-                            <i class="fas fa-volleyball-ball" style="font-size: 24px; margin-bottom: 8px; color: var(--primary-color);"></i>
-                            <span style="font-weight: 600; font-size: 14px; display: block;">Обычная игра</span>
-                            <small style="display: block; font-size: 11px; color: #666; margin-top: 4px;">Стандартный матч</small>
+    <!-- Step 4: Configuration (collapsed, locked) -->
+    <div class="booking-accordion-item locked" data-step="4">
+        <div class="booking-accordion-header">
+            <div class="accordion-header-left">
+                <div class="accordion-step-number">4</div>
+                <div class="accordion-header-title">
+                    <div class="accordion-title"><i class="fas fa-cog"></i> Настройка бронирования</div>
+                    <div class="accordion-subtitle">Сначала выберите время</div>
+                </div>
+            </div>
+            <div class="accordion-header-right">
+                <span class="accordion-status-badge pending">В процессе</span>
+                <span class="accordion-status-badge completed" style="display:none;">✓ Готово</span>
+                <i class="fas fa-chevron-down accordion-toggle-icon"></i>
+            </div>
+        </div>
+        <div class="booking-accordion-content">
+            <div class="accordion-content-inner">
+                <!-- BOOKING SUMMARY -->
+                <div id="booking-summary" class="booking-summary">
+                    <div class="summary-title"><i class="fas fa-clipboard-check"></i> Сводка бронирования</div>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">Дата</div>
+                            <div class="summary-value" id="summary-date">-</div>
                         </div>
-                    </label>
-                    <label class="game-mode-option" style="cursor: pointer;">
-                        <input type="radio" name="game_mode" value="americano" style="display: none;">
-                        <div class="mode-card" style="padding: 15px; border: 2px solid #ddd; border-radius: 12px; background: white; transition: all 0.3s; text-align: center;">
-                            <i class="fas fa-sync-alt" style="font-size: 24px; margin-bottom: 8px; color: #ff6b6b;"></i>
-                            <span style="font-weight: 600; font-size: 14px; display: block;">Americano</span>
-                            <small style="display: block; font-size: 11px; color: #666; margin-top: 4px;">Меняющиеся пары</small>
+                        <div class="summary-item">
+                            <div class="summary-label">Время</div>
+                            <div class="summary-value" id="summary-time">-</div>
                         </div>
-                    </label>
-                    <label class="game-mode-option" style="cursor: pointer;">
-                        <input type="radio" name="game_mode" value="mexicano" style="display: none;">
-                        <div class="mode-card" style="padding: 15px; border: 2px solid #ddd; border-radius: 12px; background: white; transition: all 0.3s; text-align: center;">
-                            <i class="fas fa-chart-line" style="font-size: 24px; margin-bottom: 8px; color: #4ecdc4;"></i>
-                            <span style="font-weight: 600; font-size: 14px; display: block;">Mexicano</span>
-                            <small style="display: block; font-size: 11px; color: #666; margin-top: 4px;">Пары по рейтингу</small>
+                        <div class="summary-item">
+                            <div class="summary-label">Корт</div>
+                            <div class="summary-value" id="summary-court">-</div>
                         </div>
-                    </label>
-                    <label class="game-mode-option" style="cursor: pointer;">
-                        <input type="radio" name="game_mode" value="training" style="display: none;">
-                        <div class="mode-card" style="padding: 15px; border: 2px solid #ddd; border-radius: 12px; background: white; transition: all 0.3s; text-align: center;">
-                            <i class="fas fa-running" style="font-size: 24px; margin-bottom: 8px; color: #ffd93d;"></i>
-                            <span style="font-weight: 600; font-size: 14px; display: block;">Тренировка</span>
-                            <small style="display: block; font-size: 11px; color: #666; margin-top: 4px;">Индивидуальная</small>
+                        <div class="summary-item">
+                            <div class="summary-label">Длительность</div>
+                            <div class="summary-value" id="summary-duration">-</div>
                         </div>
-                    </label>
+                        <div class="summary-item">
+                            <div class="summary-label">Стоимость</div>
+                            <div class="summary-value" id="summary-price">-</div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Параметры социальной игры (для Americano/Mexicano) -->
-                <div id="social-game-params" style="display: none; margin-top: 15px; padding: 15px; background: linear-gradient(135deg, rgba(158,240,26,0.1) 0%, rgba(158,240,26,0.05) 100%); border-radius: 12px; border: 2px solid rgba(158,240,26,0.3);">
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; cursor: pointer; user-select: none;">
-                            <input type="checkbox" name="is_public" id="is-public-game" value="1" checked style="
-                                width: 20px;
-                                height: 20px;
-                                margin-right: 12px;
-                                cursor: pointer;
-                                accent-color: var(--primary-color);
-                            ">
-                            <div style="flex: 1;">
-                                <span style="font-weight: 600; color: var(--secondary-color); font-size: 14px;">
-                                    <i class="fas fa-globe"></i> Публичная игра
+                <!-- BOOKING FORM (content from modal) -->
+                <form id="booking-form" method="post" action="{% url 'create_booking' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="court_id" id="form-court-id">
+                    <input type="hidden" name="date" id="form-date">
+                    <input type="hidden" name="start_time" id="form-start-time">
+                    <input type="hidden" name="end_time" id="form-end-time">
+                    <input type="hidden" name="duration" id="form-duration" value="1">
+
+                    <!-- Тип бронирования -->
+                    <div class="booking-type-selector">
+                        <label class="booking-type-label">
+                            <i class="fas fa-clipboard-list"></i> Тип бронирования:
+                        </label>
+                        <div class="booking-type-options">
+                            <label class="type-option active">
+                                <input type="radio" name="booking_type" value="game" checked style="display: none;">
+                                <div class="type-card">
+                                    <i class="fas fa-users"></i>
+                                    <span class="type-card-title">Игра</span>
+                                    <small class="type-card-desc">Играть с друзьями</small>
+                                </div>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="booking_type" value="training" style="display: none;">
+                                <div class="type-card">
+                                    <i class="fas fa-dumbbell"></i>
+                                    <span class="type-card-title">Тренировка</span>
+                                    <small class="type-card-desc">С тренером</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Режим игры (показывается только для игр) -->
+                    <div id="game-mode-section" class="game-mode-section">
+                        <label class="section-label">
+                            <i class="fas fa-gamepad"></i> Режим игры:
+                        </label>
+                        <div class="game-modes-grid">
+                            <label class="game-mode-option active">
+                                <input type="radio" name="game_mode" value="regular" checked style="display: none;">
+                                <div class="mode-card">
+                                    <i class="fas fa-volleyball-ball" style="color: var(--primary-color);"></i>
+                                    <span class="mode-card-title">Обычная игра</span>
+                                    <small class="mode-card-desc">Стандартный матч</small>
+                                </div>
+                            </label>
+                            <label class="game-mode-option">
+                                <input type="radio" name="game_mode" value="americano" style="display: none;">
+                                <div class="mode-card">
+                                    <i class="fas fa-sync-alt" style="color: #ff6b6b;"></i>
+                                    <span class="mode-card-title">Americano</span>
+                                    <small class="mode-card-desc">Меняющиеся пары</small>
+                                </div>
+                            </label>
+                            <label class="game-mode-option">
+                                <input type="radio" name="game_mode" value="mexicano" style="display: none;">
+                                <div class="mode-card">
+                                    <span class="mode-badge-new">NEW</span>
+                                    <i class="fas fa-chart-line" style="color: var(--secondary-color);"></i>
+                                    <span class="mode-card-title">Mexicano</span>
+                                    <small class="mode-card-desc">Пары по рейтингу</small>
+                                </div>
+                            </label>
+                            <label class="game-mode-option">
+                                <input type="radio" name="game_mode" value="training" style="display: none;">
+                                <div class="mode-card">
+                                    <i class="fas fa-running" style="color: #ffd93d;"></i>
+                                    <span class="mode-card-title">Тренировка</span>
+                                    <small class="mode-card-desc">Индивидуальная</small>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Параметры социальной игры (для Americano/Mexicano) -->
+                        <div id="social-game-params" class="social-game-params">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: flex; align-items: center; cursor: pointer; user-select: none; gap: 12px;">
+                                    <input type="checkbox" name="is_public" id="is-public-game" value="1" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary-color); flex-shrink: 0;">
+                                    <div>
+                                        <span class="section-label" style="margin: 0; font-size: 14px;">
+                                            <i class="fas fa-globe"></i> Публичная игра
+                                        </span>
+                                        <small class="form-hint" style="margin: 0;">
+                                            Другие игроки смогут увидеть эту игру и присоединиться к ней
+                                        </small>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="social-game-params-grid">
+                                <div>
+                                    <label class="form-section-label">
+                                        <i class="fas fa-redo"></i> Количество раундов:
+                                    </label>
+                                    <select name="rounds_count" class="form-select">
+                                        <option value="3" selected>3 раунда</option>
+                                        <option value="4">4 раунда</option>
+                                        <option value="5">5 раундов</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-section-label">
+                                        <i class="fas fa-trophy"></i> Очков в раунде:
+                                    </label>
+                                    <select name="points_per_round" class="form-select">
+                                        <option value="16">16 очков</option>
+                                        <option value="24" selected>24 очка</option>
+                                        <option value="32">32 очка</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ищу партнера (показывается только для игр) -->
+                    <div id="partner-search-section" class="partner-search-section">
+                        <label style="display: flex; align-items: center; cursor: pointer; user-select: none; gap: 12px;">
+                            <input type="checkbox" name="looking_for_partner" id="looking-for-partner" value="1" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary-color); flex-shrink: 0;">
+                            <div>
+                                <span class="section-label" style="margin: 0; font-size: 15px;">
+                                    <i class="fas fa-user-plus"></i> Ищу партнера для игры
                                 </span>
-                                <small style="display: block; font-size: 11px; color: #666; margin-top: 4px;">
-                                    Другие игроки смогут увидеть эту игру и присоединиться к ней
+                                <small class="form-hint" style="margin: 0;">
+                                    Ваше бронирование будет видно другим игрокам, которые ищут партнера
                                 </small>
                             </div>
                         </label>
-                    </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div>
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--secondary-color); font-size: 13px;">
-                                <i class="fas fa-redo"></i> Количество раундов:
-                            </label>
-                            <select name="rounds_count" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;">
-                                <option value="3" selected>3 раунда</option>
-                                <option value="4">4 раунда</option>
-                                <option value="5">5 раундов</option>
-                            </select>
+                        <!-- Параметры поиска партнёра -->
+                        <div id="partner-params" class="partner-params">
+                            <div style="margin-bottom: 15px;">
+                                <label class="form-section-label">
+                                    <i class="fas fa-users"></i> Ищу партнёров (количество):
+                                </label>
+                                <div class="player-count-options">
+                                    <label class="player-count-option active">
+                                        <input type="radio" name="max_players" value="2" checked style="display: none;">
+                                        <div class="player-count-num">1</div>
+                                        <div class="player-count-label">партнёр</div>
+                                    </label>
+                                    <label class="player-count-option">
+                                        <input type="radio" name="max_players" value="3" style="display: none;">
+                                        <div class="player-count-num">2</div>
+                                        <div class="player-count-label">партнёра</div>
+                                    </label>
+                                    <label class="player-count-option">
+                                        <input type="radio" name="max_players" value="4" style="display: none;">
+                                        <div class="player-count-num">3</div>
+                                        <div class="player-count-label">партнёра</div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <label class="form-section-label">
+                                    <i class="fas fa-sliders-h"></i> Требуемый уровень игры:
+                                </label>
+                                <div class="level-range-container">
+                                    <div class="level-range-labels">
+                                        <span>D</span><span>D+</span><span>C-</span><span>C</span>
+                                        <span>C+</span><span>B-</span><span>B</span><span>B+</span>
+                                        <span>A</span><span>PRO</span>
+                                    </div>
+                                    <div class="level-range-track-wrap">
+                                        <div class="level-range-track">
+                                            <div id="level-range-fill" class="level-range-fill"></div>
+                                        </div>
+                                        <input type="range" id="level-range-from" class="level-range-input" min="0" max="9" value="0">
+                                        <input type="range" id="level-range-to" class="level-range-input" min="0" max="9" value="9">
+                                    </div>
+                                    <div id="level-range-display" class="level-range-display">Любой уровень</div>
+                                </div>
+                                <!-- Скрытые чекбоксы для отправки формы -->
+                                <div id="rating-levels-hidden" style="display:none">
+                                    <input type="checkbox" name="required_rating_levels" value="D">
+                                    <input type="checkbox" name="required_rating_levels" value="D+">
+                                    <input type="checkbox" name="required_rating_levels" value="C-">
+                                    <input type="checkbox" name="required_rating_levels" value="C">
+                                    <input type="checkbox" name="required_rating_levels" value="C+">
+                                    <input type="checkbox" name="required_rating_levels" value="B-">
+                                    <input type="checkbox" name="required_rating_levels" value="B">
+                                    <input type="checkbox" name="required_rating_levels" value="B+">
+                                    <input type="checkbox" name="required_rating_levels" value="A">
+                                    <input type="checkbox" name="required_rating_levels" value="PRO">
+                                </div>
+                                <small class="form-hint">
+                                    <i class="fas fa-info-circle"></i> Оставьте на крайних значениях для любого уровня
+                                </small>
+                            </div>
+
+                            <div>
+                                <label class="form-section-label">
+                                    <i class="fas fa-user-plus"></i> Пригласить участников (опционально):
+                                </label>
+                                <div class="participant-search-wrap">
+                                    <input type="text" id="participant-search" placeholder="Поиск по имени, фамилии или телефону...">
+                                    <i class="fas fa-search search-icon"></i>
+                                </div>
+                                <div id="search-results"></div>
+                                <div id="selected-participants"></div>
+                                <input type="hidden" id="invited-participants" name="invited_participants" value="">
+                            </div>
                         </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--secondary-color); font-size: 13px;">
-                                <i class="fas fa-trophy"></i> Очков в раунде:
-                            </label>
-                            <select name="points_per_round" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;">
-                                <option value="16">16 очков</option>
-                                <option value="24" selected>24 очка</option>
-                                <option value="32">32 очка</option>
-                            </select>
-                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Ищу партнера (показывается только для игр) -->
-            <div id="partner-search-section" style="margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #f0f8ff 0%, #e6f2ff 100%); border-radius: 12px; border: 2px solid #b3d9ff;">
-                <label style="display: flex; align-items: center; cursor: pointer; user-select: none;">
-                    <input type="checkbox" name="looking_for_partner" id="looking-for-partner" value="1" style="
-                        width: 20px;
-                        height: 20px;
-                        margin-right: 12px;
-                        cursor: pointer;
-                        accent-color: var(--primary-color);
-                    ">
-                    <div style="flex: 1;">
-                        <span style="font-weight: 600; color: var(--secondary-color); font-size: 15px;">
-                            <i class="fas fa-user-plus"></i> Ищу партнера для игры
-                        </span>
-                        <small style="display: block; font-size: 12px; color: #666; margin-top: 4px;">
-                            Ваше бронирование будет видно другим игрокам, которые ищут партнера
-                        </small>
-                    </div>
-                </label>
-
-                <!-- Параметры поиска партнёра (показываются только если чекбокс отмечен) -->
-                <div id="partner-params" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #b3d9ff;">
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--secondary-color); font-size: 14px;">
-                            <i class="fas fa-users"></i> Ищу партнёров (количество):
+                    <!-- Выбор тренера (показывается только для тренировок) -->
+                    <div id="coach-selection" class="coach-selection">
+                        <label class="section-label">
+                            <i class="fas fa-user-tie"></i> Выберите тренера:
                         </label>
-                        <div style="display: flex; gap: 10px;">
-                            <label class="player-count-option active" style="flex: 1; cursor: pointer; text-align: center; padding: 12px; border: 2px solid #ddd; border-radius: 8px; background: white; transition: all 0.3s;">
-                                <input type="radio" name="max_players" value="2" checked style="display: none;">
-                                <div style="font-size: 20px; font-weight: 700; color: var(--primary-color);">1</div>
-                                <div style="font-size: 11px; color: #666; margin-top: 4px;">партнёр</div>
-                            </label>
-                            <label class="player-count-option" style="flex: 1; cursor: pointer; text-align: center; padding: 12px; border: 2px solid #ddd; border-radius: 8px; background: white; transition: all 0.3s;">
-                                <input type="radio" name="max_players" value="3" style="display: none;">
-                                <div style="font-size: 20px; font-weight: 700; color: var(--primary-color);">2</div>
-                                <div style="font-size: 11px; color: #666; margin-top: 4px;">партнёра</div>
-                            </label>
-                            <label class="player-count-option" style="flex: 1; cursor: pointer; text-align: center; padding: 12px; border: 2px solid #ddd; border-radius: 8px; background: white; transition: all 0.3s;">
-                                <input type="radio" name="max_players" value="4" style="display: none;">
-                                <div style="font-size: 20px; font-weight: 700; color: var(--primary-color);">3</div>
-                                <div style="font-size: 11px; color: #666; margin-top: 4px;">партнёра</div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--secondary-color); font-size: 14px;">
-                            <i class="fas fa-star"></i> Требуемые уровни игры (можно выбрать 1-3):
-                        </label>
-                        <div id="rating-levels-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
-                            <label class="rating-level-option" data-level="D">
-                                <input type="checkbox" name="required_rating_levels" value="D" style="display: none;">
-                                <div class="rating-badge">D</div>
-                            </label>
-                            <label class="rating-level-option" data-level="D+">
-                                <input type="checkbox" name="required_rating_levels" value="D+" style="display: none;">
-                                <div class="rating-badge">D+</div>
-                            </label>
-                            <label class="rating-level-option" data-level="C-">
-                                <input type="checkbox" name="required_rating_levels" value="C-" style="display: none;">
-                                <div class="rating-badge">C-</div>
-                            </label>
-                            <label class="rating-level-option" data-level="C">
-                                <input type="checkbox" name="required_rating_levels" value="C" style="display: none;">
-                                <div class="rating-badge">C</div>
-                            </label>
-                            <label class="rating-level-option" data-level="C+">
-                                <input type="checkbox" name="required_rating_levels" value="C+" style="display: none;">
-                                <div class="rating-badge">C+</div>
-                            </label>
-                            <label class="rating-level-option" data-level="B-">
-                                <input type="checkbox" name="required_rating_levels" value="B-" style="display: none;">
-                                <div class="rating-badge">B-</div>
-                            </label>
-                            <label class="rating-level-option" data-level="B">
-                                <input type="checkbox" name="required_rating_levels" value="B" style="display: none;">
-                                <div class="rating-badge">B</div>
-                            </label>
-                            <label class="rating-level-option" data-level="B+">
-                                <input type="checkbox" name="required_rating_levels" value="B+" style="display: none;">
-                                <div class="rating-badge">B+</div>
-                            </label>
-                            <label class="rating-level-option" data-level="A">
-                                <input type="checkbox" name="required_rating_levels" value="A" style="display: none;">
-                                <div class="rating-badge">A</div>
-                            </label>
-                            <label class="rating-level-option" data-level="PRO">
-                                <input type="checkbox" name="required_rating_levels" value="PRO" style="display: none;">
-                                <div class="rating-badge">PRO</div>
-                            </label>
-                        </div>
-                        <small style="display: block; margin-top: 8px; color: #666; font-size: 12px;">
-                            <i class="fas fa-info-circle"></i> Выберите 1-3 уровня или оставьте пустым для любого уровня
+                        <select name="coach" id="coach-select">
+                            <option value="">Без тренера</option>
+                        </select>
+                        <small class="form-hint">
+                            <i class="fas fa-info-circle"></i> Выбор тренера изменит стоимость бронирования
                         </small>
                     </div>
 
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--secondary-color); font-size: 14px;">
-                            <i class="fas fa-user-plus"></i> Пригласить участников (опционально):
-                        </label>
-                        <div style="position: relative;">
-                            <input type="text" id="participant-search" placeholder="Поиск по имени, фамилии или телефону..." style="width: 100%; padding: 12px 40px 12px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;">
-                            <i class="fas fa-search" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #999;"></i>
-                        </div>
-                        <div id="search-results" style="display: none; margin-top: 8px; max-height: 200px; overflow-y: auto; border: 2px solid #ddd; border-radius: 8px; background: white;"></div>
-                        <div id="selected-participants" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                        <input type="hidden" id="invited-participants" name="invited_participants" value="">
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="resetBookingForm()">
+                            <i class="fas fa-times"></i> Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Подтвердить бронирование
+                        </button>
                     </div>
-                </div>
+                </form>
             </div>
-
-            <!-- Выбор тренера (показывается только для тренировок) -->
-            <div id="coach-selection" style="display: none; margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #fff8f0 0%, #fff5e6 100%); border-radius: 12px; border: 2px solid #ffe0b3;">
-                <label style="display: block; margin-bottom: 12px; font-weight: 600; color: var(--secondary-color); font-size: 15px;">
-                    <i class="fas fa-user-tie"></i> Выберите тренера:
-                </label>
-                <select name="coach" id="coach-select" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; background: white;">
-                    <option value="">Без тренера</option>
-                    {% comment %}
-                    <!-- Тренеры будут загружены через AJAX -->
-                    {% endcomment %}
-                </select>
-                <small style="display: block; margin-top: 8px; color: #666; font-size: 13px;">
-                    <i class="fas fa-info-circle"></i> Выбор тренера изменит стоимость бронирования
-                </small>
-            </div>
-
-            <div class="form-actions">
-                <button type="button" class="btn-secondary cancel-booking">Отмена</button>
-                <button type="submit" class="btn-primary confirm-booking">Подтвердить бронирование</button>
-            </div>
-        </form>
+        </div>
     </div>
+
 </div>
 
 <!-- Модальное окно с деталями события (при клике на бронь в календаре) -->
 <div id="eventDetailsModal" class="modal" style="display: none;">
     <div class="modal-content event-details-content">
-        <span class="close-modal">&times;</span>
+        <span class="close-modal" style="position: absolute; top: 20px; right: 25px; font-size: 32px; font-weight: 700; color: var(--text-muted); cursor: pointer; z-index: 10;">&times;</span>
         <div class="event-header">
             <h2><i class="fas fa-calendar-check"></i> Информация о бронировании</h2>
             <span class="event-status-badge" id="event-status-badge">Подтверждено</span>
@@ -1156,59 +502,42 @@
 
         <div class="event-details-grid">
             <div class="event-detail-card">
-                <div class="event-detail-icon court-icon">
-                    <i class="fas fa-map-marker-alt"></i>
-                </div>
+                <div class="event-detail-icon"><i class="fas fa-map-marker-alt"></i></div>
                 <div class="event-detail-content">
                     <span class="event-detail-label">Корт</span>
                     <span class="event-detail-value" id="event-court-name">-</span>
                 </div>
             </div>
-
             <div class="event-detail-card">
-                <div class="event-detail-icon date-icon">
-                    <i class="fas fa-calendar"></i>
-                </div>
+                <div class="event-detail-icon"><i class="fas fa-calendar"></i></div>
                 <div class="event-detail-content">
                     <span class="event-detail-label">Дата</span>
                     <span class="event-detail-value" id="event-date">-</span>
                 </div>
             </div>
-
             <div class="event-detail-card">
-                <div class="event-detail-icon time-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
+                <div class="event-detail-icon"><i class="fas fa-clock"></i></div>
                 <div class="event-detail-content">
                     <span class="event-detail-label">Время</span>
                     <span class="event-detail-value" id="event-time">-</span>
                 </div>
             </div>
-
             <div class="event-detail-card">
-                <div class="event-detail-icon user-icon">
-                    <i class="fas fa-user"></i>
-                </div>
+                <div class="event-detail-icon"><i class="fas fa-user"></i></div>
                 <div class="event-detail-content">
                     <span class="event-detail-label">Организатор</span>
                     <span class="event-detail-value" id="event-creator">-</span>
                 </div>
             </div>
-
             <div class="event-detail-card">
-                <div class="event-detail-icon price-icon">
-                    <i class="fas fa-ruble-sign"></i>
-                </div>
+                <div class="event-detail-icon"><i class="fas fa-ruble-sign"></i></div>
                 <div class="event-detail-content">
                     <span class="event-detail-label">Стоимость</span>
                     <span class="event-detail-value" id="event-price">-</span>
                 </div>
             </div>
-
             <div class="event-detail-card">
-                <div class="event-detail-icon players-icon">
-                    <i class="fas fa-users"></i>
-                </div>
+                <div class="event-detail-icon"><i class="fas fa-users"></i></div>
                 <div class="event-detail-content">
                     <span class="event-detail-label">Игроки</span>
                     <span class="event-detail-value" id="event-players">-</span>
@@ -1216,1181 +545,77 @@
             </div>
         </div>
 
-        <div class="event-actions" id="event-actions">
-            <!-- Кнопки будут добавлены динамически в зависимости от статуса брони -->
+        <div class="event-actions" id="event-actions" style="padding: 0 30px 30px 30px;">
+            <!-- Кнопки добавляются динамически -->
         </div>
     </div>
 </div>
 
-<style>
-    /* Стили для календаря */
-    .calendar-container {
-        margin-bottom: 30px;
-    }
-
-    /* ГОРИЗОНТАЛЬНЫЙ ВЫБОР КОРТОВ */
-    .courts-horizontal-container {
-        margin-bottom: 30px;
-    }
-
-    .courts-horizontal-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
-    }
-
-    .court-horizontal-item {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 3px solid #eee;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    }
-
-    .court-horizontal-item:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(158, 240, 26, 0.15);
-        border-color: #bff167;
-    }
-
-    .court-horizontal-item.active {
-        border-color: #9ef01a;
-        background: linear-gradient(135deg, rgba(158, 240, 26, 0.05) 0%, rgba(191, 241, 103, 0.05) 100%);
-        box-shadow: 0 15px 35px rgba(158, 240, 26, 0.2);
-    }
-
-    .court-horizontal-image {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-    }
-
-    .court-horizontal-image i {
-        font-size: 40px;
-        color: white;
-    }
-
-    .court-horizontal-info h4 {
-        margin: 0 0 10px 0;
-        color: #333;
-        font-size: 20px;
-        font-weight: 700;
-    }
-
-    .court-price {
-        display: inline-block;
-        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 16px;
-        margin-bottom: 15px;
-        box-shadow: 0 3px 8px rgba(158, 240, 26, 0.3);
-    }
-
-    .court-description {
-        color: #666;
-        font-size: 14px;
-        line-height: 1.5;
-        margin-bottom: 15px;
-        min-height: 40px;
-    }
-
-    .court-status {
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    .status-available {
-        color: #38b000;
-    }
-
-    .status-unavailable {
-        color: #dc3545;
-    }
-
-    /* ВРЕМЕННЫЕ СЛОТЫ С РАЗДЕЛАМИ */
-    .time-slots-container {
-        margin-bottom: 30px;
-    }
-
-    /* Фильтры времени */
-    .time-filter-section {
-        margin-bottom: 24px;
-    }
-
-    .time-filter-buttons {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 12px;
-    }
-
-    .time-filter-btn {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding: 16px 12px;
-        border: 2px solid #e0e0e0;
-        background: white;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        position: relative;
-    }
-
-    .time-filter-btn i {
-        font-size: 24px;
-        color: #999;
-        margin-bottom: 4px;
-        transition: all 0.2s ease;
-    }
-
-    .time-filter-btn span {
-        font-size: 14px;
-        font-weight: 600;
-        color: #333;
-    }
-
-    .time-filter-btn small {
-        font-size: 11px;
-        color: #999;
-    }
-
-    .time-filter-btn:hover {
-        border-color: #9ef01a;
-        background: #f9fef4;
-    }
-
-    .time-filter-btn:hover i {
-        color: #9ef01a;
-    }
-
-    .time-filter-btn.active {
-        border-color: #9ef01a;
-        background: linear-gradient(135deg, #9ef01a 0%, #38b000 100%);
-    }
-
-    .time-filter-btn.active i,
-    .time-filter-btn.active span,
-    .time-filter-btn.active small {
-        color: white;
-    }
-
-    .time-slots-sections {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .time-section {
-        background: white;
-        border-radius: 15px;
-        overflow: hidden;
-        border: 2px solid #f0f0f0;
-        transition: all 0.3s ease;
-    }
-
-    .time-section.morning-section .section-header {
-        background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-    }
-
-    .time-section.day-section .section-header {
-        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
-    }
-
-    .time-section.evening-section .section-header {
-        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
-    }
-
-    .section-header {
-        padding: 20px 25px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: white;
-        user-select: none;
-    }
-
-    .section-header h4 {
-        margin: 0;
-        font-size: 18px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .section-header h4 i {
-        font-size: 20px;
-    }
-
-    .toggle-arrow {
-        transition: transform 0.3s ease;
-    }
-
-    .section-content {
-        padding: 25px;
-        animation: slideDown 0.3s ease;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* СЕТКА ВРЕМЕННЫХ СЛОТОВ */
-    .time-slots-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 15px;
-    }
-
-    .time-slot-card {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 3px solid #eee;
-        text-align: center;
-        position: relative;
-    }
-
-    .time-slot-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .time-slot-card.available {
-        border-color: #bff167;
-    }
-
-    .time-slot-card.available:hover {
-        background: linear-gradient(135deg, #9ef01a 0%, #bff167 100%);
-        border-color: #9ef01a;
-    }
-
-    .time-slot-card.available:hover .slot-time,
-    .time-slot-card.available:hover .slot-price {
-        color: white;
-    }
-
-    .time-slot-card.unavailable {
-        opacity: 0.5;
-        cursor: not-allowed;
-        background: #f8f8f8;
-    }
-
-    .slot-time {
-        display: block;
-        font-weight: 700;
-        color: #333;
-        font-size: 18px;
-        margin-bottom: 8px;
-    }
-
-    .slot-price {
-        display: block;
-        font-size: 16px;
-        color: #38b000;
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
-
-    .slot-status {
-        font-size: 12px;
-        color: #666;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .time-slot-card.available .slot-status {
-        color: #38b000;
-    }
-
-    .time-slot-card.unavailable .slot-status {
-        color: #dc3545;
-    }
-
-    /* СТАТИСТИКА ВЫБРАННОГО ВРЕМЕНИ */
-    .selected-time-info {
-        margin-top: 30px;
-        animation: slideUp 0.5s ease;
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .selected-details {
-        background: linear-gradient(135deg, #f8fff8 0%, #f0fff0 100%);
-        border-radius: 12px;
-        padding: 25px;
-        border: 2px solid #bff167;
-    }
-
-    .selected-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .selected-item:last-child {
-        border-bottom: none;
-        padding-top: 20px;
-        margin-top: 10px;
-    }
-
-    .selected-item .label {
-        font-weight: 600;
-        color: #555;
-        font-size: 16px;
-    }
-
-    .selected-item .value {
-        font-weight: 700;
-        color: #333;
-        font-size: 18px;
-    }
-
-    #confirm-booking-btn {
-        width: 100%;
-        margin-top: 10px;
-        padding: 15px;
-        font-size: 18px;
-        font-weight: 700;
-    }
-
-    /* СООБЩЕНИЯ */
-    .select-court-date {
-        text-align: center;
-        padding: 40px 20px;
-        color: #888;
-        grid-column: 1 / -1;
-    }
-
-    .select-court-date i {
-        font-size: 48px;
-        margin-bottom: 15px;
-        color: #ccc;
-    }
-
-    .select-court-date p {
-        margin: 0;
-        font-size: 16px;
-    }
-
-    .loading {
-        text-align: center;
-        padding: 30px;
-        color: #666;
-        grid-column: 1 / -1;
-    }
-
-    .loading i {
-        margin-right: 10px;
-    }
-
-    .error-message {
-        text-align: center;
-        padding: 30px;
-        color: #dc3545;
-        grid-column: 1 / -1;
-    }
-
-    .error-message i {
-        margin-right: 10px;
-    }
-
-    /* АДАПТИВНОСТЬ */
-    @media (max-width: 1200px) {
-        .courts-horizontal-list {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .courts-horizontal-list {
-            grid-template-columns: 1fr;
-        }
-
-        .time-filter-buttons {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .time-slots-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .section-header {
-            padding: 15px 20px;
-        }
-
-        .section-header h4 {
-            font-size: 16px;
-        }
-
-        .time-slot-card {
-            padding: 15px;
-        }
-
-        .slot-time {
-            font-size: 16px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .time-filter-buttons {
-            grid-template-columns: 1fr;
-        }
-
-        .time-filter-btn {
-            flex-direction: row;
-            justify-content: flex-start;
-            padding: 12px 16px;
-            gap: 12px;
-        }
-
-        .time-filter-btn i {
-            font-size: 20px;
-            margin-bottom: 0;
-        }
-
-        .time-filter-btn span {
-            flex: 1;
-            text-align: left;
-        }
-
-        .time-slots-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .court-horizontal-item {
-            padding: 20px;
-        }
-
-        .selected-item {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 5px;
-        }
-
-        .selected-item .value {
-            font-size: 16px;
-        }
-    }
-
-    /* ========== МОДАЛЬНОЕ ОКНО С ДЕТАЛЯМИ СОБЫТИЯ ========== */
-    .event-details-content {
-        max-width: 600px;
-        width: 90%;
-    }
-
-    .event-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 25px;
-        padding-bottom: 20px;
-        border-bottom: 2px solid var(--card-border);
-    }
-
-    .event-header h2 {
-        margin: 0;
-        color: var(--secondary-color);
-        font-size: 1.6rem;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .event-header i {
-        color: var(--primary-color);
-    }
-
-    .event-status-badge {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .event-status-badge.status-confirmed {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.2) 100%);
-        color: #10b981;
-        border: 2px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .event-status-badge.status-pending {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.2) 100%);
-        color: #f59e0b;
-        border: 2px solid rgba(245, 158, 11, 0.3);
-    }
-
-    .event-status-badge.status-cancelled {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.2) 100%);
-        color: #ef4444;
-        border: 2px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .event-details-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        margin-bottom: 25px;
-    }
-
-    .event-detail-card {
-        background: var(--card-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 12px;
-        padding: 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        transition: all 0.3s;
-    }
-
-    .event-detail-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .event-detail-icon {
-        width: 45px;
-        height: 45px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        flex-shrink: 0;
-    }
-
-    .event-detail-icon.court-icon {
-        background: linear-gradient(135deg, rgba(158, 240, 26, 0.1) 0%, rgba(191, 241, 103, 0.2) 100%);
-        color: var(--primary-color);
-    }
-
-    .event-detail-icon.date-icon {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.2) 100%);
-        color: #3b82f6;
-    }
-
-    .event-detail-icon.time-icon {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.2) 100%);
-        color: #f59e0b;
-    }
-
-    .event-detail-icon.user-icon {
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.2) 100%);
-        color: #8b5cf6;
-    }
-
-    .event-detail-icon.price-icon {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.2) 100%);
-        color: #10b981;
-    }
-
-    .event-detail-icon.players-icon {
-        background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(236, 72, 153, 0.2) 100%);
-        color: #ec4899;
-    }
-
-    .event-detail-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .event-detail-label {
-        font-size: 0.8rem;
-        color: var(--gray-color);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .event-detail-value {
-        font-size: 1rem;
-        color: var(--secondary-color);
-        font-weight: 600;
-    }
-
-    .event-actions {
-        display: flex;
-        gap: 12px;
-        padding-top: 20px;
-        border-top: 2px solid var(--card-border);
-    }
-
-    .event-action-btn {
-        flex: 1;
-        padding: 14px 24px;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        text-decoration: none;
-    }
-
-    .event-action-btn.btn-primary {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-        color: var(--secondary-color);
-    }
-
-    .event-action-btn.btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(158, 240, 26, 0.3);
-    }
-
-    .event-action-btn.btn-secondary {
-        background: var(--card-bg);
-        color: var(--gray-color);
-        border: 2px solid var(--card-border);
-    }
-
-    .event-action-btn.btn-secondary:hover {
-        background: var(--gray-light);
-        transform: translateY(-2px);
-    }
-
-    /* Темная тема для модального окна событий */
-    :root[data-theme="dark"] .event-header h2 {
-        color: var(--text-color);
-    }
-
-    :root[data-theme="dark"] .event-detail-card {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: var(--card-border);
-    }
-
-    :root[data-theme="dark"] .event-detail-value {
-        color: var(--text-color);
-    }
-
-    /* Адаптивность */
-    @media (max-width: 768px) {
-        .event-details-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .event-header {
-            flex-direction: column;
-            gap: 15px;
-            align-items: flex-start;
-        }
-
-        .event-header h2 {
-            font-size: 1.3rem;
-        }
-
-        .event-actions {
-            flex-direction: column;
-        }
-    }
-</style>
-
-<script>
-// Простая функция для быстрой проверки кликабельности
-function selectCourt(element, courtId, courtPrice) {
-    console.log('Корт кликнут!', courtId, courtPrice);
-
-    // Убираем активный класс у всех кортов
-    document.querySelectorAll('.court-horizontal-item').forEach(item => {
-        item.classList.remove('active');
-        item.style.borderColor = '#eee';
-        item.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.08)';
-    });
-
-    // Добавляем активный класс выбранному
-    element.classList.add('active');
-    element.style.borderColor = '#9ef01a';
-    element.style.boxShadow = '0 15px 35px rgba(158, 240, 26, 0.2)';
-
-    // Обновляем выбранный корт в глобальных переменных
-    if (window.selectedCourtData) {
-        window.selectedCourtData = {
-            id: courtId,
-            price: courtPrice,
-            name: element.querySelector('h4').textContent
-        };
-    }
-
-    // Загружаем слоты для выбранного корта
-    if (window.selectedDate && window.loadTimeSlots) {
-        const dateStr = window.formatDate ? window.formatDate(window.selectedDate) : new Date().toISOString().split('T')[0];
-        window.loadTimeSlots(courtId, dateStr);
-    }
-}
-</script>
-
-<!-- ПРОСТОЙ И НАДЕЖНЫЙ СКРИПТ ДЛЯ СЕКЦИЙ -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎯 Section handler loaded');
-
-    // Функция для обработки кликов на заголовках
-    function setupSectionHandlers() {
-        const sections = ['morning', 'day', 'evening'];
-
-        sections.forEach(section => {
-            const header = document.querySelector(`[data-section="${section}"]`);
-            const content = document.getElementById(`${section}-slots`);
-
-            if (!header || !content) {
-                console.log(`❌ Section ${section} not found`);
-                return;
-            }
-
-            // Удаляем все старые обработчики
-            const newHeader = header.cloneNode(true);
-            header.parentNode.replaceChild(newHeader, header);
-
-            const newContent = content.cloneNode(true);
-            content.parentNode.replaceChild(newContent, content);
-
-            // Получаем обновленные элементы
-            const currentHeader = document.querySelector(`[data-section="${section}"]`);
-            const currentContent = document.getElementById(`${section}-slots`);
-
-            // Обработчик клика
-            currentHeader.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(`🎯 Clicked ${section} section`);
-
-                if (currentContent.style.display === 'none') {
-                    currentContent.style.display = 'block';
-                    const arrow = this.querySelector('.toggle-arrow i');
-                    if (arrow) arrow.className = 'fas fa-chevron-down';
-                    console.log(`✅ ${section} opened`);
-                } else {
-                    currentContent.style.display = 'none';
-                    const arrow = this.querySelector('.toggle-arrow i');
-                    if (arrow) arrow.className = 'fas fa-chevron-right';
-                    console.log(`✅ ${section} closed`);
-                }
-            });
-
-            currentHeader.style.cursor = 'pointer';
-        });
-
-        console.log('✅ All sections initialized');
-    }
-
-    // Запускаем после загрузки страницы
-    setTimeout(setupSectionHandlers, 100);
-
-    // ========== ФИЛЬТРЫ ВРЕМЕНИ ==========
-    function setupTimeFilters() {
-        const filterBtns = document.querySelectorAll('.time-filter-btn');
-        const timeSections = {
-            morning: document.querySelector('.morning-section'),
-            day: document.querySelector('.day-section'),
-            evening: document.querySelector('.evening-section')
-        };
-
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Убираем active у всех кнопок
-                filterBtns.forEach(b => b.classList.remove('active'));
-                // Добавляем active к нажатой
-                this.classList.add('active');
-
-                const filter = this.dataset.timeFilter;
-
-                // Показываем/скрываем секции
-                if (filter === 'all') {
-                    // Показываем все секции
-                    Object.values(timeSections).forEach(section => {
-                        if (section) section.style.display = 'block';
-                    });
-                } else {
-                    // Скрываем все секции
-                    Object.entries(timeSections).forEach(([key, section]) => {
-                        if (section) {
-                            section.style.display = (key === filter) ? 'block' : 'none';
-                        }
-                    });
-                }
-            });
-        });
-
-        console.log('✅ Time filters initialized');
-    }
-
-    // Запускаем фильтры времени
-    setTimeout(setupTimeFilters, 100);
-
-    // ========== УПРАВЛЕНИЕ ТИПОМ БРОНИРОВАНИЯ ==========
-    const typeOptions = document.querySelectorAll('.type-option');
-    const coachSelection = document.getElementById('coach-selection');
-    const partnerSearchSection = document.getElementById('partner-search-section');
-    const coachSelect = document.getElementById('coach-select');
-
-    // Переключение между типами бронирования
-    typeOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            // Убираем активный класс у всех опций
-            typeOptions.forEach(opt => opt.classList.remove('active'));
-
-            // Добавляем активный класс к выбранной опции
-            this.classList.add('active');
-
-            // Отмечаем соответствующий radio button
-            const radio = this.querySelector('input[type="radio"]');
-            if (radio) {
-                radio.checked = true;
-
-                // Показываем/скрываем секции в зависимости от типа
-                if (radio.value === 'training') {
-                    // Тренировка: показываем выбор тренера, скрываем поиск партнера
-                    if (coachSelection) coachSelection.style.display = 'block';
-                    if (partnerSearchSection) partnerSearchSection.style.display = 'none';
-
-                    // Загружаем список тренеров
-                    loadCoaches();
-                } else {
-                    // Игра: показываем поиск партнера, скрываем выбор тренера
-                    if (coachSelection) coachSelection.style.display = 'none';
-                    if (partnerSearchSection) partnerSearchSection.style.display = 'block';
-                    if (coachSelect) coachSelect.value = '';
-                }
-            }
-        });
-    });
-
-    // Загрузка списка тренеров
-    function loadCoaches() {
-        fetch('/booking/api/coaches/')
-            .then(response => response.json())
-            .then(data => {
-                const select = document.getElementById('coach-select');
-                if (!select) return;
-
-                // Очищаем предыдущие опции (кроме "Без тренера")
-                select.innerHTML = '<option value="">Без тренера (опционально)</option>';
-
-                // Добавляем тренеров
-                data.coaches.forEach(coach => {
-                    const option = document.createElement('option');
-                    option.value = coach.id;
-                    option.textContent = `${coach.name} (⭐ ${coach.rating}) - ${coach.hourly_rate}₽/час`;
-                    option.dataset.rate = coach.hourly_rate;
-                    select.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('Ошибка загрузки тренеров:', error);
-            });
-    }
-
-    // ========== УПРАВЛЕНИЕ ПАРАМЕТРАМИ ПОИСКА ПАРТНЁРА ==========
-    const lookingForPartnerCheckbox = document.getElementById('looking-for-partner');
-    const partnerParams = document.getElementById('partner-params');
-
-    if (lookingForPartnerCheckbox && partnerParams) {
-        lookingForPartnerCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                partnerParams.style.display = 'block';
-                partnerParams.style.animation = 'slideDown 0.3s ease-out';
-            } else {
-                partnerParams.style.display = 'none';
-            }
-        });
-    }
-
-    // ========== УПРАВЛЕНИЕ ВЫБОРОМ КОЛИЧЕСТВА ИГРОКОВ ==========
-    const playerCountOptions = document.querySelectorAll('.player-count-option');
-    playerCountOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            playerCountOptions.forEach(opt => opt.classList.remove('active'));
-            this.classList.add('active');
-            const radio = this.querySelector('input[type="radio"]');
-            if (radio) radio.checked = true;
-        });
-    });
-
-    // ========== УПРАВЛЕНИЕ ВЫБОРОМ УРОВНЕЙ РЕЙТИНГА ==========
-    const ratingLevelOptions = document.querySelectorAll('.rating-level-option');
-    const MAX_RATING_SELECTIONS = 3;
-
-    ratingLevelOptions.forEach(option => {
-        option.addEventListener('click', function(e) {
-            e.preventDefault();
-            const checkbox = this.querySelector('input[type="checkbox"]');
-            const currentlySelected = document.querySelectorAll('.rating-level-option.active').length;
-
-            if (this.classList.contains('active')) {
-                // Снять выбор
-                this.classList.remove('active');
-                checkbox.checked = false;
-            } else {
-                // Проверяем лимит
-                if (currentlySelected >= MAX_RATING_SELECTIONS) {
-                    if (window.toast) {
-                        window.toast.warning(`Можно выбрать максимум ${MAX_RATING_SELECTIONS} уровня`);
-                    } else {
-                        alert(`Можно выбрать максимум ${MAX_RATING_SELECTIONS} уровня`);
-                    }
-                    return;
-                }
-                // Добавить выбор
-                this.classList.add('active');
-                checkbox.checked = true;
-            }
-        });
-    });
-
-    // ========== УМНЫЙ ПОИСК УЧАСТНИКОВ ==========
-    const participantSearch = document.getElementById('participant-search');
-    const searchResults = document.getElementById('search-results');
-    const selectedParticipants = document.getElementById('selected-participants');
-    const invitedParticipantsInput = document.getElementById('invited-participants');
-    let selectedParticipantIds = [];
-
-    console.log('🔧 Инициализация поиска участников:', {
-        participantSearch: !!participantSearch,
-        searchResults: !!searchResults,
-        selectedParticipants: !!selectedParticipants,
-        invitedParticipantsInput: !!invitedParticipantsInput
-    });
-
-    if (participantSearch && searchResults) {
-        let searchTimeout;
-        participantSearch.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            const query = this.value.trim();
-
-            if (query.length < 2) {
-                searchResults.style.display = 'none';
-                return;
-            }
-
-            searchTimeout = setTimeout(() => {
-                console.log('🔍 Поиск участников:', query);
-                fetch(`/booking/api/search-users/?q=${encodeURIComponent(query)}`)
-                    .then(response => {
-                        console.log('📡 Ответ сервера:', response.status);
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('📊 Данные поиска:', data);
-                        if (data.users && data.users.length > 0) {
-                            searchResults.innerHTML = data.users.map(user => {
-                                const isCurrentUser = user.is_current_user;
-                                const disabledClass = isCurrentUser ? 'disabled' : '';
-                                const currentUserLabel = isCurrentUser ? '<span style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">Это вы</span>' : '';
-
-                                return `
-                                    <div class="search-result-item ${disabledClass}"
-                                         data-user-id="${user.id}"
-                                         data-user-name="${user.full_name}"
-                                         data-user-phone="${user.phone}"
-                                         data-is-current="${isCurrentUser}"
-                                         style="${isCurrentUser ? 'opacity: 0.6; cursor: not-allowed;' : ''}">
-                                        <i class="fas fa-user-circle" style="font-size: 24px; color: var(--primary-color);"></i>
-                                        <div style="flex: 1;">
-                                            <div style="font-weight: 600; display: flex; align-items: center;">
-                                                ${user.full_name}
-                                                ${currentUserLabel}
-                                            </div>
-                                            <div style="font-size: 12px; color: #666;">${user.phone}</div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('');
-                            searchResults.style.display = 'block';
-
-                            // Добавляем обработчики клика
-                            searchResults.querySelectorAll('.search-result-item').forEach(item => {
-                                item.addEventListener('click', function() {
-                                    // Проверяем, не пытается ли пользователь добавить себя
-                                    const isCurrent = this.dataset.isCurrent === 'true';
-                                    if (isCurrent) {
-                                        if (window.toast) {
-                                            window.toast.warning('Вы не можете пригласить самого себя');
-                                        } else {
-                                            alert('Вы не можете пригласить самого себя');
-                                        }
-                                        return;
-                                    }
-
-                                    const userId = this.dataset.userId;
-                                    const userName = this.dataset.userName;
-                                    const userPhone = this.dataset.userPhone;
-
-                                    if (!selectedParticipantIds.includes(userId)) {
-                                        addParticipant(userId, userName, userPhone);
-                                    } else {
-                                        if (window.toast) {
-                                            window.toast.info('Этот пользователь уже добавлен');
-                                        }
-                                    }
-
-                                    participantSearch.value = '';
-                                    searchResults.style.display = 'none';
-                                });
-                            });
-                        } else {
-                            console.log('⚠️ Пользователи не найдены');
-                            searchResults.innerHTML = '<div style="padding: 12px; text-align: center; color: #999;">Пользователи не найдены</div>';
-                            searchResults.style.display = 'block';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('❌ Ошибка поиска:', error);
-                        searchResults.innerHTML = '<div style="padding: 12px; text-align: center; color: #dc3545;">Ошибка поиска. Попробуйте еще раз.</div>';
-                        searchResults.style.display = 'block';
-                    });
-            }, 300);
-        });
-    }
-
-    function addParticipant(userId, userName, userPhone) {
-        selectedParticipantIds.push(userId);
-
-        const tag = document.createElement('div');
-        tag.className = 'participant-tag';
-        tag.innerHTML = `
-            <i class="fas fa-user"></i>
-            <span>${userName}</span>
-            <i class="fas fa-times remove-participant" data-user-id="${userId}"></i>
-        `;
-
-        tag.querySelector('.remove-participant').addEventListener('click', function() {
-            const id = this.dataset.userId;
-            selectedParticipantIds = selectedParticipantIds.filter(pid => pid !== id);
-            tag.remove();
-            updateInvitedParticipantsInput();
-        });
-
-        selectedParticipants.appendChild(tag);
-        updateInvitedParticipantsInput();
-    }
-
-    function updateInvitedParticipantsInput() {
-        invitedParticipantsInput.value = selectedParticipantIds.join(',');
-    }
-
-    // Закрытие результатов поиска при клике вне
-    document.addEventListener('click', function(e) {
-        if (!participantSearch?.contains(e.target) && !searchResults?.contains(e.target)) {
-            if (searchResults) searchResults.style.display = 'none';
-        }
-    });
-});
-</script>
-
-
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/booking.js' %}"></script>
-
 <!-- FullCalendar JS -->
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<!-- Accordion Booking JS -->
+<script src="{% static 'js/booking-accordion.js' %}"></script>
 
 <script>
-// Проверка загрузки FullCalendar
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof FullCalendar !== 'undefined') {
-        console.log('✅ FullCalendar library loaded successfully!', FullCalendar);
-    } else {
-        console.error('❌ FullCalendar library NOT loaded!');
-    }
-});
-</script>
+// ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+window.bookingState = {
+    selectedDate: null,
+    selectedCourtId: null,
+    selectedCourtName: null,
+    selectedCourtPrice: null,
+    selectedStartTime: null,
+    selectedEndTime: null,
+    selectedDuration: 1
+};
 
-<script>
-// Инициализация FullCalendar при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎯 Initializing main calendar...');
-
-    // Скрываем индикатор загрузки после загрузки DOM
-    const pageLoader = document.getElementById('page-loader');
-    if (pageLoader) {
-        setTimeout(() => {
-            pageLoader.style.opacity = '0';
-            pageLoader.style.transition = 'opacity 0.3s ease';
-            setTimeout(() => {
-                pageLoader.style.display = 'none';
-            }, 300);
-        }, 500); // Показываем минимум 500мс для плавности
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
+    return cookieValue;
+}
+
+function formatDate(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// ========== FULLCALENDAR INITIALIZATION ==========
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Initializing FullCalendar...');
 
     const calendarEl = document.getElementById('main-calendar');
-
-    if (!calendarEl) {
-        console.error('❌ Calendar element #main-calendar NOT found!');
-        return;
-    }
-
-    console.log('✅ Calendar element found');
-
-    if (!window.FullCalendar) {
-        console.error('❌ FullCalendar library not available!');
-        return;
-    }
-
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'ru',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth'
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         buttonText: {
             today: 'Сегодня',
-            month: 'Месяц'
+            month: 'Месяц',
+            week: 'Неделя',
+            day: 'День'
         },
-        height: 480,
-        contentHeight: 420,
-        aspectRatio: 2,
-        nowIndicator: true,
-        selectable: false,
-        fixedWeekCount: false,
-        displayEventTime: false,
+        firstDay: 1,
+        height: 'auto',
         displayEventEnd: false,
         eventDisplay: 'block',
 
@@ -2405,14 +630,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(data => {
                     console.log('📅 Calendar events loaded:', data.length, 'events');
-
-                    // Проверяем что data это массив
                     if (!Array.isArray(data)) {
                         console.error('❌ API returned non-array:', data);
                         successCallback([]);
                         return;
                     }
-
                     successCallback(data);
                 })
                 .catch(error => {
@@ -2424,12 +646,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Клик по событию - показываем детальную информацию
         eventClick: function(info) {
             info.jsEvent.preventDefault();
-            showEventDetails(info.event);
+            window.showEventDetails(info.event);
         },
 
         // Клик по дате (выбор даты для бронирования)
         dateClick: function(info) {
-            // Проверяем что дата не в прошлом
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const clickedDate = new Date(info.date);
@@ -2453,30 +674,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Выделяем выбранную дату
             info.dayEl.classList.add('selected-date');
 
-            // ВАЖНО: Обновляем состояние booking.js
-            if (window.bookingState) {
-                window.bookingState.selectedDate = new Date(info.date);
-                console.log('✅ Updated booking state selectedDate:', window.bookingState.selectedDate);
-            }
-
-            // Если корт уже выбран - загружаем слоты
-            if (window.selectedCourtData && window.selectedCourtData.id) {
-                console.log('🎾 Court already selected, loading slots for', info.dateStr);
-                if (window.loadTimeSlots && window.formatDate) {
-                    const formattedDate = window.formatDate(new Date(info.date));
-                    console.log('📡 Loading time slots for court', window.selectedCourtData.id, 'date', formattedDate);
-                    window.loadTimeSlots(window.selectedCourtData.id, formattedDate);
-                }
-            } else {
-                // Показываем сообщение что нужно выбрать корт
-                if (window.showTimeSlotsMessage) {
-                    window.showTimeSlotsMessage('Выберите корт для бронирования');
-                }
-                console.log('📍 Date selected, waiting for court selection');
+            // Вызываем функцию из accordion.js
+            if (typeof handleDateSelect === 'function') {
+                handleDateSelect({
+                    date: new Date(info.date),
+                    dateStr: info.dateStr
+                });
             }
         },
 
-        // Настройки внешнего вида
         eventClassNames: function(arg) {
             return ['fc-event-custom'];
         }
@@ -2486,22 +692,20 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Main calendar rendered!');
     window.mainCalendar = calendar;
 
-    // Автоматически выделяем сегодняшнюю дату при загрузке
+    // Скрываем loader после загрузки
     setTimeout(() => {
-        const todayEl = document.querySelector('.fc-day-today');
-        if (todayEl && window.bookingState) {
-            todayEl.classList.add('selected-date');
-            window.bookingState.selectedDate = new Date();
-            console.log('📅 Auto-selected today:', new Date().toLocaleDateString());
+        const loader = document.getElementById('page-loader');
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 300);
         }
     }, 500);
 
     // ========== ФУНКЦИЯ ДЛЯ ОТОБРАЖЕНИЯ ДЕТАЛЕЙ СОБЫТИЯ ==========
-    function showEventDetails(event) {
+    window.showEventDetails = function(event) {
         const modal = document.getElementById('eventDetailsModal');
         const props = event.extendedProps;
 
-        // Форматируем дату
         const eventDate = new Date(event.start);
         const formattedDate = eventDate.toLocaleDateString('ru-RU', {
             day: 'numeric',
@@ -2509,7 +713,6 @@ document.addEventListener('DOMContentLoaded', function() {
             year: 'numeric'
         });
 
-        // Форматируем время
         const startTime = eventDate.toLocaleTimeString('ru-RU', {
             hour: '2-digit',
             minute: '2-digit'
@@ -2519,7 +722,6 @@ document.addEventListener('DOMContentLoaded', function() {
             minute: '2-digit'
         });
 
-        // Заполняем данные модального окна
         document.getElementById('event-court-name').textContent = props.courtName || '-';
         document.getElementById('event-date').textContent = formattedDate;
         document.getElementById('event-time').textContent = `${startTime} - ${endTime}`;
@@ -2527,7 +729,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('event-price').textContent = `${props.price || 0} ₽`;
         document.getElementById('event-players').textContent = `${props.partnersCount + 1} / ${props.maxPlayers}`;
 
-        // Обновляем статус
         const statusBadge = document.getElementById('event-status-badge');
         const statusMap = {
             'confirmed': { text: 'Подтверждено', class: 'status-confirmed' },
@@ -2538,54 +739,155 @@ document.addEventListener('DOMContentLoaded', function() {
         statusBadge.textContent = status.text;
         statusBadge.className = 'event-status-badge ' + status.class;
 
-        // Формируем кнопки действий
         const actionsContainer = document.getElementById('event-actions');
         actionsContainer.innerHTML = '';
 
         if (props.isMine) {
-            // Моя бронь - показываем кнопку "Перейти в профиль"
             actionsContainer.innerHTML = `
-                <a href="{% url 'profile' %}#bookings" class="btn-primary event-action-btn">
+                <a href="{% url 'profile' %}#bookings" class="btn-primary event-action-btn" style="padding: 12px 24px; border-radius: 8px; text-decoration: none;">
                     <i class="fas fa-user"></i> Перейти в профиль
                 </a>
             `;
         } else if (props.canJoin) {
-            // Можно присоединиться
             actionsContainer.innerHTML = `
-                <button class="btn-primary event-action-btn" onclick="joinBooking(${props.bookingId})">
+                <button class="btn-primary event-action-btn" onclick="joinBooking(${props.bookingId})" style="padding: 12px 24px; border-radius: 8px;">
                     <i class="fas fa-user-plus"></i> Присоединиться к игре
                 </button>
             `;
         } else {
-            // Просто информация
             actionsContainer.innerHTML = `
-                <button class="btn-secondary event-action-btn" onclick="closeEventModal()">
+                <button class="btn-secondary event-action-btn" onclick="closeEventModal()" style="padding: 12px 24px; border-radius: 8px;">
                     <i class="fas fa-times"></i> Закрыть
                 </button>
             `;
         }
 
-        // Показываем модальное окно
         modal.style.display = 'flex';
     }
 
-    // Функция закрытия модального окна
-    function closeEventModal() {
+    window.closeEventModal = function() {
         const modal = document.getElementById('eventDetailsModal');
         modal.style.display = 'none';
-    }
+    };
 
-    // Обработчик присоединения к игре
-    function joinBooking(bookingId) {
-        // TODO: Реализовать присоединение к игре через AJAX
-        console.log('Joining booking:', bookingId);
-        alert('Функция присоединения к игре будет реализована в следующей версии');
-        closeEventModal();
-    }
+    window.joinBooking = async function(bookingId) {
+        window.closeEventModal();
+
+        try {
+            const message = await showJoinMessageModal();
+            if (message === null) return;
+
+            const response = await fetch(`/booking/waiting-list/${bookingId}/join/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ message })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                if (window.toast) {
+                    toast.success(data.message || 'Запрос отправлен владельцу игры');
+                } else {
+                    alert(data.message || 'Запрос отправлен!');
+                }
+
+                if (typeof calendar !== 'undefined' && calendar.refetchEvents) {
+                    calendar.refetchEvents();
+                }
+            } else {
+                if (window.toast) {
+                    toast.error(data.message || 'Ошибка при присоединении');
+                } else {
+                    alert(data.message || 'Ошибка при присоединении');
+                }
+            }
+        } catch (error) {
+            console.error('Error joining booking:', error);
+            if (window.toast) {
+                toast.error('Произошла ошибка при отправке запроса');
+            } else {
+                alert('Произошла ошибка при отправке запроса');
+            }
+        }
+    };
+
+    window.showJoinMessageModal = function() {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'join-modal-overlay';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+            modal.innerHTML = `
+                <div class="join-modal-content" style="background: white; padding: 30px; border-radius: 16px; max-width: 500px; width: 90%;">
+                    <div class="join-modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0;"><i class="fas fa-user-plus"></i> Присоединиться к игре</h3>
+                        <button class="join-modal-close" type="button" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #999;">×</button>
+                    </div>
+                    <div class="join-modal-body">
+                        <p style="margin-bottom: 15px; color: #666;">
+                            Отправьте запрос организатору игры. Он сможет одобрить или отклонить ваш запрос.
+                        </p>
+                        <label for="join-message-input" style="display: block; margin-bottom: 8px; font-weight: 600;">
+                            Сообщение организатору (необязательно):
+                        </label>
+                        <textarea
+                            id="join-message-input"
+                            class="join-message-textarea"
+                            placeholder="Например: Привет! Хочу присоединиться к игре. Мой уровень B+"
+                            rows="4"
+                            style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;"
+                        ></textarea>
+                    </div>
+                    <div class="join-modal-footer" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn-secondary" type="button" id="cancel-join-btn" style="padding: 12px 24px; border-radius: 8px;">
+                            <i class="fas fa-times"></i> Отмена
+                        </button>
+                        <button class="btn-primary" type="button" id="confirm-join-btn" style="padding: 12px 24px; border-radius: 8px;">
+                            <i class="fas fa-paper-plane"></i> Отправить запрос
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            setTimeout(() => {
+                const textarea = document.getElementById('join-message-input');
+                if (textarea) textarea.focus();
+            }, 100);
+
+            const confirmBtn = modal.querySelector('#confirm-join-btn');
+            confirmBtn.addEventListener('click', () => {
+                const message = document.getElementById('join-message-input').value.trim();
+                modal.remove();
+                resolve(message || 'Хочу присоединиться к игре');
+            });
+
+            const cancelBtn = modal.querySelector('#cancel-join-btn');
+            cancelBtn.addEventListener('click', () => {
+                modal.remove();
+                resolve(null);
+            });
+
+            const closeBtn = modal.querySelector('.join-modal-close');
+            closeBtn.addEventListener('click', () => {
+                modal.remove();
+                resolve(null);
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                    resolve(null);
+                }
+            });
+        });
+    };
 
     // ========== ОБРАБОТЧИКИ ЗАКРЫТИЯ МОДАЛЬНЫХ ОКОН ==========
-
-    // Прямой обработчик для кнопки закрытия модального окна событий
     const eventDetailsModal = document.getElementById('eventDetailsModal');
     if (eventDetailsModal) {
         const closeBtn = eventDetailsModal.querySelector('.close-modal');
@@ -2598,7 +900,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Закрытие при клике вне модального окна
         eventDetailsModal.addEventListener('click', function(e) {
             if (e.target === eventDetailsModal) {
                 console.log('🔴 Клик вне модального окна - закрываем');
@@ -2607,9 +908,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Универсальный обработчик для всех модальных окон
     document.addEventListener('click', function(e) {
-        // Закрытие по клику на крестик
         if (e.target.classList.contains('close-modal')) {
             const modal = e.target.closest('.modal');
             if (modal) {
@@ -2617,13 +916,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Закрытие по клику вне модального окна
         if (e.target.classList.contains('modal')) {
             e.target.style.display = 'none';
         }
     });
 
-    // Закрытие по Escape
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             const modals = document.querySelectorAll('.modal');
@@ -2634,20 +931,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
-
-    // Экспортируем функцию для использования из других мест
-    window.closeEventModal = closeEventModal;
 });
 
 // ========== ФУНКЦИИ РАБОТЫ С ПРИГЛАШЕНИЯМИ ==========
-
-// Принять приглашение
 function acceptInvitation(invitationId) {
     if (!confirm('Вы уверены, что хотите принять это приглашение?')) {
         return;
     }
 
-    // Получаем CSRF token
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     fetch(`/booking/api/invitation/${invitationId}/accept/`, {
@@ -2660,14 +951,12 @@ function acceptInvitation(invitationId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Показываем успех
             if (window.toast) {
                 window.toast.success(data.message);
             } else {
                 alert(data.message);
             }
 
-            // Удаляем карточку приглашения из интерфейса
             const invitationElement = document.getElementById(`invitation-${invitationId}`);
             if (invitationElement) {
                 invitationElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
@@ -2677,7 +966,6 @@ function acceptInvitation(invitationId) {
                 setTimeout(() => {
                     invitationElement.remove();
 
-                    // Проверяем, остались ли приглашения
                     const invitationsList = document.querySelector('.invitations-list');
                     if (invitationsList && invitationsList.children.length === 0) {
                         const invitationsSection = document.querySelector('.invitations-section');
@@ -2688,12 +976,10 @@ function acceptInvitation(invitationId) {
                 }, 300);
             }
 
-            // Обновляем календарь если он есть
             if (window.mainCalendar) {
                 window.mainCalendar.refetchEvents();
             }
         } else {
-            // Показываем ошибку
             if (window.toast) {
                 window.toast.error(data.message);
             } else {
@@ -2711,13 +997,11 @@ function acceptInvitation(invitationId) {
     });
 }
 
-// Отклонить приглашение
 function declineInvitation(invitationId) {
     if (!confirm('Вы уверены, что хотите отклонить это приглашение?')) {
         return;
     }
 
-    // Получаем CSRF token
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     fetch(`/booking/api/invitation/${invitationId}/decline/`, {
@@ -2730,14 +1014,12 @@ function declineInvitation(invitationId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Показываем успех
             if (window.toast) {
                 window.toast.info(data.message);
             } else {
                 alert(data.message);
             }
 
-            // Удаляем карточку приглашения из интерфейса
             const invitationElement = document.getElementById(`invitation-${invitationId}`);
             if (invitationElement) {
                 invitationElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
@@ -2747,7 +1029,6 @@ function declineInvitation(invitationId) {
                 setTimeout(() => {
                     invitationElement.remove();
 
-                    // Проверяем, остались ли приглашения
                     const invitationsList = document.querySelector('.invitations-list');
                     if (invitationsList && invitationsList.children.length === 0) {
                         const invitationsSection = document.querySelector('.invitations-section');
@@ -2758,7 +1039,6 @@ function declineInvitation(invitationId) {
                 }, 300);
             }
         } else {
-            // Показываем ошибку
             if (window.toast) {
                 window.toast.error(data.message);
             } else {
@@ -2775,5 +1055,227 @@ function declineInvitation(invitationId) {
         }
     });
 }
+
+// ========== ВАЛИДАЦИЯ ПЕРЕХОДА ОТ ВЫБОРА ВРЕМЕНИ ==========
+function validateAndContinueFromTime() {
+    // Проверяем что время выбрано (форм-поле заполнено)
+    const startTime = document.getElementById('form-start-time');
+    const warning = document.getElementById('time-not-selected-warning');
+
+    if (!startTime || !startTime.value) {
+        if (warning) {
+            warning.style.display = 'block';
+            setTimeout(() => { warning.style.display = 'none'; }, 3000);
+        }
+        return;
+    }
+
+    if (warning) warning.style.display = 'none';
+    moveToNextSection(3);
+}
+
+// ========== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ФОРМЫ ==========
+function resetBookingForm() {
+    if (confirm('Вы уверены, что хотите отменить бронирование?')) {
+        window.location.reload();
+    }
+}
+
+// Переключение типа бронирования
+document.addEventListener('DOMContentLoaded', function() {
+    // Тип бронирования
+    document.querySelectorAll('.type-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.type-option').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            const input = this.querySelector('input[type="radio"]');
+            if (input) input.checked = true;
+
+            // Показываем/скрываем секции в зависимости от типа
+            const bookingType = input.value;
+            const gameModeSection = document.getElementById('game-mode-section');
+            const partnerSearchSection = document.getElementById('partner-search-section');
+            const coachSelection = document.getElementById('coach-selection');
+
+            if (bookingType === 'game') {
+                gameModeSection.style.display = 'block';
+                partnerSearchSection.style.display = 'block';
+                coachSelection.style.display = 'none';
+            } else {
+                gameModeSection.style.display = 'none';
+                partnerSearchSection.style.display = 'none';
+                coachSelection.style.display = 'block';
+            }
+        });
+    });
+
+    // Режим игры
+    document.querySelectorAll('.game-mode-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.game-mode-option').forEach(o => {
+                o.classList.remove('active');
+                const card = o.querySelector('.mode-card');
+                if (card) card.style.borderColor = '#ddd';
+            });
+            this.classList.add('active');
+            const card = this.querySelector('.mode-card');
+            if (card) card.style.borderColor = 'var(--primary-color)';
+
+            const input = this.querySelector('input[type="radio"]');
+            if (input) input.checked = true;
+
+            // Показываем параметры для Americano и Mexicano
+            const gameMode = input.value;
+            const socialGameParams = document.getElementById('social-game-params');
+            if (gameMode === 'americano' || gameMode === 'mexicano') {
+                socialGameParams.style.display = 'block';
+            } else {
+                socialGameParams.style.display = 'none';
+            }
+        });
+    });
+
+    // Ищу партнера
+    const lookingForPartnerCheckbox = document.getElementById('looking-for-partner');
+    const partnerParams = document.getElementById('partner-params');
+    if (lookingForPartnerCheckbox && partnerParams) {
+        lookingForPartnerCheckbox.addEventListener('change', function() {
+            partnerParams.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+
+    // Выбор количества игроков
+    document.querySelectorAll('.player-count-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.player-count-option').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            const input = this.querySelector('input[type="radio"]');
+            if (input) input.checked = true;
+        });
+    });
+
+    // Range slider для выбора уровня игры
+    (function() {
+        const RATING_LEVELS = ['D', 'D+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A', 'PRO'];
+        const rangeFrom = document.getElementById('level-range-from');
+        const rangeTo = document.getElementById('level-range-to');
+        const rangeFill = document.getElementById('level-range-fill');
+        const rangeDisplay = document.getElementById('level-range-display');
+        const hiddenCbs = document.querySelectorAll('#rating-levels-hidden input[type="checkbox"]');
+
+        function updateLevelRange() {
+            let from = parseInt(rangeFrom.value);
+            let to = parseInt(rangeTo.value);
+            const step = 100 / 9;
+            rangeFill.style.left = (from * step) + '%';
+            rangeFill.style.width = ((to - from) * step) + '%';
+            if (from === 0 && to === 9) {
+                rangeDisplay.innerHTML = '<span class="level-range-any">Любой уровень</span>';
+            } else if (from === to) {
+                rangeDisplay.innerHTML = `Уровень: <span class="level-range-value">${RATING_LEVELS[from]}</span>`;
+            } else {
+                rangeDisplay.innerHTML = `от <span class="level-range-value">${RATING_LEVELS[from]}</span> до <span class="level-range-value">${RATING_LEVELS[to]}</span>`;
+            }
+            hiddenCbs.forEach((cb, i) => {
+                cb.checked = !(from === 0 && to === 9) && (i >= from && i <= to);
+            });
+        }
+
+        if (rangeFrom && rangeTo) {
+            updateLevelRange();
+            rangeFrom.addEventListener('input', function() {
+                if (parseInt(rangeFrom.value) > parseInt(rangeTo.value)) {
+                    rangeFrom.value = rangeTo.value;
+                }
+                updateLevelRange();
+            });
+            rangeTo.addEventListener('input', function() {
+                if (parseInt(rangeTo.value) < parseInt(rangeFrom.value)) {
+                    rangeTo.value = rangeFrom.value;
+                }
+                updateLevelRange();
+            });
+        }
+    })();
+
+    // Поиск участников
+    const participantSearch = document.getElementById('participant-search');
+    const searchResults = document.getElementById('search-results');
+    const selectedParticipants = document.getElementById('selected-participants');
+    const invitedParticipantsInput = document.getElementById('invited-participants');
+    let selectedUsers = [];
+
+    if (participantSearch) {
+        let searchTimeout;
+        participantSearch.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`/booking/api/search-users/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.users && data.users.length > 0) {
+                            searchResults.innerHTML = data.users.map(user => `
+                                <div class="search-result-item" data-user-id="${user.id}" data-user-name="${user.full_name}">
+                                    <i class="fas fa-user"></i>
+                                    <span>${user.full_name}</span>
+                                </div>
+                            `).join('');
+                            searchResults.style.display = 'block';
+
+                            // Обработчики кликов
+                            searchResults.querySelectorAll('.search-result-item').forEach(item => {
+                                item.addEventListener('click', function() {
+                                    const userId = this.dataset.userId;
+                                    const userName = this.dataset.userName;
+
+                                    if (!selectedUsers.find(u => u.id == userId)) {
+                                        selectedUsers.push({ id: userId, name: userName });
+                                        updateSelectedParticipants();
+                                    }
+
+                                    participantSearch.value = '';
+                                    searchResults.style.display = 'none';
+                                });
+                            });
+                        } else {
+                            searchResults.innerHTML = '<div style="padding: 12px; text-align: center; color: #999;">Пользователи не найдены</div>';
+                            searchResults.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error searching users:', error);
+                        searchResults.style.display = 'none';
+                    });
+            }, 300);
+        });
+    }
+
+    function updateSelectedParticipants() {
+        selectedParticipants.innerHTML = selectedUsers.map(user => `
+            <div class="participant-tag">
+                ${user.name}
+                <span class="remove-participant" data-user-id="${user.id}">×</span>
+            </div>
+        `).join('');
+
+        invitedParticipantsInput.value = selectedUsers.map(u => u.id).join(',');
+
+        // Обработчики удаления
+        selectedParticipants.querySelectorAll('.remove-participant').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                selectedUsers = selectedUsers.filter(u => u.id != userId);
+                updateSelectedParticipants();
+            });
+        });
+    }
+});
 </script>
 {% endblock %}

@@ -32,10 +32,6 @@
             <span class="leaderboard-tab-label">Игры</span>
         </a>
 
-        <a href="?tab=tournaments" class="leaderboard-tab {% if active_tab == 'tournaments' %}active{% endif %}">
-            <i class="fas fa-trophy"></i>
-            <span class="leaderboard-tab-label">Турниры</span>
-        </a>
     </div>
 
     <!-- Podium для топ-3 (только для вкладки Рейтинг) -->
@@ -213,8 +209,6 @@
         <h2 class="leaderboard-empty-title">
             {% if active_tab == 'growth' %}
                 Нет данных о росте рейтинга
-            {% elif active_tab == 'tournaments' %}
-                Нет участников турниров
             {% else %}
                 Нет данных для отображения
             {% endif %}
@@ -222,8 +216,6 @@
         <p class="leaderboard-empty-text">
             {% if active_tab == 'growth' %}
                 Здесь будут отображаться игроки с наибольшим ростом рейтинга
-            {% elif active_tab == 'tournaments' %}
-                Здесь будут отображаться участники турниров
             {% else %}
                 Попробуйте выбрать другую вкладку
             {% endif %}

@@ -99,6 +99,8 @@
 let allPayments = [];
 let filteredPayments = [];
 
+const API_BASE = '{% url "manager:dashboard" %}api/';
+
 document.addEventListener('DOMContentLoaded', function() {
     loadPayments();
 
@@ -110,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadPayments() {
-    fetch('/admin/api/payments/')
+    fetch(`${API_BASE}payments/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -222,7 +224,7 @@ function filterPayments() {
 }
 
 function viewPayment(id) {
-    fetch(`/admin/api/payments/${id}/`)
+    fetch(`${API_BASE}payments/${id}/`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -295,7 +297,7 @@ function markAsPaid(paymentId) {
         return;
     }
 
-    fetch(`/admin/api/payments/${paymentId}/mark-paid/`, {
+    fetch(`${API_BASE}payments/${paymentId}/mark-paid/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken')
@@ -321,7 +323,7 @@ function refundPayment(paymentId) {
         return;
     }
 
-    fetch(`/admin/api/payments/${paymentId}/refund/`, {
+    fetch(`${API_BASE}payments/${paymentId}/refund/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken')
@@ -347,7 +349,7 @@ function exportPayments() {
     const dateTo = document.getElementById('dateToFilter').value;
     const status = document.getElementById('statusFilter').value;
 
-    let url = '/admin/api/payments/export/?';
+    let url = `${API_BASE}payments/export/?`;
     if (dateFrom) url += `date_from=${dateFrom}&`;
     if (dateTo) url += `date_to=${dateTo}&`;
     if (status) url += `status=${status}`;

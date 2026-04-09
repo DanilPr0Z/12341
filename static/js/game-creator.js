@@ -11,11 +11,12 @@ class GameCreator {
         this.gameData = {
             type: 'game',
             location: null,
+            locationAddress: null,
             date: null,
             time: null,
             duration: 1.5,
             playerCount: 4,
-            ratingRange: { min: 'D', max: 'D+' },
+            ratingRange: [], // Массив допустимых рейтингов, например: ['C', 'C+', 'B-']
             isPlayer: true,
             isRated: true,
             isPrivate: false,
@@ -366,24 +367,180 @@ class GameCreator {
     }
 
     openRatingModal() {
-        // TODO: Реализовать выбор диапазона рейтинга
-        if (window.toast) {
-            toast.info('Выбор диапазона рейтинга в разработке');
-        }
+        // Рейтинговая система: D, D+, C-, C, C+, B-, B, B+, A-, A, A+
+        const ratings = ['D', 'D+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'];
+
+        const content = `
+            <div class="rating-selector">
+                <p style="color: #666; margin-bottom: 20px;">Выберите допустимые уровни игроков для вашей игры</p>
+                <div class="rating-grid">
+                    ${ratings.map(rating => `
+                        <button class="rating-button ${this.gameData.ratingRange.includes(rating) ? 'active' : ''}"
+                                data-rating="${rating}">
+                            <i class="fas fa-star"></i>
+                            ${rating}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="rating-presets" style="margin-top: 20px;">
+                    <p style="color: #999; font-size: 13px; margin-bottom: 10px;">Быстрый выбор:</p>
+                    <button class="btn btn-sm btn-secondary" onclick="selectRatingPreset('all')">
+                        Все уровни
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="selectRatingPreset('beginners')">
+                        Новички (D-C)
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="selectRatingPreset('intermediate')">
+                        Средний (C-B)
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="selectRatingPreset('advanced')">
+                        Продвинутые (B-A+)
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const modal = this.createModal('Выбор уровня игроков', content);
+        document.body.appendChild(modal);
+
+        // Сохраняем ссылку на gameCreator для использования в preset функциях
+        window.currentGameCreator = this;
+
+        // Обработчик клика на рейтинг
+        modal.querySelectorAll('.rating-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const rating = btn.dataset.rating;
+                btn.classList.toggle('active');
+
+                if (btn.classList.contains('active')) {
+                    if (!this.gameData.ratingRange.includes(rating)) {
+                        this.gameData.ratingRange.push(rating);
+                    }
+                } else {
+                    this.gameData.ratingRange = this.gameData.ratingRange.filter(r => r !== rating);
+                }
+
+                this.updateUI();
+            });
+        });
+
+        // Закрытие модалки
+        modal.querySelector('.game-modal-close').addEventListener('click', () => {
+            modal.remove();
+            window.currentGameCreator = null;
+        });
     }
 
     openLocationModal() {
-        // TODO: Реализовать выбор локации
-        if (window.toast) {
-            toast.info('Выбор локации в разработке');
-        }
+        const content = `
+            <div class="location-selector">
+                <p style="color: #666; margin-bottom: 20px;">Укажите площадку для игры</p>
+                <div class="form-group">
+                    <label>Название площадки</label>
+                    <input type="text" class="form-control" id="locationInput"
+                           placeholder="Например: Спорт Сити, Корт 3"
+                           value="${this.gameData.location || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Адрес (необязательно)</label>
+                    <input type="text" class="form-control" id="locationAddressInput"
+                           placeholder="Например: ул. Ленина, 123"
+                           value="${this.gameData.locationAddress || ''}">
+                </div>
+                <button class="btn btn-primary btn-block" id="saveLocationBtn">
+                    <i class="fas fa-check"></i> Сохранить
+                </button>
+            </div>
+        `;
+
+        const modal = this.createModal('Локация игры', content);
+        document.body.appendChild(modal);
+
+        // Обработчик сохранения
+        modal.querySelector('#saveLocationBtn').addEventListener('click', () => {
+            const location = modal.querySelector('#locationInput').value.trim();
+            const address = modal.querySelector('#locationAddressInput').value.trim();
+
+            if (location) {
+                this.gameData.location = location;
+                this.gameData.locationAddress = address;
+                this.updateUI();
+                modal.remove();
+
+                if (window.toast) {
+                    toast.success('Локация сохранена');
+                }
+            } else {
+                if (window.toast) {
+                    toast.warning('Введите название площадки');
+                }
+            }
+        });
+
+        // Закрытие модалки
+        modal.querySelector('.game-modal-close').addEventListener('click', () => {
+            modal.remove();
+        });
     }
 
     openCommentModal() {
-        // TODO: Реализовать ввод комментария
-        if (window.toast) {
-            toast.info('Добавление комментария в разработке');
-        }
+        const content = `
+            <div class="comment-input">
+                <p style="color: #666; margin-bottom: 20px;">Добавьте заметку или пожелания к игре</p>
+                <div class="form-group">
+                    <textarea class="form-control" id="commentInput" rows="5"
+                              placeholder="Например: Ищу партнёров для дружеской игры, уровень средний">${this.gameData.comment || ''}</textarea>
+                    <div style="color: #999; font-size: 12px; margin-top: 8px;">
+                        ${(this.gameData.comment || '').length}/500 символов
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-block" id="saveCommentBtn">
+                    <i class="fas fa-check"></i> Сохранить
+                </button>
+            </div>
+        `;
+
+        const modal = this.createModal('Комментарий к игре', content);
+        document.body.appendChild(modal);
+
+        // Счетчик символов
+        const textarea = modal.querySelector('#commentInput');
+        const counter = modal.querySelector('div[style*="font-size: 12px"]');
+        textarea.addEventListener('input', () => {
+            const length = textarea.value.length;
+            counter.textContent = `${length}/500 символов`;
+
+            if (length > 500) {
+                counter.style.color = '#ef4444';
+            } else {
+                counter.style.color = '#999';
+            }
+        });
+
+        // Обработчик сохранения
+        modal.querySelector('#saveCommentBtn').addEventListener('click', () => {
+            const comment = textarea.value.trim();
+
+            if (comment.length > 500) {
+                if (window.toast) {
+                    toast.error('Комментарий слишком длинный (максимум 500 символов)');
+                }
+                return;
+            }
+
+            this.gameData.comment = comment;
+            this.updateUI();
+            modal.remove();
+
+            if (window.toast) {
+                toast.success('Комментарий сохранён');
+            }
+        });
+
+        // Закрытие модалки
+        modal.querySelector('.game-modal-close').addEventListener('click', () => {
+            modal.remove();
+        });
     }
 
     // ==================== УТИЛИТЫ МОДАЛОК ====================
@@ -482,15 +639,91 @@ class GameCreator {
     // ==================== CREATE GAME ====================
 
     async createGame() {
-        console.log('Creating game with data:', this.gameData);
-
-        // TODO: Отправка данных на сервер
-        if (window.toast) {
-            toast.info('Создание игры в разработке');
+        // Validate required fields
+        if (!this.gameData.date || !this.gameData.time) {
+            if (window.toast) toast.error('Укажите дату и время игры');
+            return;
         }
 
-        // Временно - показываем данные
-        console.log(JSON.stringify(this.gameData, null, 2));
+        const btn = document.querySelector('.game-create-button');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание...';
+        }
+
+        try {
+            const date = this.gameData.date;
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+
+            const formData = new URLSearchParams({
+                'date': dateStr,
+                'start_time': this.gameData.time,
+                'duration': this.gameData.duration.toString(),
+                'game_mode': this.gameData.type === 'tournament' ? 'americano' : 'americano',
+                'max_players': this.gameData.playerCount.toString(),
+                'looking_for_partner': this.gameData.isPrivate ? '0' : '1',
+                'is_public': this.gameData.isPrivate ? '0' : '1',
+                'rounds_count': '3',
+                'points_per_round': '24',
+                'booking_type': 'game',
+                'comment': this.gameData.comment || ''
+            });
+
+            // Add rating levels
+            if (this.gameData.ratingRange && this.gameData.ratingRange.length > 0) {
+                this.gameData.ratingRange.forEach(r => formData.append('required_rating_levels', r));
+            }
+
+            // Need court_id - for now use first available or check if location set
+            // We need to get court from location or select first available
+            const courtsResponse = await fetch('/booking/api/courts/');
+            const courtsData = await courtsResponse.json();
+
+            if (!courtsData.courts || courtsData.courts.length === 0) {
+                if (window.toast) toast.error('Нет доступных кортов');
+                return;
+            }
+
+            formData.append('court_id', courtsData.courts[0].id.toString());
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                || document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='))?.split('=')[1];
+
+            const response = await fetch('/booking/create/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData.toString()
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                if (window.toast) toast.success('Игра создана!');
+                if (data.booking_id) {
+                    window.location.href = `/booking/games/${data.booking_id}/`;
+                } else {
+                    window.location.href = '/booking/games/';
+                }
+            } else {
+                if (window.toast) toast.error(data.message || 'Ошибка создания игры');
+            }
+        } catch (error) {
+            console.error('Error creating game:', error);
+            if (window.toast) toast.error('Ошибка при создании игры');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus"></i> Создать игру';
+            }
+        }
     }
 }
 
@@ -503,6 +736,42 @@ document.addEventListener('DOMContentLoaded', () => {
         gameCreator = new GameCreator();
     }
 });
+
+// ==================== GLOBAL HELPERS ====================
+
+/**
+ * Функция для быстрого выбора пресетов рейтинга
+ */
+window.selectRatingPreset = function(preset) {
+    if (!window.currentGameCreator) return;
+
+    const ratings = {
+        all: ['D', 'D+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'],
+        beginners: ['D', 'D+', 'C-', 'C', 'C+'],
+        intermediate: ['C-', 'C', 'C+', 'B-', 'B', 'B+'],
+        advanced: ['B-', 'B', 'B+', 'A-', 'A', 'A+']
+    };
+
+    window.currentGameCreator.gameData.ratingRange = ratings[preset] || [];
+    window.currentGameCreator.updateUI();
+
+    // Обновляем активные кнопки в модалке
+    const modal = document.querySelector('.game-modal');
+    if (modal) {
+        modal.querySelectorAll('.rating-button').forEach(btn => {
+            const rating = btn.dataset.rating;
+            if (ratings[preset].includes(rating)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    if (window.toast) {
+        toast.success('Рейтинги выбраны');
+    }
+};
 
 // Экспорт
 window.GameCreator = GameCreator;

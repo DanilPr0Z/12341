@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/tournament-detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/tournament-bracket.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -25,19 +26,13 @@
                 {% elif tournament.status == 'in_progress' %}
                     <i class="fas fa-play-circle"></i> Идет турнир
                 {% elif tournament.status == 'completed' %}
-                    <i class="fas fa-check-circle"></i> Завершен
+                    <i class="fas fa-check-circle"></i> Завершён
                 {% elif tournament.status == 'cancelled' %}
                     <i class="fas fa-times-circle"></i> Отменен
                 {% endif %}
             </div>
 
             <h1 class="tournament-detail-title">{{ tournament.name }}</h1>
-
-            <!-- Формат турнира -->
-            <div class="tournament-format-badge">
-                <i class="fas fa-trophy"></i>
-                {{ tournament.get_format_display }}
-            </div>
 
             <!-- Даты -->
             <div class="tournament-dates">
@@ -116,28 +111,24 @@
         <div class="tournament-section">
             <h2 class="tournament-section-title">
                 <i class="fas fa-clipboard-list"></i>
-                Формат турнира
+                Информация
             </h2>
             <div class="tournament-format-info">
-                <div class="format-info-item">
-                    <i class="fas fa-trophy"></i>
-                    <span><strong>Тип:</strong> {{ tournament.get_format_display }}</span>
-                </div>
                 {% if tournament.is_team_tournament %}
                 <div class="format-info-item">
                     <i class="fas fa-user-friends"></i>
-                    <span><strong>Постоянные пары</strong> - Регистрация только вместе с партнером</span>
+                    <span><strong>Постоянные пары</strong> — регистрация с партнёром</span>
                 </div>
                 {% else %}
                 <div class="format-info-item">
                     <i class="fas fa-sync-alt"></i>
-                    <span><strong>Индивидуальный зачет</strong> - Партнеры меняются каждый раунд</span>
+                    <span><strong>Индивидуальный зачёт</strong> — партнёры меняются каждый раунд</span>
                 </div>
                 {% endif %}
                 {% if tournament.is_mixed %}
                 <div class="format-info-item">
                     <i class="fas fa-venus-mars"></i>
-                    <span><strong>Mixed формат</strong> - Обязательно мужчина + женщина в паре</span>
+                    <span><strong>Mixed</strong> — мужчина + женщина в паре</span>
                 </div>
                 {% endif %}
                 <div class="format-info-item">
@@ -216,6 +207,34 @@
         </div>
         {% endif %}
 
+        <!-- Управление турниром (только для организатора) -->
+        {% if user == tournament.organizer or user.is_staff %}
+        {% if tournament.status in 'registration_closed,in_progress' %}
+        <div class="tournament-section tournament-management">
+            <h2 class="tournament-section-title">
+                <i class="fas fa-cog"></i>
+                Управление турниром
+            </h2>
+
+            <!-- Генерация сетки -->
+            {% if not tournament.matches.exists and tournament.status == 'registration_closed' %}
+            <div class="management-action">
+                <p>Регистрация завершена. Сгенерируйте сетку для начала турнира.</p>
+                <button class="btn-primary btn-generate-bracket" onclick="generateBracket({{ tournament.id }})">
+                    <i class="fas fa-sitemap"></i>
+                    Сгенерировать сетку
+                </button>
+            </div>
+            {% elif tournament.matches.exists %}
+            <div class="management-info">
+                <i class="fas fa-check-circle"></i>
+                Сетка сгенерирована. Участники могут начинать матчи.
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% endif %}
+
         <!-- Участники -->
         <div class="tournament-section">
             <h2 class="tournament-section-title">
@@ -223,12 +242,45 @@
                 Участники ({{ tournament.participants_count }})
             </h2>
             <div id="participantsList" class="participants-list">
-                <!-- JavaScript будет загружать участников -->
+                {% if participants_list %}
+                    {% for p in participants_list %}
+                    <div class="participant-item">
+                        <div class="participant-avatar">
+                            {% if p.user.profile.avatar %}
+                                <img src="{{ p.user.profile.avatar.url }}" alt="{{ p.user.get_full_name }}">
+                            {% else %}
+                                {{ p.user.first_name.0|default:"?" }}
+                            {% endif %}
+                        </div>
+                        <div class="participant-info">
+                            <p class="participant-name">{{ p.user.get_full_name|default:p.user.username }}{% if p.partner %} + {{ p.partner.get_full_name }}{% endif %}</p>
+                            <p class="participant-rating">{% if p.user.rating %}{{ p.user.rating.level }}{% else %}Без рейтинга{% endif %}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state-small">
+                        <p>Пока нет участников</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Таблица лидеров (для Americano/Mexicano) -->
+        {% if tournament.format in 'americano,mexicano' and tournament.status in 'in_progress,completed' %}
+        <div class="tournament-section">
+            <h2 class="tournament-section-title">
+                <i class="fas fa-trophy"></i>
+                Таблица лидеров
+            </h2>
+            <div id="leaderboardTable" class="leaderboard-table">
+                <!-- JavaScript будет загружать данные -->
                 <div class="loading-state-small">
                     <div class="spinner-small"></div>
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Сетка турнира (если турнир начался) -->
         {% if tournament.status in 'in_progress,completed' %}

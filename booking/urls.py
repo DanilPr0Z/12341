@@ -14,15 +14,24 @@ urlpatterns = [
     path('join/<int:booking_id>/', views.join_booking, name='join_booking'),
     path('invite/<int:booking_id>/', views.send_invitation, name='send_invitation'),
     path('my-invitations/', views.my_invitations, name='my_invitations'),
+    path('<int:booking_id>/', views.booking_detail, name='booking_detail'),
+    path('invitation/<int:invitation_id>/accept/', views.accept_invitation, name='accept_invitation'),
+    path('invitation/<int:invitation_id>/decline/', views.decline_invitation, name='decline_invitation'),
+    path('invitation/<int:invitation_id>/cancel/', views.cancel_invitation, name='cancel_invitation'),
 
     # Статистика игрока
     path('statistics/', views.player_statistics, name='player_statistics'),
+
+    # Проверка доступности слота
+    path('check-availability/', views.check_availability, name='check_availability'),
 
     # API endpoints
     path('api/stats/', views.api_player_stats, name='api_player_stats'),
     path('api/calendar-events/', views.api_calendar_events, name='api_calendar_events'),
     path('api/available-slots/', views.api_available_slots, name='api_available_slots'),
     path('api/coaches/', views.get_coaches_list, name='api_coaches_list'),
+    path('api/coaches/<int:coach_id>/', views.api_coach_detail, name='api_coach_detail'),
+    path('api/courts/', views.api_courts_list, name='api_courts_list'),
     path('api/search-users/', views.api_search_users, name='api_search_users'),
     path('api/notifications/', views.api_get_notifications, name='api_get_notifications'),
     path('api/invitation/<int:invitation_id>/accept/', views.api_accept_invitation, name='api_accept_invitation'),
@@ -37,4 +46,14 @@ urlpatterns = [
     path('games/<int:booking_id>/round/<int:round_number>/score/', views.submit_round_score, name='submit_round_score'),
     path('games/invitation/<int:participant_id>/accept/', views.accept_game_invitation, name='accept_game_invitation'),
     path('games/invitation/<int:participant_id>/decline/', views.decline_game_invitation, name='decline_game_invitation'),
+
+    # Лист ожидания (Waiting List)
+    path('waiting-list/<int:booking_id>/join/', views.join_game_waiting_list, name='join_waiting_list'),
+    path('waiting-list/<int:booking_id>/', views.get_waiting_list, name='get_waiting_list'),
+    path('waiting-list/<int:waiting_id>/approve/', views.approve_waiting_list, name='approve_waiting'),
+    path('waiting-list/<int:waiting_id>/reject/', views.reject_waiting_list, name='reject_waiting'),
+
+    # Чат игры (Game Chat)
+    path('chat/<int:booking_id>/', views.get_game_chat, name='get_game_chat'),
+    path('chat/<int:booking_id>/send/', views.send_game_chat_message, name='send_chat_message'),
 ]

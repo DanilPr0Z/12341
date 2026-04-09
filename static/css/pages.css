@@ -404,26 +404,6 @@
 }
 
 /* Dark Theme Support */
-:root[data-theme="dark"] .page-hero,
-:root[data-theme="dark"] .about-hero {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-color) 100%);
-}
-
-:root[data-theme="dark"] .feature-card,
-:root[data-theme="dark"] .team-member,
-:root[data-theme="dark"] .content-box {
-    background: var(--card-bg);
-    box-shadow: var(--shadow-xl);
-}
-
-:root[data-theme="dark"] .stats-section {
-    background: rgba(158, 240, 26, 0.05);
-}
-
-:root[data-theme="dark"] .contact-info,
-:root[data-theme="dark"] .table-of-contents {
-    background: var(--bg-dark);
-}
 
 /* Mobile Responsive */
 @media (max-width: 768px) {

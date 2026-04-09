@@ -1,250 +1,169 @@
 /**
- * Notifications Management System
- * Handles loading, displaying, and interacting with user notifications
+ * Notifications page JS
  */
 
-// Load notifications for profile page
-function loadProfileNotifications() {
-    const container = document.getElementById('notificationsListProfile');
-    const accordionBadge = document.getElementById('accordionNotificationBadge');
-
-    if (!container) return;
-
-    fetch('/booking/api/notifications/')
-        .then(response => response.json())
-        .then(data => {
-            console.log('📬 Уведомления загружены для профиля:', data);
-
-            if (data.success && data.notifications && data.notifications.length > 0) {
-                // Обновляем badge в аккордеоне
-                if (accordionBadge) {
-                    accordionBadge.textContent = data.count;
-                    accordionBadge.style.display = 'inline-flex';
-                }
-
-                // Рендерим уведомления
-                container.innerHTML = data.notifications.map(notification => `
-                    <div class="notification-card invitation" data-invitation-id="${notification.id}">
-                        <div class="notification-card-header">
-                            <div class="notification-icon">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <div class="notification-time">
-                                <i class="fas fa-clock"></i>
-                                Только что
-                            </div>
-                        </div>
-
-                        <div class="notification-content">
-                            <h3 class="notification-title">${notification.title}</h3>
-                            <p class="notification-text">${notification.message}</p>
-
-                            ${notification.details ? `
-                                <div class="notification-details">
-                                    ${notification.details.map(detail => `
-                                        <div class="notification-detail-item">
-                                            <i class="${detail.icon}"></i>
-                                            <span>${detail.text}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-
-                            <div class="notification-actions">
-                                <button class="btn-accept" data-invitation-id="${notification.id}">
-                                    <i class="fas fa-check"></i>
-                                    Принять
-                                </button>
-                                <button class="btn-decline" data-invitation-id="${notification.id}">
-                                    <i class="fas fa-times"></i>
-                                    Отклонить
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-
-                // Добавляем обработчики
-                attachNotificationHandlers();
-            } else {
-                // Нет уведомлений
-                if (accordionBadge) {
-                    accordionBadge.style.display = 'none';
-                }
-
-                container.innerHTML = `
-                    <div class="notifications-empty">
-                        <div class="notifications-empty-icon">
-                            <i class="fas fa-bell-slash"></i>
-                        </div>
-                        <h3>Нет новых уведомлений</h3>
-                        <p>Когда появятся новые приглашения в игры, они отобразятся здесь</p>
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            console.error('❌ Ошибка загрузки уведомлений:', error);
-            container.innerHTML = `
-                <div class="notifications-empty">
-                    <div class="notifications-empty-icon" style="color: #ef4444;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <h3>Ошибка загрузки</h3>
-                    <p>Не удалось загрузить уведомления. Попробуйте обновить страницу.</p>
-                </div>
-            `;
-        });
+// ===== CSRF =====
+function getCsrfToken() {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
 }
 
-// Attach event handlers to notification buttons
-function attachNotificationHandlers() {
-    // Accept invitation buttons
-    document.querySelectorAll('.btn-accept').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const invitationId = this.dataset.invitationId;
-            acceptInvitation(invitationId);
-        });
-    });
-
-    // Decline invitation buttons
-    document.querySelectorAll('.btn-decline').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const invitationId = this.dataset.invitationId;
-            declineInvitation(invitationId);
-        });
-    });
+// ===== MARK SINGLE AS READ =====
+function markNotificationRead(notificationId, callback) {
+    fetch('/users/ajax/notifications/mark-read/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCsrfToken() },
+        body: new URLSearchParams({ notification_id: notificationId })
+    })
+    .then(r => r.json())
+    .then(data => { if (callback) callback(data); })
+    .catch(() => {});
 }
 
-// Accept invitation
-function acceptInvitation(invitationId) {
-    const button = document.querySelector(`.btn-accept[data-invitation-id="${invitationId}"]`);
+// ===== MARK ALL READ =====
+function markAllNotificationsRead() {
+    fetch('/users/ajax/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrfToken() }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Убираем визуальные признаки непрочитанных
+            document.querySelectorAll('.notification-card.unread').forEach(c => c.classList.remove('unread'));
+            const badge = document.querySelector('h1 .unread-count-badge');
+            if (badge) badge.remove();
+            const btn = document.getElementById('markAllReadBtn');
+            if (btn) btn.disabled = true;
+            // Обновляем navbar badge
+            if (window.loadNotifications) window.loadNotifications();
+            if (window.toast) window.toast.success('Все уведомления прочитаны');
+        }
+    })
+    .catch(() => {});
+}
 
-    if (button) {
-        button.classList.add('loading');
-        button.textContent = 'Принимаю...';
+// ===== ACCEPT INVITATION =====
+function replaceActionsWithStatus(btn, statusHtml) {
+    const actionsDiv = btn.closest('.notification-actions');
+    if (actionsDiv) {
+        actionsDiv.outerHTML = statusHtml;
     }
+}
+
+function handleInvitationAccept(invitationId, btn) {
+    if (!invitationId) return;
 
     fetch(`/booking/api/invitation/${invitationId}/accept/`, {
         method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Content-Type': 'application/json'
-        }
+        headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' }
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
-            if (window.toast) {
-                window.toast.success(data.message || 'Приглашение принято!');
+            if (window.toast) window.toast.success(data.message || 'Приглашение принято!');
+            if (btn) {
+                replaceActionsWithStatus(btn,
+                    '<div class="notification-status-label" style="color:#10b981;font-weight:600;font-size:13px;margin-top:8px;"><i class="fas fa-check-circle"></i> Принято</div>');
             }
-            // Перезагружаем уведомления
-            setTimeout(() => {
-                loadProfileNotifications();
-                // Обновляем badge в navbar
-                if (window.loadNotifications) {
-                    window.loadNotifications();
-                }
-            }, 500);
         } else {
-            if (window.toast) {
-                window.toast.error(data.message || 'Ошибка при принятии приглашения');
-            }
-            if (button) {
-                button.classList.remove('loading');
-                button.innerHTML = '<i class="fas fa-check"></i> Принять';
-            }
+            if (window.toast) window.toast.error(data.message || 'Ошибка');
         }
     })
-    .catch(error => {
-        console.error('❌ Ошибка принятия приглашения:', error);
-        if (window.toast) {
-            window.toast.error('Ошибка при принятии приглашения');
-        }
-        if (button) {
-            button.classList.remove('loading');
-            button.innerHTML = '<i class="fas fa-check"></i> Принять';
-        }
-    });
+    .catch(() => { if (window.toast) window.toast.error('Ошибка соединения'); });
 }
 
-// Decline invitation
-function declineInvitation(invitationId) {
-    const button = document.querySelector(`.btn-decline[data-invitation-id="${invitationId}"]`);
-
-    if (button) {
-        button.classList.add('loading');
-        button.textContent = 'Отклоняю...';
-    }
+// ===== DECLINE INVITATION =====
+function handleInvitationDecline(invitationId, btn) {
+    if (!invitationId) return;
 
     fetch(`/booking/api/invitation/${invitationId}/decline/`, {
         method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Content-Type': 'application/json'
-        }
+        headers: { 'X-CSRFToken': getCsrfToken(), 'Content-Type': 'application/json' }
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
-            if (window.toast) {
-                window.toast.info(data.message || 'Приглашение отклонено');
+            if (window.toast) window.toast.info(data.message || 'Приглашение отклонено');
+            if (btn) {
+                replaceActionsWithStatus(btn,
+                    '<div class="notification-status-label" style="color:#ef4444;font-weight:600;font-size:13px;margin-top:8px;"><i class="fas fa-times-circle"></i> Отклонено</div>');
             }
-            // Перезагружаем уведомления
-            setTimeout(() => {
-                loadProfileNotifications();
-                // Обновляем badge в navbar
-                if (window.loadNotifications) {
-                    window.loadNotifications();
-                }
-            }, 500);
         } else {
-            if (window.toast) {
-                window.toast.error(data.message || 'Ошибка при отклонении приглашения');
-            }
-            if (button) {
-                button.classList.remove('loading');
-                button.innerHTML = '<i class="fas fa-times"></i> Отклонить';
-            }
+            if (window.toast) window.toast.error(data.message || 'Ошибка');
         }
     })
-    .catch(error => {
-        console.error('❌ Ошибка отклонения приглашения:', error);
-        if (window.toast) {
-            window.toast.error('Ошибка при отклонении приглашения');
-        }
-        if (button) {
-            button.classList.remove('loading');
-            button.innerHTML = '<i class="fas fa-times"></i> Отклонить';
-        }
+    .catch(() => { if (window.toast) window.toast.error('Ошибка соединения'); });
+}
+
+// ===== FILTERS =====
+function initFilters() {
+    const chips = document.querySelectorAll('.filter-chip');
+    const cards = document.querySelectorAll('.notification-card');
+    const sections = document.querySelectorAll('.notifications-section');
+
+    chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            chips.forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            const filter = chip.dataset.filter;
+
+            sections.forEach(s => {
+                const sectionFilter = s.dataset.section;
+                if (filter === 'all') {
+                    s.style.display = '';
+                } else if (filter === 'unread') {
+                    s.style.display = sectionFilter === 'unread' ? '' : 'none';
+                } else if (filter === 'read') {
+                    s.style.display = sectionFilter === 'read' ? '' : 'none';
+                } else {
+                    s.style.display = '';
+                }
+            });
+
+            cards.forEach(card => {
+                const type = card.dataset.notificationType || '';
+                if (filter === 'all' || filter === 'unread' || filter === 'read') return;
+                const match =
+                    (filter === 'booking'    && (type.includes('booking') || type.includes('partner'))) ||
+                    (filter === 'invitation' && (type.includes('invitation') || type.includes('partner'))) ||
+                    (filter === 'payment'    && type.includes('payment')) ||
+                    (filter === 'rating'     && type.includes('rating'));
+                card.style.display = match ? '' : 'none';
+            });
+        });
     });
 }
 
-// Get CSRF token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
+// ===== AUTO MARK READ ON HOVER =====
+function initAutoMarkRead() {
+    document.querySelectorAll('.notification-card.unread').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            const id = this.dataset.notificationId;
+            if (!id || this.dataset.markedRead) return;
+            this.dataset.markedRead = '1';
+            markNotificationRead(id, () => {
+                this.classList.remove('unread');
+                if (window.loadNotifications) window.loadNotifications();
+                // Обновляем счётчик в заголовке
+                const badge = document.querySelector('h1 .unread-count-badge');
+                if (badge) {
+                    const n = parseInt(badge.textContent) - 1;
+                    if (n <= 0) badge.remove();
+                    else badge.textContent = n;
+                }
+            });
+        }, { once: true });
+    });
 }
 
-// Initialize notifications on profile page
+// ===== INIT =====
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on profile page
-    if (document.getElementById('notificationsListProfile')) {
-        loadProfileNotifications();
+    initFilters();
+    initAutoMarkRead();
 
-        // Auto-refresh every 30 seconds
-        setInterval(loadProfileNotifications, 30000);
+    const markAllBtn = document.getElementById('markAllReadBtn');
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', markAllNotificationsRead);
     }
 });

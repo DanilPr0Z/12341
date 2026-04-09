@@ -4,6 +4,7 @@
 {% block title %}{{ booking.get_game_mode_display }} - Paddle Booking{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/game-features.css' %}">
 <style>
     .game-detail-container {
         max-width: 1200px;
@@ -12,12 +13,13 @@
     }
 
     .game-header {
-        background: linear-gradient(135deg, #1a2332 0%, #2d3a4e 100%);
+        background: linear-gradient(135deg, var(--bg-white) 0%, #f0ffe0 100%);
         padding: 30px;
         border-radius: 16px;
         margin-bottom: 30px;
-        color: white;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        color: var(--text-color);
+        box-shadow: 0 4px 20px rgba(158, 240, 26, 0.15);
+        border: 2px solid rgba(158, 240, 26, 0.3);
     }
 
     .game-title {
@@ -36,6 +38,7 @@
         display: flex;
         align-items: center;
         gap: 15px;
+        color: var(--secondary-color);
     }
 
     .game-mode-badge {
@@ -45,6 +48,7 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        color: white;
     }
 
     .mode-americano {
@@ -53,6 +57,11 @@
 
     .mode-mexicano {
         background: linear-gradient(135deg, #4ecdc4 0%, #6ee7df 100%);
+    }
+
+    .mode-regular {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        color: var(--dark-color);
     }
 
     .game-status-badge {
@@ -78,28 +87,30 @@
     }
 
     .status-completed {
-        background: #9ef01a;
-        color: #1a1a1a;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        color: var(--dark-color);
     }
 
     .game-info-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
     }
 
     .info-card {
-        background: rgba(255,255,255,0.1);
-        padding: 15px;
-        border-radius: 12px;
+        background: white;
+        padding: 10px 12px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
+        border: 1px solid rgba(158, 240, 26, 0.2);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
     .info-card i {
-        font-size: 24px;
-        color: #9ef01a;
+        font-size: 18px;
+        color: var(--secondary-color);
     }
 
     .info-content {
@@ -107,14 +118,15 @@
     }
 
     .info-label {
-        font-size: 12px;
-        opacity: 0.7;
-        margin-bottom: 4px;
+        font-size: 11px;
+        color: var(--gray-color);
+        margin-bottom: 2px;
     }
 
     .info-value {
-        font-size: 18px;
+        font-size: 14px;
         font-weight: 700;
+        color: var(--dark-color);
     }
 
     .content-grid {
@@ -495,6 +507,10 @@
             grid-template-columns: 1fr;
         }
 
+        .game-info-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
         .players-grid {
             grid-template-columns: 1fr 1fr;
         }
@@ -510,6 +526,10 @@
     }
 
     @media (max-width: 576px) {
+        .game-info-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
         .players-grid {
             grid-template-columns: 1fr;
         }
@@ -522,7 +542,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="game-detail-container">
+<div class="game-detail-container"
+     data-booking-id="{{ booking.id }}"
+     data-is-owner="{% if is_creator %}true{% else %}false{% endif %}">
     <!-- Заголовок игры -->
     <div class="game-header">
         <div class="game-title">
@@ -569,6 +591,20 @@
                     <div class="info-value">{{ booking.current_round }}/{{ booking.rounds_count }}</div>
                 </div>
             </div>
+            <div class="info-card">
+                <i class="fas fa-ruble-sign"></i>
+                <div class="info-content">
+                    <div class="info-label">Стоимость</div>
+                    <div class="info-value">{{ booking.total_price }} &#8381;</div>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-user-tag"></i>
+                <div class="info-content">
+                    <div class="info-label">С человека</div>
+                    <div class="info-value">{{ booking.price_per_person }} &#8381;</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -588,7 +624,7 @@
                         <div class="round-header">
                             <span class="round-title">Раунд {{ round.round_number }}</span>
                             <span class="round-status {% if round.is_completed %}round-completed{% else %}round-pending{% endif %}">
-                                {% if round.is_completed %}Завершен{% else %}В ожидании{% endif %}
+                                {% if round.is_completed %}Завершён{% else %}В ожидании{% endif %}
                             </span>
                         </div>
 
@@ -654,7 +690,7 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <p style="text-align: center; color: #999; padding: 40px;">Раунды еще не сгенерированы</p>
+                    <p style="text-align: center; color: #999; padding: 40px;">Раунды ещё не сгенерированы</p>
                 {% endif %}
             </div>
         </div>
@@ -668,24 +704,115 @@
                     Участники
                 </h2>
                 <div class="players-grid">
-                    {% for participant in participants %}
-                    <div class="player-card">
-                        <div class="player-avatar">
-                            {{ participant.user.first_name.0|default:"?" }}{{ participant.user.last_name.0|default:"" }}
-                        </div>
-                        <div class="player-name">{{ participant.user.get_full_name|default:participant.user.username }}</div>
-                        <div class="player-stats">
-                            {% if participant.user.rating %}
-                            <span class="stat-badge rating-badge">{{ participant.user.rating.level }}</span>
+                    {% if participants %}
+                        {% for participant in participants %}
+                        <div class="player-card">
+                            {% if participant.user.profile.avatar %}
+                                <img src="{{ participant.user.profile.avatar.url }}" alt="" class="player-avatar-img" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); margin-bottom: 12px;">
+                            {% else %}
+                                <div class="player-avatar">
+                                    {{ participant.user.first_name.0|default:"?" }}{{ participant.user.last_name.0|default:"" }}
+                                </div>
                             {% endif %}
-                            {% if booking.game_status == 'in_progress' or booking.game_status == 'completed' %}
-                            <span class="stat-badge points-badge">{{ participant.total_points }} очков</span>
-                            {% endif %}
+                            <div class="player-name">{{ participant.user.first_name }} {{ participant.user.last_name }}</div>
+                            <div style="font-size: 12px; color: #999; margin-bottom: 8px;">@{{ participant.user.username }}</div>
+                            <div class="player-stats">
+                                {% if participant.user.rating %}
+                                <span class="stat-badge rating-badge">{{ participant.user.rating.level }}</span>
+                                {% endif %}
+                                {% if booking.game_status == 'in_progress' or booking.game_status == 'completed' %}
+                                <span class="stat-badge points-badge">{{ participant.total_points }} очков</span>
+                                {% endif %}
+                            </div>
                         </div>
+                        {% endfor %}
+                    {% elif partners_list %}
+                        {% for p in partners_list %}
+                        <div class="player-card">
+                            {% if p.user.profile.avatar %}
+                                <img src="{{ p.user.profile.avatar.url }}" alt="" class="player-avatar-img" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); margin-bottom: 12px;">
+                            {% else %}
+                                <div class="player-avatar">
+                                    {{ p.user.first_name.0|default:"?" }}{{ p.user.last_name.0|default:"" }}
+                                </div>
+                            {% endif %}
+                            <div class="player-name">{{ p.user.first_name }} {{ p.user.last_name }}</div>
+                            <div style="font-size: 12px; color: #999; margin-bottom: 8px;">@{{ p.user.username }}{% if p.is_creator %} <span style="color: var(--primary-color);">(организатор)</span>{% endif %}</div>
+                            <div class="player-stats">
+                                {% if p.user.rating %}
+                                <span class="stat-badge rating-badge">{{ p.user.rating.level }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if booking.available_slots > 0 and booking.game_status == 'pending' %}
+                    {% for i in "x"|ljust:booking.available_slots %}
+                    <div class="player-card" style="border-style: dashed; opacity: 0.5;">
+                        <div class="player-avatar" style="background: #ccc;">
+                            <i class="fas fa-user-plus" style="font-size: 20px;"></i>
+                        </div>
+                        <div class="player-name" style="color: #999;">Свободное место</div>
                     </div>
                     {% endfor %}
+                    {% endif %}
                 </div>
             </div>
+
+            <!-- Лист ожидания (только для владельца) -->
+            {% if is_creator and booking.looking_for_partner %}
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-hourglass-half"></i>
+                    Запросы на присоединение
+                    <span id="waiting-count-badge" class="badge" style="background: var(--primary-color); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-left: auto;">0</span>
+                </h2>
+                <div id="waiting-list-container"></div>
+            </div>
+            {% endif %}
+
+            <!-- Кнопка присоединиться (для не-участников) -->
+            {% if not is_participant and booking.looking_for_partner and not booking.is_full %}
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-user-plus"></i>
+                    Присоединиться
+                </h2>
+                <button id="join-game-btn-{{ booking.id }}" class="btn btn-primary btn-block">
+                    <i class="fas fa-user-plus"></i> Отправить запрос
+                </button>
+                <p style="color: #999; font-size: 13px; margin-top: 12px; text-align: center;">
+                    Ваш запрос будет отправлен владельцу игры
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Чат игры (только для участников) -->
+            {% if is_participant %}
+            <div class="section-card" style="padding: 0; overflow: hidden;">
+                <div class="game-chat-container" style="height: 400px;">
+                    <div class="chat-header">
+                        <h3><i class="fas fa-comments"></i> Чат игры</h3>
+                        <div class="chat-online-count">
+                            <span>{{ participants|length }} участников</span>
+                        </div>
+                    </div>
+
+                    <div id="chat-messages-container"></div>
+
+                    <div class="chat-input-container">
+                        <textarea
+                            id="chat-message-input"
+                            placeholder="Введите сообщение..."
+                            rows="1"></textarea>
+                        <button id="send-chat-message-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Таблица лидеров (только для завершенных игр) -->
             {% if booking.game_status == 'completed' %}
@@ -846,6 +973,54 @@
             const team1Input = document.getElementById(`team1-score-${roundNum}`);
             team1Input.value = Math.max(0, totalPoints - team2);
         });
+    });
+</script>
+
+<!-- Лист ожидания и чат игры -->
+<script src="{% static 'js/game-waiting-list.js' %}"></script>
+<script src="{% static 'js/game-chat.js' %}"></script>
+<script>
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        const bookingId = {{ booking.id }};
+
+        // Инициализируем лист ожидания (автоматически определит роль)
+        const waitingList = new GameWaitingList(bookingId);
+
+        // Инициализируем чат (только для участников)
+        {% if is_participant %}
+            const gameChat = new GameChat(bookingId);
+        {% endif %}
+
+        // Очистка при уходе со страницы
+        window.addEventListener('beforeunload', () => {
+            waitingList.destroy();
+            {% if is_participant %}
+                gameChat.destroy();
+            {% endif %}
+        });
+
+        // Обновляем счетчик запросов для владельца
+        {% if is_creator and booking.looking_for_partner %}
+        function updateWaitingCount() {
+            fetch(`/booking/waiting-list/${bookingId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const badge = document.getElementById('waiting-count-badge');
+                        if (badge) {
+                            badge.textContent = data.count;
+                            badge.style.display = data.count > 0 ? 'inline-block' : 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error updating waiting count:', error));
+        }
+
+        // Обновляем счетчик сразу и каждые 10 секунд
+        updateWaitingCount();
+        setInterval(updateWaitingCount, 10000);
+        {% endif %}
     });
 </script>
 {% endblock %}

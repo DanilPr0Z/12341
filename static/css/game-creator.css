@@ -699,37 +699,109 @@
 }
 
 /* ==================== DARK THEME SUPPORT ==================== */
-:root[data-theme="dark"] .game-creator-card,
-:root[data-theme="dark"] .game-modal-content,
-:root[data-theme="dark"] .player-selector-dropdown,
-:root[data-theme="dark"] .court-selector-card {
-    background: var(--card-bg);
-    box-shadow: var(--shadow-xl);
+
+/* ==================== RATING SELECTOR ==================== */
+.rating-selector {
+    padding: 10px 0;
 }
 
-:root[data-theme="dark"] .game-creator-title,
-:root[data-theme="dark"] .game-label {
-    color: var(--text-color);
+.rating-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-:root[data-theme="dark"] .game-section-title,
-:root[data-theme="dark"] .player-name,
-:root[data-theme="dark"] .court-name {
-    color: var(--text-muted);
+.rating-button {
+    padding: 16px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #374151;
 }
 
-:root[data-theme="dark"] .game-type-button,
-:root[data-theme="dark"] .player-card {
-    background: var(--bg-dark);
-    color: var(--text-color);
+.rating-button i {
+    font-size: 20px;
+    color: #d1d5db;
 }
 
-:root[data-theme="dark"] .game-type-button.active {
-    background: var(--primary-color);
-    color: var(--dark-color);
+.rating-button:hover {
+    border-color: var(--primary-color, #9ef01a);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(158,240,26,0.2);
 }
 
-:root[data-theme="dark"] .player-card:hover,
-:root[data-theme="dark"] .court-selector-card:hover {
-    box-shadow: 0 8px 24px rgba(158, 240, 26, 0.2);
+.rating-button.active {
+    border-color: var(--primary-color, #9ef01a);
+    background: linear-gradient(135deg, rgba(158,240,26,0.15) 0%, rgba(158,240,26,0.08) 100%);
+    color: var(--primary-color, #9ef01a);
 }
+
+.rating-button.active i {
+    color: var(--primary-color, #9ef01a);
+}
+
+.rating-presets {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rating-presets .btn-sm {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+/* ==================== LOCATION & COMMENT SELECTORS ==================== */
+.location-selector,
+.comment-input {
+    padding: 10px 0;
+}
+
+.location-selector .form-group,
+.comment-input .form-group {
+    margin-bottom: 16px;
+}
+
+.location-selector label,
+.comment-input label {
+    display: block;
+    font-weight: 600;
+    color: var(--secondary-color, #1a2332);
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.location-selector .form-control,
+.comment-input .form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.location-selector .form-control:focus,
+.comment-input .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color, #9ef01a);
+    box-shadow: 0 0 0 3px rgba(158,240,26,0.1);
+}
+
+.comment-input textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* ==================== DARK THEME ==================== */
+
