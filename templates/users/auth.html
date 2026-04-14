@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if initial_mode == 'register' %}Регистрация{% else %}Вход{% endif %} — Paddle Booking</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+        /* ===== LAYOUT: левая форма + правая дека ===== */
+        .ap {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== ЛЕВАЯ ПАНЕЛЬ — формы ===== */
+        .ap-left {
+            width: 50%;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 0;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        /* Навбар вверху левой панели */
+        .ap-nav {
+            display: flex; align-items: center; gap: 8px;
+            padding: 0 40px;
+            height: 64px;
+            border-bottom: 1px solid #f0f2f5;
+            flex-shrink: 0;
+        }
+        .ap-nav .nav-brand { margin-right: 12px; }
+
+        .ap-nav-link {
+            color: #555; text-decoration: none; font-size: 14px; font-weight: 500;
+            padding: 6px 12px; border-radius: 8px; transition: background .15s, color .15s;
+        }
+        .ap-nav-link:hover { background: #f0f2f5; color: #1a1a1a; }
+
+        /* Центрирующий контейнер под навбаром */
+        .ap-form-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 48px;
+        }
+
+        .af-inner { width: 100%; max-width: 360px; }
+
+        /* ===== ПЕРЕКЛЮЧАТЕЛЬ ===== */
+        .af-toggle {
+            display: flex;
+            background: #f0f2f5;
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 28px;
+            position: relative;
+            width: 220px;
+        }
+        .af-slider {
+            position: absolute; top: 4px; left: 4px;
+            width: calc(50% - 4px); height: calc(100% - 8px);
+            background: linear-gradient(135deg, #9ef01a, #38b000);
+            border-radius: 50px;
+            transition: transform .4s cubic-bezier(.77, 0, .18, 1);
+            box-shadow: 0 2px 10px rgba(56,176,0,.25);
+        }
+        .af-slider.on-reg { transform: translateX(100%); }
+
+        .af-tab {
+            flex: 1; padding: 9px 0; border: none; background: none;
+            cursor: pointer; font-size: 14px; font-weight: 600;
+            border-radius: 50px; position: relative; z-index: 1;
+            transition: color .3s; color: #999;
+        }
+        .af-tab.active { color: #1a1a1a; }
+
+        /* ===== СЛАЙДЕР ФОРМ ===== */
+        /* Контейнер — скрывает одну форму, показывает другую */
+        .af-forms-wrap {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .af-form {
+            width: 100%;
+            transition: opacity .35s ease, transform .35s ease;
+        }
+
+        /* Состояния анимации */
+        .af-form.hidden-left {
+            position: absolute; top: 0; left: 0;
+            opacity: 0; transform: translateX(-32px); pointer-events: none;
+        }
+        .af-form.hidden-right {
+            position: absolute; top: 0; left: 0;
+            opacity: 0; transform: translateX(32px); pointer-events: none;
+        }
+        .af-form.visible {
+            opacity: 1; transform: translateX(0); pointer-events: all;
+        }
+
+        /* Заголовок формы */
+        .af-title { font-size: 24px; font-weight: 800; color: #1a1a1a; margin-bottom: 4px; }
+        .af-sub   { font-size: 14px; color: #888; margin-bottom: 22px; }
+
+        /* Ошибка */
+        .af-err {
+            background: #fff0f0; border: 1px solid #fca5a5;
+            border-radius: 8px; padding: 10px 14px;
+            color: #dc2626; font-size: 13px; margin-bottom: 14px; display: none;
+        }
+        .af-err.show { display: block; }
+
+        /* Поля */
+        .af-g { margin-bottom: 13px; }
+        .af-g label {
+            display: block; font-size: 11px; font-weight: 700;
+            color: #999; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px;
+        }
+        .af-in {
+            width: 100%; padding: 11px 14px;
+            background: #f7f8fa; border: 1.5px solid #e8eaed;
+            border-radius: 9px; color: #1a1a1a; font-size: 15px;
+            outline: none; transition: border-color .2s, background .2s;
+        }
+        .af-in:focus { border-color: #38b000; background: #fff; }
+        .af-in::placeholder { color: #bbb; }
+        .af-hint { font-size: 11px; color: #bbb; margin-top: 3px; }
+
+        .af-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* Чекбоксы */
+        .af-check { margin-bottom: 8px; }
+        .af-check label {
+            display: flex; align-items: flex-start; gap: 9px;
+            cursor: pointer; font-size: 12px; color: #777; line-height: 1.4;
+        }
+        .af-check input[type=checkbox] {
+            margin-top: 2px; width: 15px; height: 15px;
+            accent-color: #38b000; flex-shrink: 0; cursor: pointer;
+        }
+        .af-check a { color: #38b000; text-decoration: none; }
+        .af-check a:hover { text-decoration: underline; }
+
+        /* Кнопка */
+        .af-btn {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #9ef01a, #38b000);
+            border: none; border-radius: 9px;
+            color: #1a1a1a; font-size: 15px; font-weight: 700;
+            cursor: pointer; margin-top: 16px;
+            transition: opacity .2s, transform .15s;
+            box-shadow: 0 4px 16px rgba(56,176,0,.2);
+        }
+        .af-btn:hover { opacity: .9; transform: translateY(-1px); }
+        .af-btn:active { transform: translateY(0); }
+        .af-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+        .af-sw { text-align: center; margin-top: 14px; font-size: 13px; color: #999; }
+        .af-sw a { color: #38b000; text-decoration: none; font-weight: 600; }
+        .af-sw a:hover { text-decoration: underline; }
+
+        /* ===== ПРАВАЯ ДЕКА ===== */
+        .ap-deco {
+            width: 50%;
+            background: linear-gradient(145deg, #0a1f00 0%, #0f2d00 40%, #1a3800 70%, #0d2200 100%);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 48px 40px;
+            position: relative; overflow: hidden;
+        }
+
+        .ap-deco::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(158,240,26,.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(158,240,26,.07) 1px, transparent 1px);
+            background-size: 44px 44px;
+        }
+        .ap-deco::after {
+            content: '';
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(158,240,26,.1) 0%, transparent 65%);
+            top: 50%; left: 50%; transform: translate(-50%,-50%);
+            pointer-events: none;
+        }
+
+        /* Орбиты */
+        .d-orb {
+            position: absolute; border-radius: 50%;
+            border: 1px solid rgba(158,240,26,.15);
+            top: 50%; left: 50%;
+            animation: orb-spin linear infinite;
+        }
+        .d-orb:nth-child(1){ width:260px; height:260px; margin:-130px 0 0 -130px; animation-duration:18s; }
+        .d-orb:nth-child(2){ width:420px; height:420px; margin:-210px 0 0 -210px; animation-duration:28s; animation-direction:reverse; border-color:rgba(56,176,0,.1); }
+        .d-orb:nth-child(3){ width:580px; height:580px; margin:-290px 0 0 -290px; animation-duration:42s; border-color:rgba(158,240,26,.06); }
+        .d-orb::after {
+            content: ''; position: absolute;
+            width: 8px; height: 8px; background: #9ef01a; border-radius: 50%;
+            top: -4px; left: 50%; transform: translateX(-50%);
+            box-shadow: 0 0 10px #9ef01a;
+        }
+        @keyframes orb-spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        .d-content { position: relative; z-index: 2; text-align: center; color: #fff; }
+
+        .d-logo {
+            display: flex; align-items: center; gap: 12px;
+            justify-content: center; margin-bottom: 36px; text-decoration: none;
+        }
+        .d-logo i { font-size: 38px; color: #9ef01a; filter: drop-shadow(0 0 14px rgba(158,240,26,.5)); }
+        .d-logo span {
+            font-size: 26px; font-weight: 800;
+            background: linear-gradient(90deg,#9ef01a,#38b000);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        .d-title { font-size: 28px; font-weight: 800; line-height: 1.3; margin-bottom: 12px; }
+        .d-title em { color: #9ef01a; font-style: normal; }
+        .d-sub { font-size: 14px; color: rgba(255,255,255,.45); max-width: 260px; line-height: 1.6; margin: 0 auto; }
+
+        .d-feats { margin-top: 36px; display: flex; flex-direction: column; gap: 12px; text-align: left; }
+        .d-feat {
+            display: flex; align-items: center; gap: 12px;
+            font-size: 13px; color: rgba(255,255,255,.6);
+        }
+        .d-feat i {
+            width: 30px; height: 30px; flex-shrink: 0;
+            background: rgba(158,240,26,.1); border: 1px solid rgba(158,240,26,.2);
+            border-radius: 7px; display: flex; align-items: center; justify-content: center;
+            color: #9ef01a; font-size: 12px;
+        }
+
+        /* ===== МОБАЙЛ ===== */
+        @media (max-width: 768px) {
+            html, body { height: auto; }
+            .ap { flex-direction: column; height: auto; overflow: visible; }
+            .ap-left { width: 100%; min-height: 100vh; }
+            .ap-nav { padding: 0 20px; }
+            .ap-form-center { padding: 32px 20px; }
+            .ap-deco { display: none; }
+            .af-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+{% csrf_token %}
+
+<div class="ap">
+
+    <!-- ЛЕВАЯ ПАНЕЛЬ — формы -->
+    <div class="ap-left">
+
+        <!-- Навбар вверху -->
+        <nav class="ap-nav">
+            <div class="nav-brand">
+                <i class="fas fa-table-tennis-paddle-ball" style="color:#38b000;font-size:1.6rem;margin-right:8px;"></i>
+                <a href="/">Paddle Booking</a>
+            </div>
+            <a href="{% url 'coaches_list' %}" class="ap-nav-link">Тренеры</a>
+            <a href="{% url 'tournament:public_tournaments_list' %}" class="ap-nav-link">Турниры</a>
+        </nav>
+
+        <!-- Форма по центру -->
+        <div class="ap-form-center">
+        <div class="af-inner">
+            <!-- Переключатель -->
+            <div class="af-toggle">
+                <div class="af-slider {% if initial_mode == 'register' %}on-reg{% endif %}" id="afSlider"></div>
+                <button class="af-tab {% if initial_mode != 'register' %}active{% endif %}" id="tabLogin"    onclick="go('login')">Вход</button>
+                <button class="af-tab {% if initial_mode == 'register' %}active{% endif %}" id="tabRegister" onclick="go('register')">Регистрация</button>
+            </div>
+
+            <!-- Контейнер форм -->
+            <div class="af-forms-wrap">
+
+                <!-- ФОРМА ВХОДА -->
+                <div class="af-form {% if initial_mode != 'register' %}visible{% else %}hidden-left{% endif %}" id="loginBlock">
+                    <p class="af-title">Добро пожаловать</p>
+                    <p class="af-sub">Введите данные для входа</p>
+                    <div class="af-err" id="loginErr"></div>
+                    <form id="loginForm" autocomplete="on">
+                        <div class="af-g">
+                            <label>Email или телефон</label>
+                            <input type="text" name="identifier" class="af-in" placeholder="example@mail.ru" required autocomplete="username">
+                        </div>
+                        <div class="af-g">
+                            <label>Пароль</label>
+                            <input type="password" name="password" class="af-in" placeholder="Введите пароль" required autocomplete="current-password">
+                        </div>
+                        <button type="submit" class="af-btn">Войти</button>
+                    </form>
+                </div>
+
+                <!-- ФОРМА РЕГИСТРАЦИИ -->
+                <div class="af-form {% if initial_mode == 'register' %}visible{% else %}hidden-right{% endif %}" id="regBlock">
+                    <p class="af-title">Создать аккаунт</p>
+                    <p class="af-sub">Заполните данные для регистрации</p>
+                    <div class="af-err" id="regErr"></div>
+                    <form id="regForm" autocomplete="on">
+                        <div class="af-row">
+                            <div class="af-g">
+                                <label>Имя</label>
+                                <input type="text" name="first_name" class="af-in" placeholder="Иван" required minlength="2" autocomplete="given-name">
+                            </div>
+                            <div class="af-g">
+                                <label>Фамилия</label>
+                                <input type="text" name="last_name" class="af-in" placeholder="Иванов" required minlength="2" autocomplete="family-name">
+                            </div>
+                        </div>
+                        <div class="af-g">
+                            <label>Email</label>
+                            <input type="email" name="email" class="af-in" placeholder="example@mail.ru" required autocomplete="email">
+                        </div>
+                        <div class="af-g">
+                            <label>Телефон</label>
+                            <input type="tel" name="phone" class="af-in" placeholder="+7 (999) 123-45-67" required autocomplete="tel">
+                            <p class="af-hint">Российский номер, начинается с +7</p>
+                        </div>
+                        <div class="af-g">
+                            <label>Пароль</label>
+                            <input type="password" name="password1" class="af-in" placeholder="Минимум 8 символов" required minlength="8" autocomplete="new-password">
+                        </div>
+                        <div class="af-g">
+                            <label>Повторите пароль</label>
+                            <input type="password" name="password2" class="af-in" placeholder="Повторите пароль" required autocomplete="new-password">
+                        </div>
+                        <div class="af-check">
+                            <label>
+                                <input type="checkbox" required>
+                                <span>Согласен(а) на <a href="/users/personal-data/" target="_blank">обработку персональных данных</a></span>
+                            </label>
+                        </div>
+                        <div class="af-check">
+                            <label>
+                                <input type="checkbox" required>
+                                <span>Ознакомлен(а) с <a href="/users/privacy-policy/" target="_blank">политикой конфиденциальности</a></span>
+                            </label>
+                        </div>
+                        <button type="submit" class="af-btn">Зарегистрироваться</button>
+                    </form>
+                </div>
+
+            </div><!-- /af-forms-wrap -->
+        </div><!-- /af-inner -->
+        </div><!-- /ap-form-center -->
+    </div><!-- /ap-left -->
+
+    <!-- ПРАВАЯ ДЕКА (неподвижная) -->
+    <div class="ap-deco">
+        <div class="d-orb"></div>
+        <div class="d-orb"></div>
+        <div class="d-orb"></div>
+        <div class="d-content">
+            <a href="/" class="d-logo">
+                <i class="fas fa-table-tennis-paddle-ball"></i>
+                <span>Paddle Booking</span>
+            </a>
+            <p class="d-title">Бронируй корт,<br><em>находи партнёров</em></p>
+            <p class="d-sub">Платформа для любителей и профессионалов падел-тенниса</p>
+            <div class="d-feats">
+                <div class="d-feat"><i class="fas fa-calendar-check"></i>Бронирование кортов онлайн</div>
+                <div class="d-feat"><i class="fas fa-users"></i>Поиск партнёров по рейтингу</div>
+                <div class="d-feat"><i class="fas fa-trophy"></i>Турниры Americano и Mexicano</div>
+                <div class="d-feat"><i class="fas fa-chart-line"></i>Рейтинг и статистика игр</div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /ap -->
+
+<script>
+const slider   = document.getElementById('afSlider');
+const tabL     = document.getElementById('tabLogin');
+const tabR     = document.getElementById('tabRegister');
+const loginBlk = document.getElementById('loginBlock');
+const regBlk   = document.getElementById('regBlock');
+
+// Читаем режим из хэша URL, иначе из server-side initial_mode
+const hashMode = location.hash === '#register' ? 'register' : (location.hash === '#login' ? 'login' : null);
+let mode = hashMode || '{{ initial_mode|default:"login" }}';
+
+// Применяем начальное состояние на основе mode
+if (mode === 'register') {
+    slider.classList.add('on-reg');
+    tabL.classList.remove('active'); tabR.classList.add('active');
+    loginBlk.classList.remove('visible'); loginBlk.classList.add('hidden-left');
+    regBlk.classList.remove('hidden-right'); regBlk.classList.add('visible');
+}
+
+function go(m) {
+    if (m === mode) return;
+    const toReg = (m === 'register');
+
+    // Обновляем hash для сохранения при обновлении
+    history.replaceState(null, '', toReg ? '#register' : '#login');
+
+    slider.classList.toggle('on-reg', toReg);
+    tabL.classList.toggle('active', !toReg);
+    tabR.classList.toggle('active',  toReg);
+
+    if (toReg) {
+        loginBlk.classList.remove('visible');
+        loginBlk.classList.add('hidden-left');
+        regBlk.classList.remove('hidden-right');
+        regBlk.classList.add('visible');
+    } else {
+        regBlk.classList.remove('visible');
+        regBlk.classList.add('hidden-right');
+        loginBlk.classList.remove('hidden-left');
+        loginBlk.classList.add('visible');
+    }
+    mode = m;
+}
+
+/* CSRF из скрытого поля */
+function csrf() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+function showErr(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.classList.add('show');
+}
+function hideErr(id) { document.getElementById(id).classList.remove('show'); }
+
+/* Вход */
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    hideErr('loginErr');
+    const btn = this.querySelector('.af-btn');
+    btn.disabled = true; btn.textContent = 'Входим...';
+    try {
+        const fd = new FormData(this);
+        const r = await fetch('/users/ajax/login/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf() },
+            body: fd
+        });
+        const j = await r.json();
+        if (j.success) { window.location.href = '/'; }
+        else { showErr('loginErr', j.message || 'Неверный логин или пароль'); btn.disabled=false; btn.textContent='Войти'; }
+    } catch { showErr('loginErr','Ошибка соединения'); btn.disabled=false; btn.textContent='Войти'; }
+});
+
+/* Регистрация */
+document.getElementById('regForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    hideErr('regErr');
+    const p1 = this.querySelector('[name=password1]').value;
+    const p2 = this.querySelector('[name=password2]').value;
+    if (p1 !== p2) { showErr('regErr','Пароли не совпадают'); return; }
+    const btn = this.querySelector('.af-btn');
+    btn.disabled = true; btn.textContent = 'Регистрируем...';
+    try {
+        const fd = new FormData(this);
+        const r = await fetch('/users/ajax/register/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf() },
+            body: fd
+        });
+        const j = await r.json();
+        if (j.success) { window.location.href = '/'; }
+        else { showErr('regErr', j.message || 'Ошибка регистрации'); btn.disabled=false; btn.textContent='Зарегистрироваться'; }
+    } catch { showErr('regErr','Ошибка соединения'); btn.disabled=false; btn.textContent='Зарегистрироваться'; }
+});
+</script>
+</body>
+</html>

@@ -40,13 +40,10 @@ def ajax_register(request):
         return JsonResponse(response)
 
     except Exception as e:
-        # Логируем ошибку для отладки
         logger.error(f"Registration error: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return JsonResponse({
             'success': False,
-            'message': f'Ошибка сервера: {str(e)}'
+            'message': 'Произошла ошибка. Попробуйте ещё раз'
         }, status=500)
 
 
@@ -96,38 +93,17 @@ def ajax_login(request):
 
 
 def user_login(request):
-    """Стандартный вход (для обратной совместимости)"""
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            identifier_data = form.cleaned_data.get('identifier')
-            password = form.cleaned_data.get('password')
-
-            # Определяем username для аутентификации
-            username = identifier_data['username']
-
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('home')
-    else:
-        form = LoginForm()
-
-    return render(request, 'users/login.html', {'form': form})
+    """Страница входа"""
+    if request.user.is_authenticated:
+        return redirect('home')
+    return render(request, 'users/auth.html', {'initial_mode': 'login'})
 
 
 def register(request):
-    """Стандартная регистрация (для обратной совместимости)"""
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('home')
-    else:
-        form = RegistrationForm()
-
-    return render(request, 'users/register.html', {'form': form})
+    """Страница регистрации"""
+    if request.user.is_authenticated:
+        return redirect('home')
+    return render(request, 'users/auth.html', {'initial_mode': 'register'})
 
 
 def user_logout(request):
@@ -148,6 +124,16 @@ def ajax_logout(request):
 
 @require_POST
 @login_required
+def privacy_policy(request):
+    """Политика конфиденциальности"""
+    return render(request, 'users/privacy_policy.html')
+
+
+def personal_data(request):
+    """Согласие на обработку персональных данных"""
+    return render(request, 'users/personal_data.html')
+
+
 def update_email(request):
     """AJAX обновление email пользователя"""
     try:

@@ -167,21 +167,18 @@ class RegistrationForm(UserCreationForm):
         # Извлекаем цифры для проверки других форматов
         phone_digits = formatted_phone[1:]  # Убираем +
 
-        # Проверка уникальности (исключая текущего пользователя)
-        if self.instance and hasattr(self.instance, 'profile'):
-            # Проверяем все форматы
-            other_formats = [
-                formatted_phone,
-                '8' + phone_digits[1:],
-                phone_digits,
-                phone_digits[1:],
-            ]
-
-            for fmt in other_formats:
-                qs = UserProfile.objects.filter(phone=fmt).exclude(user=self.instance)
-                if qs.exists():
-                    users = [p.user.username for p in qs]
-                    raise ValidationError(f'Этот номер телефона уже используется: {", ".join(users)}')
+        # Проверка уникальности номера телефона
+        check_formats = [
+            formatted_phone,
+            '8' + phone_digits[1:],
+            phone_digits,
+            phone_digits[1:],
+        ]
+        qs = UserProfile.objects.filter(phone__in=check_formats)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(user=self.instance)
+        if qs.exists():
+            raise ValidationError('Данный номер телефона уже зарегистрирован')
 
         return formatted_phone
 
@@ -221,7 +218,7 @@ class RegistrationForm(UserCreationForm):
 
         # Проверяем уникальность email
         if User.objects.filter(email=email).exists():
-            raise ValidationError('Этот email уже зарегистрирован')
+            raise ValidationError('Данный email уже зарегистрирован')
 
         return email
 
@@ -479,21 +476,18 @@ class ProfileUpdateForm(forms.ModelForm):
         # Извлекаем цифры для проверки других форматов
         phone_digits = formatted_phone[1:]  # Убираем +
 
-        # Проверка уникальности (исключая текущего пользователя)
-        if self.instance and hasattr(self.instance, 'profile'):
-            # Проверяем все форматы
-            other_formats = [
-                formatted_phone,
-                '8' + phone_digits[1:],
-                phone_digits,
-                phone_digits[1:],
-            ]
-
-            for fmt in other_formats:
-                qs = UserProfile.objects.filter(phone=fmt).exclude(user=self.instance)
-                if qs.exists():
-                    users = [p.user.username for p in qs]
-                    raise ValidationError(f'Этот номер телефона уже используется: {", ".join(users)}')
+        # Проверка уникальности номера телефона
+        check_formats = [
+            formatted_phone,
+            '8' + phone_digits[1:],
+            phone_digits,
+            phone_digits[1:],
+        ]
+        qs = UserProfile.objects.filter(phone__in=check_formats)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(user=self.instance)
+        if qs.exists():
+            raise ValidationError('Данный номер телефона уже зарегистрирован')
 
         return formatted_phone
 

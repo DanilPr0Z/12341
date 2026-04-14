@@ -37,4 +37,8 @@ urlpatterns = [
     path('ajax/delete-avatar/', views.delete_avatar, name='ajax_delete_avatar'),
     path('ajax/update-profile/', views.update_profile, name='ajax_update_profile'),
     path('ajax/update-preferred-side/', views.update_preferred_side, name='ajax_update_preferred_side'),
+
+    # Правовые страницы
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('personal-data/', views.personal_data, name='personal_data'),
 ]
