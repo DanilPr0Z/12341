@@ -618,6 +618,12 @@ footer {
         gap: 0;
     }
 
+    .feature-card:hover,
+    .section-card:hover,
+    .court-item:hover {
+        transform: none;
+    }
+
     .nav-menu {
         gap: 15px;
         flex-wrap: wrap;

@@ -245,14 +245,6 @@ object {
         padding: 0 15px;
     }
 
-    .nav-brand {
-        font-size: 1.3rem;
-    }
-
-    .nav-brand i {
-        font-size: 1.5rem;
-    }
-
     /* Скрываем навигационное меню на планшетах и мобильных */
     .nav-menu {
         display: none !important;
@@ -323,18 +315,6 @@ object {
         padding: 0 10px;
     }
 
-    .nav-brand {
-        font-size: 1.1rem;
-    }
-
-    .nav-brand i {
-        font-size: 1.3rem;
-    }
-
-    .nav-brand a {
-        font-size: 1rem;
-    }
-
     /* Компактные кнопки входа */
     .auth-btn {
         padding: 8px 12px;
@@ -385,13 +365,6 @@ object {
 
 /* Extra small mobile (< 400px) */
 @media (max-width: 400px) {
-    .nav-brand a {
-        font-size: 0.9rem;
-    }
-
-    .nav-brand i {
-        font-size: 1.2rem;
-    }
 
     .register-btn {
         padding: 8px 12px;
