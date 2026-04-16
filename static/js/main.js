@@ -614,23 +614,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const navMenu = document.getElementById('navMenu');
 
     if (navHamburger && navMenu) {
-        // Создаем backdrop
-        const backdrop = document.createElement('div');
-        backdrop.className = 'nav-mobile-backdrop';
-        document.body.appendChild(backdrop);
-
         function openMobileMenu() {
             navMenu.classList.add('mobile-open');
-            navHamburger.classList.add('is-open');
-            backdrop.classList.add('show');
+            navHamburger.classList.add('active');
             navHamburger.setAttribute('aria-expanded', 'true');
-            document.body.style.overflow = 'hidden'; // Предотвращаем скролл под меню
+            document.body.style.overflow = 'hidden';
         }
 
         function closeMobileMenu() {
             navMenu.classList.remove('mobile-open');
-            navHamburger.classList.remove('is-open');
-            backdrop.classList.remove('show');
+            navHamburger.classList.remove('active');
             navHamburger.setAttribute('aria-expanded', 'false');
             document.body.style.overflow = '';
         }
@@ -644,19 +637,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Закрытие по клику на backdrop
-        backdrop.addEventListener('click', closeMobileMenu);
-
-        // Закрытие при клике на ссылку в меню
-        navMenu.querySelectorAll('.nav-item').forEach(link => {
-            link.addEventListener('click', closeMobileMenu);
+        // Закрытие при клике на любую ссылку в меню (навигация + профиль)
+        navMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function() {
+                // Не закрываем если это кнопка выхода (она откроет модалку)
+                if (!this.id || this.id !== 'mobileOpenLogout') {
+                    closeMobileMenu();
+                } else {
+                    closeMobileMenu();
+                }
+            });
         });
 
-        // Закрытие при изменении размера окна (если вернулись на десктоп)
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 992) {
+        // Закрытие при клике вне меню
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.navbar') && navMenu.classList.contains('mobile-open')) {
                 closeMobileMenu();
             }
+        });
+
+        // Закрытие при ресайзе на десктоп
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) closeMobileMenu();
         });
 
         // Закрытие на Escape
