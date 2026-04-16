@@ -351,8 +351,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Hamburger menu JS -->
 <script>
-// Кнопка "Выйти" в мобильном меню открывает модалку
 document.addEventListener('DOMContentLoaded', function() {
+    // Считаем точную высоту navbar и пишем в CSS-переменную
+    function updateNavbarHeight() {
+        const navbar = document.querySelector('.navbar');
+        if (navbar) {
+            document.documentElement.style.setProperty('--navbar-height', navbar.offsetHeight + 'px');
+        }
+    }
+    updateNavbarHeight();
+    window.addEventListener('resize', updateNavbarHeight);
+
+    // Кнопка "Выйти" в мобильном меню открывает модалку
     const mobileLogout = document.getElementById('mobileOpenLogout');
     if (mobileLogout) {
         mobileLogout.addEventListener('click', function(e) {
@@ -422,10 +432,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* ===== MOBILE MENU ===== */
 @media (max-width: 768px) {
-    /* Navbar поверх мобильного меню — чтобы гамбургер всегда кликабелен */
+    /* Navbar фиксированный поверх меню */
     .navbar {
-        position: relative;
-        z-index: 1002;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1010;
+    }
+
+    /* Отступ чтобы контент не прятался за fixed navbar */
+    body {
+        padding-top: var(--navbar-height, 60px);
     }
 
     .nav-container {
@@ -445,17 +463,20 @@ document.addEventListener('DOMContentLoaded', function() {
     .nav-menu {
         display: none;
         position: fixed;
-        top: 60px;
+        top: 0;
         left: 0;
-        width: 100%;
-        height: calc(100vh - 60px);
+        right: 0;
+        bottom: 0;
         background: white;
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
         gap: 4px;
-        z-index: 1000;
-        padding: 24px 20px 40px;
+        z-index: 1005;
+        padding-top: calc(var(--navbar-height, 60px) + 16px);
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-bottom: 40px;
         overflow-y: auto;
     }
 
