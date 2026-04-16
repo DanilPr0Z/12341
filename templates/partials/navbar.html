@@ -414,14 +414,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* ===== MOBILE MENU ===== */
 @media (max-width: 768px) {
-    .nav-container {
+    /* Navbar поверх мобильного меню — чтобы гамбургер всегда кликабелен */
+    .navbar {
         position: relative;
-        justify-content: center;
+        z-index: 1002;
     }
 
-    .nav-brand {
-        position: absolute;
-        left: 16px;
+    .nav-container {
+        justify-content: space-between;
     }
 
     /* Профиль скрыт на мобиле — его роль берёт бургер */
@@ -429,11 +429,9 @@ document.addEventListener('DOMContentLoaded', function() {
         display: none !important;
     }
 
-    /* Гамбургер — справа */
+    /* Гамбургер — справа, обычный flex-элемент (не absolute) */
     .nav-hamburger {
         display: flex;
-        position: absolute;
-        right: 16px;
     }
 
     .nav-menu {
