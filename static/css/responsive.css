@@ -2445,6 +2445,11 @@ object {
         outline: 2px solid var(--primary-color, #9ef01a);
         outline-offset: 2px;
     }
+
+    .nav-hamburger:focus-visible {
+        outline: none;
+        box-shadow: none;
+    }
 }
 
 /* Уменьшенная анимация для пользователей с чувствительностью к движению */

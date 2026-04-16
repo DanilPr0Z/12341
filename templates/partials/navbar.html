@@ -1,7 +1,7 @@
 <nav class="navbar">
     <div class="nav-container">
         <div class="nav-brand">
-            <a href="{% url 'home' %}">Paddle Booking</a>
+            <a href="{% url 'home' %}">PadelBooking</a>
         </div>
 
         <div class="nav-menu" id="navMenu">
@@ -375,11 +375,19 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 44px;
     background: none;
     border: none;
+    outline: none;
     cursor: pointer;
     padding: 8px;
     border-radius: 8px;
     transition: background 0.2s;
     z-index: 1001;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nav-hamburger:focus,
+.nav-hamburger:focus-visible {
+    outline: none;
+    box-shadow: none;
 }
 
 .nav-hamburger:hover {
@@ -437,27 +445,27 @@ document.addEventListener('DOMContentLoaded', function() {
     .nav-menu {
         display: none;
         position: fixed;
-        top: 0;
+        top: 60px;
         left: 0;
         width: 100%;
-        height: 100vh;
+        height: calc(100vh - 60px);
         background: white;
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
         gap: 4px;
         z-index: 1000;
-        padding: 80px 20px 40px;
+        padding: 24px 20px 40px;
         overflow-y: auto;
     }
 
     .nav-menu.mobile-open {
         display: flex !important;
-        animation: menuSlideDown 0.3s ease-out;
+        animation: menuSlideDown 0.25s ease-out;
     }
 
     @keyframes menuSlideDown {
-        from { opacity: 0; transform: translateY(-20px); }
+        from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
     }
 

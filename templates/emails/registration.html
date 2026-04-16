@@ -1,12 +1,12 @@
 {% extends 'emails/base_email.html' %}
 
-{% block email_title %}Добро пожаловать в Paddle Booking{% endblock %}
+{% block email_title %}Добро пожаловать в PadelBooking{% endblock %}
 
 {% block email_header %}Добро пожаловать!{% endblock %}
 
 {% block email_content %}
 <h2>Здравствуйте, {{ user.first_name }}!</h2>
-<p>Спасибо за регистрацию в системе Paddle Booking!</p>
+<p>Спасибо за регистрацию в системе PadelBooking!</p>
 
 <p>Ваша учетная запись успешно создана. Теперь вы можете:</p>
 <ul>
@@ -38,5 +38,5 @@
 
 <p>Если у вас возникнут вопросы, не стесняйтесь обращаться к нам!</p>
 
-<p>С уважением,<br>Команда Paddle Booking</p>
+<p>С уважением,<br>Команда PadelBooking</p>
 {% endblock %}
