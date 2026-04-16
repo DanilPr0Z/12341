@@ -90,12 +90,16 @@ function openAccordionSection(stepNumber) {
     section.classList.add('active');
     section.classList.remove('locked');
 
-    // Прокрутить к секции
+    // Прокрутить к секции только если она вне зоны видимости
     setTimeout(() => {
-        section.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
+        const rect = section.getBoundingClientRect();
+        const isVisible = rect.top >= 0 && rect.top <= window.innerHeight * 0.4;
+        if (!isVisible) {
+            section.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+        }
     }, 100);
 }
 
@@ -218,7 +222,8 @@ function handleTimeSelect(timeSlot) {
         durationContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Обновить summary
+    // Обновить отображение времени в селекторе длительности и summary
+    updateDurationDisplay();
     updateBookingSummary();
 
     // НЕ переходим автоматически — пользователь должен выбрать длительность и нажать кнопку
@@ -346,11 +351,15 @@ function updateDurationDisplay() {
         durationLabel.textContent = formatDurationLabel(bookingState.selectedDuration);
     }
 
-    // Показать диапазон времени если время выбрано
-    if (timeRange && bookingState.selectedTime) {
-        const startTime = bookingState.selectedTime.split(' - ')[0];
-        const endTime = calculateEndTime(startTime, bookingState.selectedDuration);
-        timeRange.textContent = `${startTime} — ${endTime}`;
+    // Показать диапазон времени если время выбрано, иначе очистить
+    if (timeRange) {
+        if (bookingState.selectedTime) {
+            const startTime = bookingState.selectedTime.split(' - ')[0];
+            const endTime = calculateEndTime(startTime, bookingState.selectedDuration);
+            timeRange.textContent = `${startTime} — ${endTime}`;
+        } else {
+            timeRange.textContent = '';
+        }
     }
 
     // Обновить состояние кнопок
@@ -398,14 +407,9 @@ function formatDurationLabel(duration) {
  */
 function reloadTimeSlotsForDuration() {
     if (bookingState.selectedDate && bookingState.selectedCourt) {
-        loadTimeSlots(bookingState.selectedDate, bookingState.selectedCourt);
         // Сбросить выбранное время, так как слоты изменились
         bookingState.selectedTime = null;
-        // Скрыть summary, пока не выбрано новое время
-        const summary = document.getElementById('booking-summary');
-        if (summary) {
-            summary.style.display = 'none';
-        }
+        loadTimeSlots(bookingState.selectedDate, bookingState.selectedCourt);
     }
 }
 
@@ -477,8 +481,9 @@ function loadTimeSlots(date, courtId) {
     const timeSlotsContainer = document.getElementById('time-slots-grid');
     if (!timeSlotsContainer) return;
 
-    // Показать загрузку
-    timeSlotsContainer.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 32px; color: var(--primary-color);"></i><p>Загрузка доступного времени...</p></div>';
+    // Плавное затемнение вместо полной замены — нет моргания
+    timeSlotsContainer.style.opacity = '0.4';
+    timeSlotsContainer.style.pointerEvents = 'none';
 
     // AJAX запрос для получения слотов
     fetch(`/booking/available-slots/?date=${encodeURIComponent(date)}&court=${encodeURIComponent(courtId)}&duration=${encodeURIComponent(bookingState.selectedDuration)}`)
@@ -506,11 +511,15 @@ function renderTimeSlots(slots) {
     if (!timeSlotsContainer) return;
 
     if (!slots || slots.length === 0) {
+        timeSlotsContainer.style.opacity = '1';
+        timeSlotsContainer.style.pointerEvents = '';
         timeSlotsContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-calendar-times" style="font-size: 32px; margin-bottom: 16px;"></i><p>Нет доступных слотов</p></div>';
         return;
     }
 
     timeSlotsContainer.innerHTML = '';
+    timeSlotsContainer.style.opacity = '1';
+    timeSlotsContainer.style.pointerEvents = '';
 
     slots.forEach(slot => {
         const slotElement = document.createElement('div');

@@ -208,7 +208,7 @@
     max-width: 100%;
 }
 
-.booking-accordion-item.completed #main-calendar {
+.booking-accordion-item.completed:not(.active) #main-calendar {
     opacity: 0.7;
     pointer-events: none;
 }

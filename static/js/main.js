@@ -608,6 +608,66 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // ==================== HAMBURGER МОБИЛЬНОЕ МЕНЮ ====================
+
+    const navHamburger = document.getElementById('navHamburger');
+    const navMenu = document.getElementById('navMenu');
+
+    if (navHamburger && navMenu) {
+        // Создаем backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'nav-mobile-backdrop';
+        document.body.appendChild(backdrop);
+
+        function openMobileMenu() {
+            navMenu.classList.add('mobile-open');
+            navHamburger.classList.add('is-open');
+            backdrop.classList.add('show');
+            navHamburger.setAttribute('aria-expanded', 'true');
+            document.body.style.overflow = 'hidden'; // Предотвращаем скролл под меню
+        }
+
+        function closeMobileMenu() {
+            navMenu.classList.remove('mobile-open');
+            navHamburger.classList.remove('is-open');
+            backdrop.classList.remove('show');
+            navHamburger.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+        }
+
+        navHamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (navMenu.classList.contains('mobile-open')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+
+        // Закрытие по клику на backdrop
+        backdrop.addEventListener('click', closeMobileMenu);
+
+        // Закрытие при клике на ссылку в меню
+        navMenu.querySelectorAll('.nav-item').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+
+        // Закрытие при изменении размера окна (если вернулись на десктоп)
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 992) {
+                closeMobileMenu();
+            }
+        });
+
+        // Закрытие на Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && navMenu.classList.contains('mobile-open')) {
+                closeMobileMenu();
+                navHamburger.focus();
+            }
+        });
+    }
+
     // ==================== CSS АНИМАЦИИ ====================
     if (!document.querySelector('#custom-styles')) {
         const style = document.createElement('style');
