@@ -208,9 +208,11 @@ class Booking(models.Model):
 
     @property
     def available_slots(self):
-        """Количество свободных мест для партнёров"""
-        current_players = 1 + self.partners.count()  # создатель + партнёры
-        return max(0, self.max_players - current_players)
+        """Количество свободных мест"""
+        gp_count = self.game_participants.count()
+        if gp_count > 0:
+            return max(0, self.max_players - gp_count)
+        return max(0, self.max_players - (1 + self.partners.count()))
 
     @property
     def is_full(self):
