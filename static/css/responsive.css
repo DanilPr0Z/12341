@@ -412,9 +412,9 @@ object {
         display: none !important;
     }
 
-    /* Адаптация auth кнопок */
+    /* Скрываем профиль-дропдаун — всё в бургер-меню */
     .nav-auth {
-        margin-left: auto;
+        display: none !important;
     }
 
     .auth-btn {
@@ -3441,5 +3441,82 @@ object {
     .card img {
         max-width: 100% !important;
         height: auto !important;
+    }
+}
+
+/* ==================== EXTRA SMALL (320px - 400px) ==================== */
+
+/* Минимальная поддержка экранов от 320px (старые iPhone SE и т.п.) */
+@media (max-width: 360px) {
+    .container {
+        padding: 0 8px;
+    }
+
+    /* Навбар: логотип компактнее */
+    .nav-brand a {
+        font-size: 1.1rem;
+    }
+
+    /* Кнопки — полная ширина */
+    .btn,
+    .auth-btn {
+        font-size: 13px !important;
+        padding: 10px 12px !important;
+    }
+
+    /* Карточки — минимальные отступы */
+    .card,
+    .feature-card,
+    .game-card,
+    .coach-card,
+    .tournament-card,
+    .booking-card,
+    .section-card {
+        padding: 12px !important;
+    }
+
+    /* Формы */
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px; /* предотвращает zoom на iOS */
+        padding: 9px 10px;
+    }
+
+    /* Заголовки страниц */
+    .page-header h1,
+    .my-bookings-header h1,
+    h1 {
+        font-size: 1.3rem !important;
+    }
+
+    /* Таблицы — горизонтальный скролл */
+    .table-responsive,
+    .table-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Подиум лидерборда */
+    .podium-player {
+        max-width: 80px !important;
+    }
+
+    .podium-avatar,
+    .podium-avatar-placeholder {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 16px !important;
+    }
+
+    /* Cookie баннер */
+    #cookieBanner {
+        padding: 14px !important;
+        border-radius: 10px !important;
+    }
+
+    #cookieBanner button {
+        min-height: 36px !important;
+        font-size: 12px !important;
     }
 }

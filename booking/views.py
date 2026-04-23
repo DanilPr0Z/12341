@@ -2369,3 +2369,278 @@ def send_game_chat_message(request, booking_id):
             'is_own': True
         }
     })
+
+
+@login_required
+@require_POST
+def remove_participant(request, booking_id, user_id):
+    """Удалить участника из игры (только для организатора)"""
+    from .models import GameParticipant
+    from django.contrib.auth.models import User
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+
+        # Только организатор может удалять участников
+        if booking.user != request.user:
+            return JsonResponse({
+                'success': False,
+                'message': 'Только организатор может удалять участников'
+            }, status=403)
+
+        # Нельзя удалить себя через этот endpoint
+        if int(user_id) == request.user.id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Организатор не может удалить себя'
+            })
+
+        # Нельзя удалять участников из уже начатой игры
+        if booking.game_status in ('in_progress', 'completed'):
+            return JsonResponse({
+                'success': False,
+                'message': 'Нельзя удалять участников из начавшейся игры'
+            })
+
+        target_user = get_object_or_404(User, id=user_id)
+
+        # Для americano/mexicano — удаляем GameParticipant
+        participant = GameParticipant.objects.filter(booking=booking, user=target_user).first()
+        if participant:
+            participant.delete()
+
+        # Для обычных бронирований — удаляем из partners
+        if target_user in booking.partners.all():
+            booking.partners.remove(target_user)
+
+        # Обновляем статус игры если нужно
+        if booking.game_status == 'ready':
+            booking.game_status = 'pending'
+            booking.save()
+
+        logger.info(f"User {target_user.username} removed from booking {booking_id} by {request.user.username}")
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Участник {target_user.get_full_name() or target_user.username} удалён из игры'
+        })
+
+    except Exception as e:
+        logger.error(f"Error removing participant: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка при удалении участника'
+        }, status=500)
+
+
+@login_required
+@require_POST
+def leave_game(request, booking_id):
+    """Выйти из игры (для обычного участника, не организатора)"""
+    from .models import GameParticipant
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+
+        # Организатор не может использовать этот endpoint
+        if booking.user == request.user:
+            return JsonResponse({
+                'success': False,
+                'message': 'Организатор не может выйти из игры. Передайте роль другому участнику.'
+            })
+
+        # Нельзя выходить из начавшейся игры
+        if booking.game_status in ('in_progress', 'completed'):
+            return JsonResponse({
+                'success': False,
+                'message': 'Нельзя выйти из уже начавшейся игры'
+            })
+
+        removed = False
+
+        # Для americano/mexicano — удаляем GameParticipant
+        participant = GameParticipant.objects.filter(booking=booking, user=request.user).first()
+        if participant:
+            participant.delete()
+            removed = True
+
+        # Для обычных бронирований — удаляем из partners
+        if request.user in booking.partners.all():
+            booking.partners.remove(request.user)
+            removed = True
+
+        if not removed:
+            return JsonResponse({
+                'success': False,
+                'message': 'Вы не являетесь участником этой игры'
+            })
+
+        # Обновляем статус если нужно
+        if booking.game_status == 'ready':
+            booking.game_status = 'pending'
+            booking.save()
+
+        logger.info(f"User {request.user.username} left booking {booking_id}")
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Вы вышли из игры'
+        })
+
+    except Exception as e:
+        logger.error(f"Error leaving game: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка при выходе из игры'
+        }, status=500)
+
+
+@login_required
+@require_POST
+def transfer_organizer(request, booking_id, user_id):
+    """Передать роль организатора другому участнику"""
+    from django.contrib.auth.models import User
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+
+        # Только текущий организатор может передать роль
+        if booking.user != request.user:
+            return JsonResponse({
+                'success': False,
+                'message': 'Только организатор может передать свою роль'
+            }, status=403)
+
+        # Нельзя передать себе
+        if int(user_id) == request.user.id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Нельзя передать роль самому себе'
+            })
+
+        # Нельзя менять организатора в начавшейся игре
+        if booking.game_status in ('in_progress', 'completed'):
+            return JsonResponse({
+                'success': False,
+                'message': 'Нельзя менять организатора в начавшейся игре'
+            })
+
+        target_user = get_object_or_404(User, id=user_id)
+
+        # Проверяем что target_user является участником
+        is_partner = target_user in booking.partners.all()
+        is_game_participant = booking.game_participants.filter(user=target_user).exists()
+
+        if not (is_partner or is_game_participant):
+            return JsonResponse({
+                'success': False,
+                'message': 'Пользователь не является участником этой игры'
+            })
+
+        old_organizer = booking.user
+
+        # Добавляем старого организатора в partners, удаляем нового из partners
+        booking.partners.add(old_organizer)
+        booking.partners.remove(target_user)
+        booking.user = target_user
+        booking.save()
+
+        logger.info(
+            f"Organizer of booking {booking_id} transferred from {old_organizer.username} to {target_user.username}"
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Роль организатора передана {target_user.get_full_name() or target_user.username}'
+        })
+
+    except Exception as e:
+        logger.error(f"Error transferring organizer: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка при передаче роли организатора'
+        }, status=500)
+
+
+@login_required
+@require_POST
+def generate_round(request, booking_id):
+    """Сгенерировать следующий раунд для игры в процессе (только организатор)"""
+    from .models import GameParticipant, GameRound
+    import random
+
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+
+        if booking.user != request.user:
+            return JsonResponse({
+                'success': False,
+                'message': 'Только организатор может генерировать раунды'
+            }, status=403)
+
+        if booking.game_status != 'in_progress':
+            return JsonResponse({
+                'success': False,
+                'message': 'Генерация раунда возможна только в активной игре'
+            })
+
+        # Проверяем незавершённые раунды
+        pending_rounds = booking.game_rounds.filter(is_completed=False)
+        if pending_rounds.exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'Завершите текущий раунд перед генерацией нового'
+            })
+
+        # Проверяем лимит раундов
+        current_rounds_count = booking.game_rounds.count()
+        if current_rounds_count >= booking.rounds_count:
+            return JsonResponse({
+                'success': False,
+                'message': f'Достигнут лимит раундов ({booking.rounds_count})'
+            })
+
+        players = list(
+            GameParticipant.objects.filter(booking=booking, status='joined')
+            .select_related('user')
+            .values_list('user', flat=True)
+        )
+
+        if len(players) < 4:
+            return JsonResponse({
+                'success': False,
+                'message': 'Для генерации раунда нужно минимум 4 игрока'
+            })
+
+        from django.contrib.auth.models import User
+        player_users = list(User.objects.filter(id__in=players))
+        random.shuffle(player_users)
+
+        next_round_number = current_rounds_count + 1
+
+        GameRound.objects.create(
+            booking=booking,
+            round_number=next_round_number,
+            team1_player1=player_users[0],
+            team1_player2=player_users[1],
+            team2_player1=player_users[2],
+            team2_player2=player_users[3],
+        )
+
+        booking.current_round = next_round_number
+        booking.save()
+
+        logger.info(f"Round {next_round_number} generated for booking {booking_id}")
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Раунд {next_round_number} сгенерирован',
+            'round_number': next_round_number
+        })
+
+    except Exception as e:
+        logger.error(f"Error generating round: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'success': False,
+            'message': 'Ошибка при генерации раунда'
+        }, status=500)

@@ -56,4 +56,10 @@ urlpatterns = [
     # Чат игры (Game Chat)
     path('chat/<int:booking_id>/', views.get_game_chat, name='get_game_chat'),
     path('chat/<int:booking_id>/send/', views.send_game_chat_message, name='send_chat_message'),
+
+    # Управление участниками
+    path('games/<int:booking_id>/remove/<int:user_id>/', views.remove_participant, name='remove_participant'),
+    path('games/<int:booking_id>/leave/', views.leave_game, name='leave_game'),
+    path('games/<int:booking_id>/transfer/<int:user_id>/', views.transfer_organizer, name='transfer_organizer'),
+    path('games/<int:booking_id>/generate-round/', views.generate_round, name='generate_round'),
 ]

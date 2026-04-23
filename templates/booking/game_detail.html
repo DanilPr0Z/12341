@@ -538,6 +538,69 @@
             flex-direction: column;
         }
     }
+
+    /* Кнопки управления участниками */
+    .participant-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .btn-participant-action {
+        flex: 1;
+        padding: 6px 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: all 0.2s;
+    }
+
+    .btn-transfer {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        color: #1a1a1a;
+    }
+
+    .btn-transfer:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(255,215,0,0.4);
+    }
+
+    .btn-remove {
+        background: linear-gradient(135deg, #ff4d4d 0%, #ff7070 100%);
+        color: white;
+    }
+
+    .btn-remove:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(255,77,77,0.4);
+    }
+
+    /* Кнопка выхода из игры */
+    .btn-leave-game {
+        background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .btn-leave-game:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+    }
 </style>
 {% endblock %}
 
@@ -715,7 +778,10 @@
                                 </div>
                             {% endif %}
                             <div class="player-name">{{ participant.user.first_name }} {{ participant.user.last_name }}</div>
-                            <div style="font-size: 12px; color: #999; margin-bottom: 8px;">@{{ participant.user.username }}</div>
+                            <div style="font-size: 12px; color: #999; margin-bottom: 8px;">
+                                @{{ participant.user.username }}
+                                {% if participant.user == booking.user %}<span style="color: var(--primary-color);">(организатор)</span>{% endif %}
+                            </div>
                             <div class="player-stats">
                                 {% if participant.user.rating %}
                                 <span class="stat-badge rating-badge">{{ participant.user.rating.level }}</span>
@@ -724,6 +790,20 @@
                                 <span class="stat-badge points-badge">{{ participant.total_points }} очков</span>
                                 {% endif %}
                             </div>
+                            {% if is_creator and participant.user != request.user and booking.game_status != 'in_progress' and booking.game_status != 'completed' %}
+                            <div class="participant-actions">
+                                <button class="btn-participant-action btn-transfer"
+                                        onclick="transferOrganizer({{ participant.user.id }}, '{{ participant.user.get_full_name|default:participant.user.username }}')"
+                                        title="Передать организатора">
+                                    <i class="fas fa-crown"></i>
+                                </button>
+                                <button class="btn-participant-action btn-remove"
+                                        onclick="removeParticipant({{ participant.user.id }}, '{{ participant.user.get_full_name|default:participant.user.username }}')"
+                                        title="Удалить участника">
+                                    <i class="fas fa-user-minus"></i>
+                                </button>
+                            </div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     {% elif partners_list %}
@@ -737,12 +817,28 @@
                                 </div>
                             {% endif %}
                             <div class="player-name">{{ p.user.first_name }} {{ p.user.last_name }}</div>
-                            <div style="font-size: 12px; color: #999; margin-bottom: 8px;">@{{ p.user.username }}{% if p.is_creator %} <span style="color: var(--primary-color);">(организатор)</span>{% endif %}</div>
+                            <div style="font-size: 12px; color: #999; margin-bottom: 8px;">
+                                @{{ p.user.username }}{% if p.is_creator %} <span style="color: var(--primary-color);">(организатор)</span>{% endif %}
+                            </div>
                             <div class="player-stats">
                                 {% if p.user.rating %}
                                 <span class="stat-badge rating-badge">{{ p.user.rating.level }}</span>
                                 {% endif %}
                             </div>
+                            {% if is_creator and not p.is_creator and booking.game_status != 'in_progress' and booking.game_status != 'completed' %}
+                            <div class="participant-actions">
+                                <button class="btn-participant-action btn-transfer"
+                                        onclick="transferOrganizer({{ p.user.id }}, '{{ p.user.get_full_name|default:p.user.username }}')"
+                                        title="Передать организатора">
+                                    <i class="fas fa-crown"></i>
+                                </button>
+                                <button class="btn-participant-action btn-remove"
+                                        onclick="removeParticipant({{ p.user.id }}, '{{ p.user.get_full_name|default:p.user.username }}')"
+                                        title="Удалить участника">
+                                    <i class="fas fa-user-minus"></i>
+                                </button>
+                            </div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     {% endif %}
@@ -758,6 +854,15 @@
                     {% endfor %}
                     {% endif %}
                 </div>
+
+                <!-- Кнопка выхода из игры (для обычного участника) -->
+                {% if is_participant and not is_creator and booking.game_status != 'in_progress' and booking.game_status != 'completed' %}
+                <div style="margin-top: 16px;">
+                    <button class="btn btn-leave-game btn-block" onclick="leaveGame()">
+                        <i class="fas fa-sign-out-alt"></i> Выйти из игры
+                    </button>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Лист ожидания (только для владельца) -->
@@ -791,7 +896,7 @@
             <!-- Чат игры (только для участников) -->
             {% if is_participant %}
             <div class="section-card" style="padding: 0; overflow: hidden;">
-                <div class="game-chat-container" style="height: 400px;">
+                <div class="game-chat-container">
                     <div class="chat-header">
                         <h3><i class="fas fa-comments"></i> Чат игры</h3>
                         <div class="chat-online-count">
@@ -841,16 +946,23 @@
             {% endif %}
 
             <!-- Действия -->
-            {% if is_creator and booking.game_status == 'ready' %}
+            {% if is_creator %}
             <div class="section-card">
                 <h2 class="section-title">
                     <i class="fas fa-play"></i>
                     Управление
                 </h2>
-                <div class="action-buttons">
+                <div class="action-buttons" style="flex-direction: column; gap: 10px;">
+                    {% if booking.game_status == 'ready' %}
                     <button class="btn btn-primary btn-block" onclick="startGame()">
                         <i class="fas fa-play-circle"></i> Начать игру
                     </button>
+                    {% endif %}
+                    {% if booking.game_status == 'in_progress' %}
+                    <button class="btn btn-primary btn-block" onclick="generateRound()">
+                        <i class="fas fa-random"></i> Сгенерировать раунд
+                    </button>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
@@ -952,6 +1064,114 @@
         } else {
             alert(message);
         }
+    }
+
+    function removeParticipant(userId, userName) {
+        if (!confirm(`Удалить участника ${userName} из игры?`)) {
+            return;
+        }
+
+        fetch(`/booking/games/{{ booking.id }}/remove/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                showMessage('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', 'Ошибка при удалении участника');
+        });
+    }
+
+    function leaveGame() {
+        if (!confirm('Выйти из игры? Это действие нельзя отменить.')) {
+            return;
+        }
+
+        fetch(`/booking/games/{{ booking.id }}/leave/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.href = '/booking/games/', 1500);
+            } else {
+                showMessage('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', 'Ошибка при выходе из игры');
+        });
+    }
+
+    function transferOrganizer(userId, userName) {
+        if (!confirm(`Передать роль организатора игроку ${userName}? После этого вы станете обычным участником.`)) {
+            return;
+        }
+
+        fetch(`/booking/games/{{ booking.id }}/transfer/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showMessage('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', 'Ошибка при передаче роли организатора');
+        });
+    }
+
+    function generateRound() {
+        if (!confirm('Сгенерировать новый раунд со случайным распределением игроков?')) {
+            return;
+        }
+
+        fetch(`/booking/games/{{ booking.id }}/generate-round/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('success', data.message);
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                showMessage('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', 'Ошибка при генерации раунда');
+        });
     }
 
     // Автоматический расчет второго поля
