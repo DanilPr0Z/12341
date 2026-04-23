@@ -953,12 +953,15 @@
                     Управление
                 </h2>
                 <div class="action-buttons" style="flex-direction: column; gap: 10px;">
-                    {% if booking.game_status == 'ready' %}
+                    {% if booking.game_status == 'pending' %}
+                    <p style="color: #6b7280; font-size: 14px; text-align: center; padding: 8px 0;">
+                        <i class="fas fa-users"></i> Ожидание участников. Игра начнётся когда наберётся достаточно игроков.
+                    </p>
+                    {% elif booking.game_status == 'ready' %}
                     <button class="btn btn-primary btn-block" onclick="startGame()">
                         <i class="fas fa-play-circle"></i> Начать игру
                     </button>
-                    {% endif %}
-                    {% if booking.game_status == 'in_progress' %}
+                    {% elif booking.game_status == 'in_progress' %}
                     <button class="btn btn-primary btn-block" onclick="generateRound()">
                         <i class="fas fa-random"></i> Сгенерировать раунд
                     </button>
