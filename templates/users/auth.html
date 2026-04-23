@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if initial_mode == 'register' %}Регистрация{% else %}Вход{% endif %} — PadelBooking</title>
+    <title>{% if initial_mode == 'register' %}Регистрация{% else %}Вход{% endif %} — Padel Booking</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -277,7 +277,7 @@
         <nav class="ap-nav">
             <div class="nav-brand">
                 <i class="fas fa-table-tennis-paddle-ball" style="color:#38b000;font-size:1.6rem;margin-right:8px;"></i>
-                <a href="/">PadelBooking</a>
+                <a href="/">Padel Booking</a>
             </div>
             <a href="{% url 'coaches_list' %}" class="ap-nav-link">Тренеры</a>
             <a href="{% url 'tournament:public_tournaments_list' %}" class="ap-nav-link">Турниры</a>
@@ -376,7 +376,7 @@
         <div class="d-content">
             <a href="/" class="d-logo">
                 <i class="fas fa-table-tennis-paddle-ball"></i>
-                <span>PadelBooking</span>
+                <span>Padel Booking</span>
             </a>
             <p class="d-title">Бронируй корт,<br><em>находи партнёров</em></p>
             <p class="d-sub">Платформа для любителей и профессионалов падел-тенниса</p>
