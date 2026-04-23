@@ -818,7 +818,7 @@
                             </div>
                             <div class="booking-detail-content">
                                 <p class="booking-detail-label">Игроков</p>
-                                <p class="booking-detail-value">{{ item.booking.partners.count|add:1 }}{% if item.booking.max_players %}/{{ item.booking.max_players }}{% endif %}</p>
+                                <p class="booking-detail-value">{% if item.booking.game_participants.count > 0 %}{{ item.booking.game_participants.count }}{% else %}{{ item.booking.partners.count|add:1 }}{% endif %}{% if item.booking.max_players %}/{{ item.booking.max_players }}{% endif %}</p>
                             </div>
                         </div>
                     </div>
@@ -931,7 +931,7 @@
                                 </div>
                                 <div class="booking-detail-content">
                                     <p class="booking-detail-label">Игроков</p>
-                                    <p class="booking-detail-value">{{ item.booking.partners.count|add:1 }}{% if item.booking.max_players %}/{{ item.booking.max_players }}{% endif %}</p>
+                                    <p class="booking-detail-value">{% if item.booking.game_participants.count > 0 %}{{ item.booking.game_participants.count }}{% else %}{{ item.booking.partners.count|add:1 }}{% endif %}{% if item.booking.max_players %}/{{ item.booking.max_players }}{% endif %}</p>
                                 </div>
                             </div>
                         </div>
@@ -1043,7 +1043,7 @@
                                 </div>
                                 <div class="booking-detail-content">
                                     <p class="booking-detail-label">Игроков</p>
-                                    <p class="booking-detail-value">{{ item.booking.partners.count|add:1 }}{% if item.booking.max_players %}/{{ item.booking.max_players }}{% endif %}</p>
+                                    <p class="booking-detail-value">{% if item.booking.game_participants.count > 0 %}{{ item.booking.game_participants.count }}{% else %}{{ item.booking.partners.count|add:1 }}{% endif %}{% if item.booking.max_players %}/{{ item.booking.max_players }}{% endif %}</p>
                                 </div>
                             </div>
                         </div>
