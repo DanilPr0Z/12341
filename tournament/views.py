@@ -158,6 +158,58 @@ def public_tournament_unregister(request, tournament_id):
 
 
 # =============================================================================
+# ПУБЛИЧНЫЙ API - СПИСОК ТУРНИРОВ (без авторизации)
+# =============================================================================
+
+def api_public_tournaments_list(request):
+    """Публичный API: список турниров для страницы игроков"""
+    try:
+        tournaments = Tournament.objects.filter(
+            status__in=['registration_open', 'in_progress', 'completed']
+        ).order_by('-start_date')
+
+        tournaments_data = []
+        for tournament in tournaments:
+            tournaments_data.append({
+                'id': tournament.id,
+                'name': tournament.name,
+                'description': tournament.description,
+                'start_date': tournament.start_date.isoformat(),
+                'end_date': tournament.end_date.isoformat(),
+                'registration_deadline': tournament.registration_deadline.isoformat(),
+                'max_participants': tournament.max_participants,
+                'participants_count': tournament.participants_count,
+                'available_slots': tournament.available_slots,
+                'entry_fee': float(tournament.entry_fee),
+                'prize_pool': float(tournament.prize_pool),
+                'format': tournament.format,
+                'format_display': tournament.get_format_display(),
+                'is_team_tournament': tournament.is_team_tournament,
+                'is_mixed': tournament.is_mixed,
+                'status': tournament.status,
+                'status_display': tournament.get_status_display(),
+                'is_registration_open': tournament.is_registration_open,
+                'is_full': tournament.is_full,
+                'image': tournament.image.url if tournament.image else None,
+            })
+
+        stats = {
+            'total_tournaments': tournaments.count(),
+            'active_tournaments': tournaments.filter(status='in_progress').count(),
+            'upcoming_tournaments': tournaments.filter(status='registration_open').count(),
+            'completed_tournaments': tournaments.filter(status='completed').count(),
+        }
+
+        return JsonResponse({
+            'success': True,
+            'tournaments': tournaments_data,
+            'stats': stats
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': 'Ошибка загрузки турниров'}, status=500)
+
+
+# =============================================================================
 # API ENDPOINTS - СПИСОК И CRUD ТУРНИРОВ
 # =============================================================================
 

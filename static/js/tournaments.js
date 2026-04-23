@@ -38,7 +38,7 @@ class TournamentsList {
         try {
             this.showLoading();
 
-            const response = await fetch('/tournaments/api/list/');
+            const response = await fetch('/tournaments/api/public/list/');
             const data = await response.json();
 
             if (data.success) {
