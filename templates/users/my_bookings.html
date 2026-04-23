@@ -826,18 +826,28 @@
                     <div class="booking-partners">
                         <h4><i class="fas fa-user-friends"></i> Участники:</h4>
                         <div class="partners-list">
-                            <span class="partner-tag">
-                                <span class="partner-avatar">{{ item.booking.user.first_name.0|default:"?" }}</span>
-                                {{ item.booking.user.get_full_name|default:item.booking.user.username }}
-                                {% if item.is_creator %}<small>(вы)</small>{% endif %}
-                            </span>
-                            {% for partner in item.booking.partners.all %}
+                            {% if item.booking.game_participants.count > 0 %}
+                                {% for gp in item.booking.game_participants.all %}
+                                    <span class="partner-tag">
+                                        <span class="partner-avatar">{{ gp.user.first_name.0|default:"?" }}</span>
+                                        {{ gp.user.get_full_name|default:gp.user.username }}
+                                        {% if gp.user == request.user %}<small>(вы)</small>{% endif %}
+                                    </span>
+                                {% endfor %}
+                            {% else %}
                                 <span class="partner-tag">
-                                    <span class="partner-avatar">{{ partner.first_name.0|default:"?" }}</span>
-                                    {{ partner.get_full_name|default:partner.username }}
-                                    {% if partner == request.user %}<small>(вы)</small>{% endif %}
+                                    <span class="partner-avatar">{{ item.booking.user.first_name.0|default:"?" }}</span>
+                                    {{ item.booking.user.get_full_name|default:item.booking.user.username }}
+                                    {% if item.is_creator %}<small>(вы)</small>{% endif %}
                                 </span>
-                            {% endfor %}
+                                {% for partner in item.booking.partners.all %}
+                                    <span class="partner-tag">
+                                        <span class="partner-avatar">{{ partner.first_name.0|default:"?" }}</span>
+                                        {{ partner.get_full_name|default:partner.username }}
+                                        {% if partner == request.user %}<small>(вы)</small>{% endif %}
+                                    </span>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                     </div>
 
@@ -939,16 +949,26 @@
                         <div class="booking-partners">
                             <h4><i class="fas fa-user-friends"></i> Участники:</h4>
                             <div class="partners-list">
-                                <span class="partner-tag">
-                                    <span class="partner-avatar">{{ item.booking.user.first_name.0|default:"?" }}</span>
-                                    {{ item.booking.user.get_full_name|default:item.booking.user.username }}
-                                </span>
-                                {% for partner in item.booking.partners.all %}
+                                {% if item.booking.game_participants.count > 0 %}
+                                    {% for gp in item.booking.game_participants.all %}
+                                        <span class="partner-tag">
+                                            <span class="partner-avatar">{{ gp.user.first_name.0|default:"?" }}</span>
+                                            {{ gp.user.get_full_name|default:gp.user.username }}
+                                            {% if gp.user == request.user %}<small>(вы)</small>{% endif %}
+                                        </span>
+                                    {% endfor %}
+                                {% else %}
                                     <span class="partner-tag">
-                                        <span class="partner-avatar">{{ partner.first_name.0|default:"?" }}</span>
-                                        {{ partner.get_full_name|default:partner.username }}
+                                        <span class="partner-avatar">{{ item.booking.user.first_name.0|default:"?" }}</span>
+                                        {{ item.booking.user.get_full_name|default:item.booking.user.username }}
                                     </span>
-                                {% endfor %}
+                                    {% for partner in item.booking.partners.all %}
+                                        <span class="partner-tag">
+                                            <span class="partner-avatar">{{ partner.first_name.0|default:"?" }}</span>
+                                            {{ partner.get_full_name|default:partner.username }}
+                                        </span>
+                                    {% endfor %}
+                                {% endif %}
                             </div>
                         </div>
 
@@ -1051,16 +1071,26 @@
                         <div class="booking-partners">
                             <h4><i class="fas fa-user-friends"></i> Участники:</h4>
                             <div class="partners-list">
-                                <span class="partner-tag">
-                                    <span class="partner-avatar">{{ item.booking.user.first_name.0|default:"?" }}</span>
-                                    {{ item.booking.user.get_full_name|default:item.booking.user.username }}
-                                </span>
-                                {% for partner in item.booking.partners.all %}
+                                {% if item.booking.game_participants.count > 0 %}
+                                    {% for gp in item.booking.game_participants.all %}
+                                        <span class="partner-tag">
+                                            <span class="partner-avatar">{{ gp.user.first_name.0|default:"?" }}</span>
+                                            {{ gp.user.get_full_name|default:gp.user.username }}
+                                            {% if gp.user == request.user %}<small>(вы)</small>{% endif %}
+                                        </span>
+                                    {% endfor %}
+                                {% else %}
                                     <span class="partner-tag">
-                                        <span class="partner-avatar">{{ partner.first_name.0|default:"?" }}</span>
-                                        {{ partner.get_full_name|default:partner.username }}
+                                        <span class="partner-avatar">{{ item.booking.user.first_name.0|default:"?" }}</span>
+                                        {{ item.booking.user.get_full_name|default:item.booking.user.username }}
                                     </span>
-                                {% endfor %}
+                                    {% for partner in item.booking.partners.all %}
+                                        <span class="partner-tag">
+                                            <span class="partner-avatar">{{ partner.first_name.0|default:"?" }}</span>
+                                            {{ partner.get_full_name|default:partner.username }}
+                                        </span>
+                                    {% endfor %}
+                                {% endif %}
                             </div>
                         </div>
 
