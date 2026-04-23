@@ -430,8 +430,8 @@ document.addEventListener('DOMContentLoaded', function() {
     display: none;
 }
 
-/* ===== MOBILE MENU ===== */
-@media (max-width: 768px) {
+/* ===== MOBILE MENU (все экраны ≤992px где есть бургер) ===== */
+@media (max-width: 992px) {
     /* Navbar фиксированный поверх меню */
     .navbar {
         position: fixed;
@@ -448,16 +448,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     .nav-container {
         justify-content: space-between;
-    }
-
-    /* Профиль скрыт на мобиле — его роль берёт бургер */
-    .nav-auth {
-        display: none !important;
-    }
-
-    /* Гамбургер — справа, обычный flex-элемент (не absolute) */
-    .nav-hamburger {
-        display: flex;
     }
 
     .nav-menu {
@@ -511,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() {
         color: var(--secondary-color);
     }
 
-    /* Профиль в мобильном меню */
+    /* Профиль в бургер-меню */
     .nav-mobile-profile {
         display: flex;
         flex-direction: column;

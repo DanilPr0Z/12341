@@ -658,7 +658,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Закрытие при ресайзе на десктоп
         window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) closeMobileMenu();
+            if (window.innerWidth > 992) closeMobileMenu();
         });
 
         // Закрытие на Escape
