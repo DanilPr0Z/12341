@@ -15,8 +15,8 @@ urlpatterns = [
                   path('news/', TemplateView.as_view(template_name='news.html'), name='news'),
 
                   # Информационные страницы
-                  path('about/', views.about, name='about'),
-                  path('rules/', views.rules, name='rules'),
+path('rules/', views.rules, name='rules'),
+                  path('faq/', views.faq, name='faq'),
                   path('privacy/', views.privacy_policy, name='privacy_policy'),
                   path('terms/', views.terms_of_service, name='terms_of_service'),
 

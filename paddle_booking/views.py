@@ -45,3 +45,8 @@ def privacy_policy(request):
 def terms_of_service(request):
     """Страница Пользовательское соглашение"""
     return render(request, 'pages/terms.html')
+
+
+def faq(request):
+    """Страница Вопросы и ответы"""
+    return render(request, 'pages/faq.html')
