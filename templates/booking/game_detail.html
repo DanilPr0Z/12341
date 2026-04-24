@@ -1062,11 +1062,16 @@
     }
 
     function showMessage(type, message) {
-        if (typeof window.showMessage !== 'undefined') {
-            window.showMessage(type, message);
-        } else {
-            alert(message);
-        }
+        const existing = document.querySelector('.flash-message');
+        if (existing) existing.remove();
+        const div = document.createElement('div');
+        div.className = 'flash-message flash-' + type;
+        div.style.cssText = 'position:fixed;top:80px;right:20px;z-index:9999;padding:12px 20px;border-radius:8px;font-weight:600;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+        div.style.background = type === 'success' ? '#4ade80' : '#f87171';
+        div.style.color = '#fff';
+        div.textContent = message;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 3000);
     }
 
     function removeParticipant(userId, userName) {

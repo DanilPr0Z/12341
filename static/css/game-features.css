@@ -161,6 +161,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    border-radius: 12px 12px 0 0;
 }
 
 .chat-header h3 {
@@ -282,8 +283,8 @@
     display: flex;
     gap: 10px;
     align-items: flex-end;
-    /* Прижимаем к низу и не даём сжаться */
     flex-shrink: 0;
+    border-radius: 0 0 12px 12px;
 }
 
 #chat-message-input {

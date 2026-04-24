@@ -165,8 +165,8 @@ class Tournament(models.Model):
 
     @property
     def participants_count(self):
-        """Количество участников"""
-        return self.participants.filter(payment_status='paid').count()
+        """Количество участников (зарегистрированных и оплативших)"""
+        return self.participants.filter(payment_status__in=['paid', 'pending']).count()
 
     @property
     def available_slots(self):

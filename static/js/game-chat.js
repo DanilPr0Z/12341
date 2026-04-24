@@ -229,27 +229,22 @@ class GameChat {
 
     formatTime(isoString) {
         const date = new Date(isoString);
+        const opts = { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Samara' };
+        const dateOpts = { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Samara' };
+
         const now = new Date();
-        const diff = Math.floor((now - date) / 1000); // секунды
+        const todayStr = now.toLocaleDateString('ru-RU', dateOpts);
+        const msgDateStr = date.toLocaleDateString('ru-RU', dateOpts);
 
-        if (diff < 60) return 'только что';
-        if (diff < 3600) return `${Math.floor(diff / 60)} мин`;
-        if (diff < 86400) return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-
-        // Если сегодня
-        if (date.toDateString() === now.toDateString()) {
-            return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        }
-
-        // Если вчера
         const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
-        if (date.toDateString() === yesterday.toDateString()) {
-            return 'вчера ' + date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        }
+        const yesterdayStr = yesterday.toLocaleDateString('ru-RU', dateOpts);
 
-        // Иначе полная дата
-        return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        const time = date.toLocaleTimeString('ru-RU', opts);
+
+        if (msgDateStr === todayStr) return time;
+        if (msgDateStr === yesterdayStr) return 'вчера ' + time;
+        return msgDateStr + ' ' + time;
     }
 
     escapeHtml(text) {
