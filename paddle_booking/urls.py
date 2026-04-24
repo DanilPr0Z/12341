@@ -16,8 +16,7 @@ urlpatterns = [
 
                   # Информационные страницы
 path('rules/', views.rules, name='rules'),
-                  path('faq/', views.faq, name='faq'),
-                  path('privacy/', views.privacy_policy, name='privacy_policy'),
+path('privacy/', views.privacy_policy, name='privacy_policy'),
                   path('terms/', views.terms_of_service, name='terms_of_service'),
 
                   # Турниры - приложение tournament

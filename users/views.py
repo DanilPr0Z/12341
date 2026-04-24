@@ -122,8 +122,6 @@ def ajax_logout(request):
     })
 
 
-@require_POST
-@login_required
 def privacy_policy(request):
     """Политика конфиденциальности"""
     return render(request, 'users/privacy_policy.html')
